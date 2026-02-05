@@ -14,5 +14,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Use shell form to ensure PORT env var is expanded at runtime
-CMD ["/bin/sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Make startup script executable
+RUN chmod +x start.sh
+
+# Use startup script
+CMD ["./start.sh"]
