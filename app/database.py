@@ -3,6 +3,7 @@ Database connection and session management for Neon Postgres.
 Uses asyncpg with SQLAlchemy async.
 """
 
+import ssl
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -16,13 +17,25 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 
-# Create async engine for Neon Postgres
+def get_database_url() -> str:
+    """Get database URL without sslmode and with proper params."""
+    url = settings.database_url
+    # Remove sslmode from URL (asyncpg doesn't support it as query param)
+    if "?sslmode=" in url:
+        url = url.split("?sslmode=")[0]
+    elif "&sslmode=" in url:
+        url = url.replace("&sslmode=require", "").replace("&sslmode=disable", "")
+    return url
+
+
+# Create async engine for Neon Postgres with SSL
 engine = create_async_engine(
-    settings.database_url,
+    get_database_url(),
     echo=settings.debug,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
+    connect_args={"ssl": True},  # Enable SSL for Neon
 )
 
 # Session factory
