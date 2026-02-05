@@ -22,37 +22,37 @@ class Settings(BaseSettings):
     app_name: str = "subhamasthu"
     app_env: Literal["development", "staging", "production"] = "development"
     debug: bool = False
-    secret_key: str
+    secret_key: str = "dev-secret-change-in-production"
     
     # API Server
     host: str = "0.0.0.0"
     port: int = 8000
     
     # Neon Postgres
-    database_url: str
+    database_url: str = ""
     
     # Redis
-    redis_url: str
+    redis_url: str = ""
     
-    # Gupshup WhatsApp
-    gupshup_api_key: str
-    gupshup_app_name: str
-    gupshup_source_number: str
+    # Gupshup WhatsApp (optional - pending verification)
+    gupshup_api_key: str = ""
+    gupshup_app_name: str = "subhamasthu"
+    gupshup_source_number: str = ""
     gupshup_webhook_secret: str = ""
     
-    # Razorpay
-    razorpay_key_id: str
-    razorpay_key_secret: str
-    razorpay_webhook_secret: str
+    # Razorpay (optional for initial setup)
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_webhook_secret: str = ""
     
     # OpenAI
-    openai_api_key: str
+    openai_api_key: str = ""
     
     # Timezone
     default_timezone: str = "America/Chicago"
     
     # Admin
-    admin_api_key: str
+    admin_api_key: str = ""
     
     @property
     def is_development(self) -> bool:
