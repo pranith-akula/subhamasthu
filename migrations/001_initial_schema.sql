@@ -8,36 +8,48 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ENUMS
 -- =============================================================================
 
-CREATE TYPE conversation_state AS ENUM (
-    'NEW',
-    'WAITING_FOR_RASHI',
-    'WAITING_FOR_NAKSHATRA',
-    'WAITING_FOR_BIRTH_TIME',
-    'WAITING_FOR_DEITY',
-    'WAITING_FOR_AUSPICIOUS_DAY',
-    'ONBOARDED',
-    'DAILY_PASSIVE',
-    'WEEKLY_PROMPT_SENT',
-    'WAITING_FOR_CATEGORY',
-    'WAITING_FOR_TIER',
-    'PAYMENT_LINK_SENT',
-    'PAYMENT_CONFIRMED',
-    'RECEIPT_SENT',
-    'COOLDOWN'
-);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'conversation_state') THEN
+        CREATE TYPE conversation_state AS ENUM (
+            'NEW',
+            'WAITING_FOR_RASHI',
+            'WAITING_FOR_NAKSHATRA',
+            'WAITING_FOR_BIRTH_TIME',
+            'WAITING_FOR_DEITY',
+            'WAITING_FOR_AUSPICIOUS_DAY',
+            'ONBOARDED',
+            'DAILY_PASSIVE',
+            'WEEKLY_PROMPT_SENT',
+            'WAITING_FOR_CATEGORY',
+            'WAITING_FOR_TIER',
+            'PAYMENT_LINK_SENT',
+            'PAYMENT_CONFIRMED',
+            'RECEIPT_SENT',
+            'COOLDOWN'
+        );
+    END IF;
+END $$;
 
-CREATE TYPE sankalp_status AS ENUM (
-    'INITIATED',
-    'PAYMENT_PENDING',
-    'PAID',
-    'RECEIPT_SENT',
-    'CLOSED'
-);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sankalp_status') THEN
+        CREATE TYPE sankalp_status AS ENUM (
+            'INITIATED',
+            'PAYMENT_PENDING',
+            'PAID',
+            'RECEIPT_SENT',
+            'CLOSED'
+        );
+    END IF;
+END $$;
 
-CREATE TYPE transfer_status AS ENUM (
-    'PENDING',
-    'TRANSFERRED'
-);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'transfer_status') THEN
+        CREATE TYPE transfer_status AS ENUM (
+            'PENDING',
+            'TRANSFERRED'
+        );
+    END IF;
+END $$;
 
 -- =============================================================================
 -- USERS TABLE
