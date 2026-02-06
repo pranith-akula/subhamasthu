@@ -1,75 +1,91 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-<div class="min-h-screen bg-slate-900 flex items-center justify-center p-4" x-data="loginData()">
-    <div class="max-w-md w-full bg-slate-800 rounded-xl shadow-2xl p-8 border border-slate-700">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subhamasthu | Login</title>
 
-        <div class="text-center mb-8">
-            <div
-                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 mb-4">
-                <i data-lucide="shield-check" class="w-8 h-8"></i>
+    <!-- Alpine.js (Logic) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+
+    <!-- Tailwind CSS (Style) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="bg-slate-900">
+    <div class="min-h-screen flex items-center justify-center p-4" x-data="loginData()">
+        <div class="max-w-md w-full bg-slate-800 rounded-xl shadow-2xl p-8 border border-slate-700">
+
+            <div class="text-center mb-8">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 mb-4">
+                    <i data-lucide="shield-check" class="w-8 h-8"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Security Check</h2>
+                <p class="text-slate-400 mt-2">Enter your Admin Key to verify identity.</p>
             </div>
-            <h2 class="text-2xl font-bold text-white">Security Check</h2>
-            <p class="text-slate-400 mt-2">Enter your Admin Key to verify identity.</p>
-        </div>
 
-        <form @submit.prevent="submitKey" class="space-y-6">
-            <div class="mb-6">
-                <label class="block text-slate-400 text-sm font-bold mb-2">Admin Password</label>
-                <input type="password" x-model="key"
-                    class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                    placeholder="••••••••••••" @keydown.enter="submitKey">
+            <form @submit.prevent="submitKey" class="space-y-6">
+                <div class="mb-6">
+                    <label class="block text-slate-400 text-sm font-bold mb-2">Admin Password</label>
+                    <input type="password" x-model="key"
+                        class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                        placeholder="••••••••••••" @keydown.enter="submitKey">
+                </div>
+                <button type="submit"
+                    class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    :disabled="loading">
+                    <span x-show="!loading">Enter Command Center</span>
+                    <span x-show="loading" class="animate-pulse">Verifying...</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </button>
+
+                <p x-show="error" class="text-red-400 text-sm text-center" x-text="error"></p>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-xs text-slate-500">Subhamasthu Secure System</p>
             </div>
-            <button type="submit"
-                class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                :disabled="loading">
-                <span x-show="!loading">Enter Command Center</span>
-                <span x-show="loading" class="animate-pulse">Verifying...</span>
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </button>
-
-            <p x-show="error" class="text-red-400 text-sm text-center" x-text="error"></p>
-        </form>
-
-        <div class="mt-8 text-center">
-            <p class="text-xs text-slate-500">Subhamasthu Secure System</p>
         </div>
     </div>
-</div>
 
-<script>
-    function loginData() {
-        return {
-            key: '',
-            loading: false,
-            error: '',
-            async submitKey() {
-                this.loading = true;
-                this.error = '';
+    <script>
+        function loginData() {
+            return {
+                key: '',
+                loading: false,
+                error: '',
+                async submitKey() {
+                    this.loading = true;
+                    this.error = '';
 
-                // Simple verify by trying to hit an admin endpoint
-                try {
-                    // Use an actual existing protected endpoint
-                    const res = await fetch('/admin/api/stats', {
-                        headers: { 'X-Admin-Key': this.key }
-                    });
+                    // Simple verify by trying to hit an admin endpoint
+                    try {
+                        // Use an actual existing protected endpoint
+                        const res = await fetch('/admin/api/stats', {
+                            headers: { 'X-Admin-Key': this.key }
+                        });
 
-                    if (res.ok) {
-                        localStorage.setItem('admin_key', this.key);
-                        window.location.href = '/admin-panel';
-                    } else {
-                        this.error = 'Invalid Access Key';
+                        if (res.ok) {
+                            localStorage.setItem('admin_key', this.key);
+                            window.location.href = '/admin-panel';
+                        } else {
+                            this.error = 'Invalid Access Key';
+                        }
+                    } catch (e) {
+                        this.error = 'Connection Error';
+                        // Fallback for dev: allow saving anyway if offline
+                        // localStorage.setItem('admin_key', this.key);
+                        // window.location.href = '/admin-panel';
+                    } finally {
+                        this.loading = false;
                     }
-                } catch (e) {
-                    this.error = 'Connection Error';
-                    // Fallback for dev: allow saving anyway if offline
-                    // localStorage.setItem('admin_key', this.key);
-                    // window.location.href = '/admin-panel';
-                } finally {
-                    this.loading = false;
                 }
             }
         }
-    }
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}
