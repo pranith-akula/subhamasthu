@@ -25,7 +25,7 @@ import cloudinary
 import cloudinary.uploader
 
 from app.config import settings
-from app.database import get_db_session
+from app.database import get_db_context as get_db_session
 from app.services.seva_proof_service import SevaProofService
 from app.models.seva_media import MediaType
 

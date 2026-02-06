@@ -27,7 +27,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import cloudinary
 import cloudinary.uploader
 from app.config import settings
-from app.database import get_db_session
+from app.database import get_db_context as get_db_session
 from app.services.seva_proof_service import SevaProofService
 from app.models.seva_media import MediaType
 
@@ -35,7 +35,11 @@ from app.models.seva_media import MediaType
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    datefmt='%Y-%m-%d %H:%M:%S',
+    handlers=[
+        logging.FileHandler("watcher.log"),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger(__name__)
 
@@ -73,7 +77,7 @@ async def process_file(file_path: Path):
     else:
         return None
     
-    logger.info(f"⚡ Detected new file: {filename}")
+    logger.info(f"Detected new file: {filename}")
     
     # Wait for file copy to complete (simple stability check)
     size = -1
@@ -90,7 +94,7 @@ async def process_file(file_path: Path):
             time.sleep(0.5)
             pass
             
-    logger.info(f"📤 Uploading {filename} to Cloudinary...")
+    logger.info(f"Uploading {filename} to Cloudinary...")
     
     try:
         # Upload
@@ -108,7 +112,7 @@ async def process_file(file_path: Path):
         public_id = response.get("public_id")
         
         if not url:
-            logger.error(f"❌ Upload failed for {filename}")
+            logger.error(f"Upload failed for {filename}")
             return False
 
         # Add to DB
@@ -121,12 +125,28 @@ async def process_file(file_path: Path):
                 caption=f"Auto-uploaded: {filename}"
             )
             
-        logger.info(f"✅ Added to DB: {filename}")
+        logger.info(f"Added to DB: {filename}")
         return True
         
     except Exception as e:
-        logger.error(f"❌ Error processing {filename}: {e}")
+        logger.error(f"Error processing {filename}: {e}")
         return False
+        
+    # ... inside Handler ...
+        
+        if success:
+            # Move to uploaded folder
+            try:
+                dest = UPLOADED_DIR / file_path.name
+                shutil.move(str(file_path), str(dest))
+                logger.info(f"Moved to uploaded: {dest}")
+            except Exception as e:
+                logger.error(f"Failed to move file: {e}") 
+
+# ... inside main ...
+    
+    logging.info(f"Watching directory: {WATCH_DIR.absolute()}")
+    logging.info("Drop video files here to auto-upload.")
 
 
 class FootageHandler(FileSystemEventHandler):
