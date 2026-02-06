@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"  # gpt-4o, gpt-4o-mini, gpt-4-turbo
     
+    # Cloudinary
+    cloudinary_cloud_name: str = ""
+    cloudinary_api_key: str = ""
+    cloudinary_api_secret: str = ""
+    
     # Timezone
     default_timezone: str = "America/Chicago"
     
