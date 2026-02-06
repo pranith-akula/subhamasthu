@@ -109,6 +109,7 @@ class SankalpStatus(str, Enum):
     PAID = "PAID"
     RECEIPT_SENT = "RECEIPT_SENT"
     CLOSED = "CLOSED"
+    EXPIRED = "EXPIRED"  # Payment link expired without payment
 
 
 class Rashi(str, Enum):

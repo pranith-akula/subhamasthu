@@ -1,5 +1,5 @@
 """
-Receipt Service - PDF receipt generation.
+Receipt Service - Telugu PDF receipt generation.
 """
 
 import logging
@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from jinja2 import Environment, FileSystemLoader
 
 from app.models.user import User
 from app.models.sankalp import Sankalp
@@ -17,8 +16,56 @@ from app.services.gupshup_service import GupshupService
 logger = logging.getLogger(__name__)
 
 
+# Telugu mappings
+DEITY_TELUGU = {
+    "venkateshwara": "వేంకటేశ్వర స్వామి",
+    "shiva": "శివుడు",
+    "vishnu": "విష్ణువు",
+    "hanuman": "హనుమంతుడు",
+    "durga": "దుర్గామాత",
+    "lakshmi": "లక్ష్మీదేవి",
+    "ganesha": "గణేషుడు",
+    "saraswati": "సరస్వతీదేవి",
+    "rama": "శ్రీరాముడు",
+    "krishna": "శ్రీకృష్ణుడు",
+    "saibaba": "సాయిబాబా",
+    "ayyappa": "అయ్యప్ప",
+    "subrahmanya": "సుబ్రహ్మణ్యస్వామి",
+    "other": "భగవంతుడు",
+}
+
+CATEGORY_TELUGU = {
+    "family": "పిల్లలు / పరివారం",
+    "health": "ఆరోగ్యం / రక్ష",
+    "career": "ఉద్యోగం / ఆర్థికం",
+    "peace": "మానసిక శాంతి",
+}
+
+DAY_TELUGU = {
+    "sunday": "ఆదివారం",
+    "monday": "సోమవారం",
+    "tuesday": "మంగళవారం",
+    "wednesday": "బుధవారం",
+    "thursday": "గురువారం",
+    "friday": "శుక్రవారం",
+    "saturday": "శనివారం",
+}
+
+TIER_TELUGU = {
+    "S15": ("సాముహిక త్యాగం", 10),
+    "S30": ("విశేష త్యాగం", 25),
+    "S50": ("ప్రత్యేక త్యాగం", 50),
+}
+
+MONTH_TELUGU = {
+    1: "జనవరి", 2: "ఫిబ్రవరి", 3: "మార్చి", 4: "ఏప్రిల్",
+    5: "మే", 6: "జూన్", 7: "జూలై", 8: "ఆగస్టు",
+    9: "సెప్టెంబర్", 10: "అక్టోబర్", 11: "నవంబర్", 12: "డిసెంబర్",
+}
+
+
 class ReceiptService:
-    """Service for generating and sending PDF receipts."""
+    """Service for generating and sending Telugu PDF receipts."""
     
     def __init__(self, db: AsyncSession):
         self.db = db
@@ -30,17 +77,13 @@ class ReceiptService:
         sankalp: Sankalp,
     ) -> Optional[str]:
         """
-        Generate PDF receipt and send to user.
+        Generate Telugu receipt and send to user.
         
         Returns the receipt URL on success.
         """
         try:
-            # Generate receipt HTML
-            html_content = self._render_receipt_html(user, sankalp)
-            
-            # For v1, we'll skip PDF generation and just send a text receipt
-            # In production, use WeasyPrint to generate PDF and upload to R2/S3
-            receipt_text = self._generate_text_receipt(user, sankalp)
+            # Generate Telugu receipt
+            receipt_text = self._generate_telugu_receipt(user, sankalp)
             
             # Send receipt message
             msg_id = await self.gupshup.send_text_message(
@@ -49,8 +92,7 @@ class ReceiptService:
             )
             
             if msg_id:
-                logger.info(f"Receipt sent for sankalp {sankalp.id}")
-                # In production, return actual PDF URL
+                logger.info(f"Telugu receipt sent for sankalp {sankalp.id}")
                 return f"receipt://{sankalp.id}"
             
             return None
@@ -59,84 +101,67 @@ class ReceiptService:
             logger.error(f"Receipt generation failed: {e}", exc_info=True)
             return None
     
-    def _render_receipt_html(self, user: User, sankalp: Sankalp) -> str:
-        """Render receipt HTML from template."""
-        # For now, return a simple HTML structure
-        # In production, use Jinja2 template
-        return f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Sankalp Receipt</title>
-    <style>
-        body {{ font-family: 'Noto Sans Telugu', sans-serif; padding: 40px; }}
-        .header {{ text-align: center; border-bottom: 2px solid #ff9933; }}
-        .content {{ margin: 20px 0; }}
-        .footer {{ text-align: center; color: #666; }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>🙏 Subhamasthu</h1>
-        <p>Sankalp Seva Receipt</p>
-    </div>
-    <div class="content">
-        <p><strong>Name:</strong> {user.name or 'Devotee'}</p>
-        <p><strong>Date:</strong> {sankalp.created_at.strftime('%B %d, %Y')}</p>
-        <p><strong>Category:</strong> {SankalpCategory(sankalp.category).display_name_telugu}</p>
-        <p><strong>Deity:</strong> {sankalp.deity or 'దేవుడు'}</p>
-        <p><strong>Amount:</strong> ${sankalp.amount} ({SankalpTier(sankalp.tier).display_name})</p>
-        <p><strong>Ref:</strong> {str(sankalp.id)[:8].upper()}</p>
-    </div>
-    <div class="footer">
-        <p>Mee sankalp + tyagam poorthi ayyayi. 🙏</p>
-        <p>This is a receipt for your Annadanam Seva contribution.</p>
-    </div>
-</body>
-</html>
-"""
-    
-    def _generate_text_receipt(self, user: User, sankalp: Sankalp) -> str:
-        """Generate a text receipt message."""
-        category_name = SankalpCategory(sankalp.category).display_name_telugu
-        tier_name = SankalpTier(sankalp.tier).display_name
+    def _generate_telugu_receipt(self, user: User, sankalp: Sankalp) -> str:
+        """Generate Pure Telugu receipt message."""
+        # Get Telugu names
+        deity = DEITY_TELUGU.get(sankalp.deity, "భగవంతుడు")
+        category = CATEGORY_TELUGU.get(sankalp.category, sankalp.category)
+        day = DAY_TELUGU.get(sankalp.auspicious_day, sankalp.auspicious_day or "-")
+        
+        # Get tier info
+        tier_info = TIER_TELUGU.get(sankalp.tier, ("త్యాగం", 10))
+        tier_name = tier_info[0]
+        families = tier_info[1]
+        
+        # Format date in Telugu
+        date_telugu = self._format_date_telugu(sankalp.created_at)
+        
+        # Reference ID (short)
         ref_id = str(sankalp.id)[:8].upper()
         
-        return f"""📜 SANKALP SEVA RECEIPT
+        # User name
+        name = user.name or "భక్తులు"
+        
+        return f"""📜 సంకల్ప సేవా రసీదు
 
 ━━━━━━━━━━━━━━━━━━━━━━
-🙏 Subhamasthu
+🙏 శుభమస్తు
 ━━━━━━━━━━━━━━━━━━━━━━
 
-Name: {user.name or 'Devotee'}
-Date: {sankalp.created_at.strftime('%B %d, %Y')}
-Reference: #{ref_id}
+👤 పేరు: {name}
+📅 తేది: {date_telugu}
+🔢 రిఫరెన్స్: #{ref_id}
 
-━━ Sankalp Details ━━
-Category: {category_name}
-Deity: {sankalp.deity or 'దేవుడు'}
-Auspicious Day: {sankalp.auspicious_day or '-'}
+━━ సంకల్ప వివరాలు ━━
 
-━━ Seva Details ━━
-Tier: {tier_name}
-Amount: ${sankalp.amount}
-Annadanam: {self._get_families_fed(sankalp.tier)} families
+🙏 చింత: {category}
+🙏 దేవత: {deity}
+📆 శుభ దినం: {day}
+
+━━ త్యాగ వివరాలు ━━
+
+💰 త్యాగం: ${sankalp.amount} ({tier_name})
+🍚 అన్నదానం: {families} కుటుంబాలకు
 
 ━━━━━━━━━━━━━━━━━━━━━━
-✨ Mee sankalp + tyagam poorthi ayyayi ✨
 
-This contribution supports Annadanam 
-seva for families in need.
+✨ మీ సంకల్పం + త్యాగం పూర్తి అయింది ✨
 
-🙏 Sarve Janah Sukhino Bhavantu 🙏
-━━━━━━━━━━━━━━━━━━━━━━"""
+ఈ త్యాగం ద్వారా అవసరమైన
+కుటుంబాలకు అన్నదాన సేవ జరుగుతుంది.
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🙏 సర్వే జనాః సుఖినో భవంతు 🙏
+
+ఓం శాంతి శాంతి శాంతిః"""
+    
+    def _format_date_telugu(self, dt: datetime) -> str:
+        """Format datetime in Telugu."""
+        month = MONTH_TELUGU.get(dt.month, str(dt.month))
+        return f"{dt.day} {month} {dt.year}"
     
     def _get_families_fed(self, tier: str) -> int:
         """Get number of families fed based on tier."""
-        mapping = {
-            SankalpTier.S15.value: 10,
-            SankalpTier.S30.value: 25,
-            SankalpTier.S50.value: 50,
-        }
-        return mapping.get(tier, 10)
+        tier_info = TIER_TELUGU.get(tier, ("", 10))
+        return tier_info[1]

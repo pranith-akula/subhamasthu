@@ -6,6 +6,7 @@ Verifies signatures and processes payment events.
 import hmac
 import hashlib
 import logging
+import uuid
 from typing import Optional
 
 from fastapi import APIRouter, Request, HTTPException, Depends
@@ -65,6 +66,8 @@ async def razorpay_webhook(
             await handle_payment_link_paid(payload, payment_service)
         elif event_type == "payment.captured":
             await handle_payment_captured(payload, payment_service)
+        elif event_type == "payment_link.expired":
+            await handle_payment_link_expired(payload, payment_service, db)
         else:
             logger.info(f"Unhandled Razorpay event: {event_type}")
         
@@ -158,3 +161,86 @@ async def handle_payment_captured(payload: dict, payment_service: PaymentService
         amount=amount,
         currency=currency,
     )
+
+
+async def handle_payment_link_expired(
+    payload: dict,
+    payment_service: PaymentService,
+    db: AsyncSession,
+) -> None:
+    """
+    Handle payment_link.expired event.
+    
+    When user doesn't complete payment, we:
+    1. Mark sankalp as expired
+    2. Return user to DAILY_PASSIVE state
+    3. Optionally notify user
+    """
+    from sqlalchemy import select
+    from app.models.sankalp import Sankalp
+    from app.models.user import User
+    from app.fsm.states import SankalpStatus, ConversationState
+    from app.services.user_service import UserService
+    from app.services.gupshup_service import GupshupService
+    
+    event_data = payload.get("payload", {})
+    payment_link = event_data.get("payment_link", {}).get("entity", {})
+    
+    payment_link_id = payment_link.get("id")
+    notes = payment_link.get("notes", {})
+    sankalp_id = notes.get("sankalp_id")
+    
+    if not sankalp_id:
+        logger.info(f"No sankalp_id in expired payment link: {payment_link_id}")
+        return
+    
+    try:
+        sankalp_uuid = uuid.UUID(sankalp_id)
+    except ValueError:
+        logger.error(f"Invalid sankalp_id format: {sankalp_id}")
+        return
+    
+    # Get sankalp
+    result = await db.execute(
+        select(Sankalp).where(Sankalp.id == sankalp_uuid)
+    )
+    sankalp = result.scalar_one_or_none()
+    
+    if not sankalp:
+        logger.error(f"Sankalp not found for expired link: {sankalp_id}")
+        return
+    
+    # Mark sankalp as expired
+    sankalp.status = SankalpStatus.EXPIRED.value if hasattr(SankalpStatus, 'EXPIRED') else "EXPIRED"
+    
+    # Get user
+    user_result = await db.execute(
+        select(User).where(User.id == sankalp.user_id)
+    )
+    user = user_result.scalar_one_or_none()
+    
+    if user:
+        # Return user to passive state
+        user_service = UserService(db)
+        await user_service.update_user_state(user, ConversationState.DAILY_PASSIVE)
+        
+        # Send gentle reminder message
+        gupshup = GupshupService()
+        message = """🙏 నమస్కారం!
+
+మీ సంకల్ప లింక్ గడువు ముగిసింది.
+
+చింతించకండి - మీ తదుపరి శుభ దినం రోజు మళ్ళీ అవకాశం వస్తుంది.
+
+అప్పటివరకు, మీకు ప్రతిరోజూ రాశిఫలాలు వస్తూనే ఉంటాయి.
+
+🙏 శుభమస్తు!"""
+        
+        await gupshup.send_text_message(
+            phone=user.phone,
+            message=message,
+        )
+    
+    await db.commit()
+    logger.info(f"Payment link expired for sankalp {sankalp_id}, user returned to passive")
+
