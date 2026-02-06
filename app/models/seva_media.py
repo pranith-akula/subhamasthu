@@ -57,7 +57,7 @@ class SevaMedia(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     # Media info
-    media_type = Column(SQLEnum(MediaType, native_enum=False), nullable=False, default=MediaType.IMAGE)
+    media_type = Column(String, nullable=False, default="image")
     cloudinary_url = Column(String(500), nullable=False)
     cloudinary_public_id = Column(String(200), nullable=True)  # For deletion
     
