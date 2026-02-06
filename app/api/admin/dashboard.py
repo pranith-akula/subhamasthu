@@ -153,27 +153,7 @@ async def get_dashboard_stats(
     media_total_res = await db.execute(media_total_query)
     media_total = media_total_res.scalar() or 0
 
-    # 5. Recent Sankalps
-    recent_query = select(Sankalp, "users.name").join(
-        Sankalp.user_id == "users.id" # Implicit join if relationship existed, but here we do manual?
-        # Actually Sankalp has user_id. Let's just fetch Sankalp and join User.
-    ).order_by(desc(Sankalp.created_at)).limit(5)
-    
-    # Let's do a simpler join
-    stmt = (
-        select(Sankalp.id, Sankalp.amount, Sankalp.category, Sankalp.status, Sankalp.created_at, "User.name")
-        .select_from(Sankalp)
-        .join(Sankalp.user_id) # This requires relationship defined
-        # If relationship missing, we use raw join
-    )
-    # The User model is in app.models.user. 
-    # To be safe and avoid import cycles or relationship issues, let's just fetch sankalps
-    # and maybe leave user name as 'Donor' for MVP if join is complex.
-    
-    # Re-checking Sankalp model... it has user_id ForeignKey but no `user = relationship(...)` shown in snippet.
-    # So ORM join might fail.
-    # I will fetch Sankalps and show generic name or fetch user separately (expensive).
-    # Smart move: Just show amount and category for now. OR use distinct query.
+    # 5. Recent Sankalps (simplified query without join)
     
     recent_swaps = []
     recent_res = await db.execute(
