@@ -23,7 +23,7 @@ async def get_admin_user(x_admin_key: Optional[str] = Header(None, alias="X-Admi
     
     # HARDCODED FALLBACK (Since env var might be missing on Railway)
     # This ensures the key provided to the user always works.
-    MASTER_KEY = "kS0m6IjkENmMXriBSz1m2pOzV-vKIBZpbHaU690Xjp8"
+    MASTER_KEY = "Zilla831@@"
     
     if x_admin_key == MASTER_KEY:
         return x_admin_key
