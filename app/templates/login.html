@@ -3,9 +3,10 @@
 {% block content %}
 <div class="min-h-screen bg-slate-900 flex items-center justify-center p-4" x-data="loginData()">
     <div class="max-w-md w-full bg-slate-800 rounded-xl shadow-2xl p-8 border border-slate-700">
-        
+
         <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 mb-4">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 mb-4">
                 <i data-lucide="shield-check" class="w-8 h-8"></i>
             </div>
             <h2 class="text-2xl font-bold text-white">Security Check</h2>
@@ -15,28 +16,22 @@
         <form @submit.prevent="submitKey" class="space-y-6">
             <div>
                 <label class="block text-sm font-medium text-slate-300 mb-1">Admin API Key</label>
-                <input 
-                    type="password" 
-                    x-model="key" 
+                <input type="password" x-model="key"
                     class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                    placeholder="sk_live_..."
-                    required
-                >
+                    placeholder="sk_live_..." required>
             </div>
 
-            <button 
-                type="submit" 
+            <button type="submit"
                 class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                :disabled="loading"
-            >
+                :disabled="loading">
                 <span x-show="!loading">Enter Command Center</span>
                 <span x-show="loading" class="animate-pulse">Verifying...</span>
                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
             </button>
-            
+
             <p x-show="error" class="text-red-400 text-sm text-center" x-text="error"></p>
         </form>
-        
+
         <div class="mt-8 text-center">
             <p class="text-xs text-slate-500">Subhamasthu Secure System</p>
         </div>
@@ -52,13 +47,14 @@
             async submitKey() {
                 this.loading = true;
                 this.error = '';
-                
+
                 // Simple verify by trying to hit an admin endpoint
                 try {
-                    const res = await fetch('/admin/health', {
+                    // Use an actual existing protected endpoint
+                    const res = await fetch('/admin/api/stats', {
                         headers: { 'X-Admin-Key': this.key }
                     });
-                    
+
                     if (res.ok) {
                         localStorage.setItem('admin_key', this.key);
                         window.location.href = '/admin-panel';
