@@ -199,7 +199,7 @@ class SankalpService:
 చింత: {category_telugu}
 దేవత: {deity_telugu}"
 
-ఈ సంకల్పం మీ విశ్వాసంతో, మీ త్యాగంతో ఫలిస్తుంది."""
+ఈ సంకల్పం మీ విశ్వాసంతో ఫలిస్తుంది."""
         
         return sankalp_statement
     
@@ -207,9 +207,11 @@ class SankalpService:
         """
         Step 2: Send the formal sankalp statement.
         
-        Flow: Chinta → Sankalp → Tyagam → (payment) → Pariharam → Punya → Shanti
-        After Sankalp, we proceed to TYAGAM (not Pariharam).
-        Pariharam comes AFTER payment confirmation.
+        TEMPLE-STYLE FLOW:
+        Chinta → Sankalp → Pariharam (FREE) → [Optional Tyagam] → Punya
+        
+        After Sankalp, we proceed to PARIHARAM (free ritual).
+        Then we offer optional Tyagam for Annadanam seva.
         """
         statement = await self.frame_sankalp(user, category)
         
@@ -218,34 +220,112 @@ class SankalpService:
             message=statement,
         )
         
-        # Proceed to TYAGAM (tier selection) - Pariharam comes after payment
-        return await self.send_tyagam_prompt(user, category)
+        # Proceed to PARIHARAM (free ritual instruction)
+        return await self.send_pariharam_with_optional_tyagam(user, category)
     
-    async def send_pariharam_prompt(self, user: User, category: SankalpCategory) -> bool:
+    async def send_pariharam_with_optional_tyagam(self, user: User, category: SankalpCategory) -> bool:
         """
-        Step 3: పరిహారం (Pariharam) - Ritual action selection.
+        Step 3: పరిహారం (Pariharam) - FREE ritual instruction.
+        
+        TEMPLE-STYLE: Give the ritual first, then softly offer optional Tyagam.
+        This builds trust and feels like a temple, not a sales pitch.
         """
+        # Get specific Pariharam for this category
         options = PARIHARAM_OPTIONS.get(category.value, PARIHARAM_OPTIONS[SankalpCategory.PEACE.value])
         selected = random.choice(options)
         
-        message = f"""✨ పరిహారం (మీ భాగస్వామ్యం)
-
-సంకల్పంతో పాటు, ఈ చిన్న పరిహారం చేయండి:
-
-🙏 {selected}
-
-ఇది మీ మానసిక భాగస్వామ్యం. ఇది మీ సంకల్పాన్ని బలపరుస్తుంది.
-
-ఇప్పుడు, మీ త్యాగం ద్వారా అన్నదాన సేవ జరుగుతుంది."""
+        # Store pariharam in user context for later (optional)
+        # user.last_pariharam = selected
         
-        await self.gupshup.send_text_message(
+        deity = getattr(user, 'preferred_deity', 'other') or 'other'
+        deity_telugu = DEITY_TELUGU.get(deity, "భగవంతుడు")
+        
+        message = f"""🙏 మీ సంకల్పం {deity_telugu} సన్నిధిలో స్వీకరించబడింది.
+
+━━━━━━━━━━━━━━━━━━
+
+✨ మీ పరిహారం:
+
+🪷 {selected}
+
+ఈ పరిహారాన్ని నిష్ఠగా చేయండి. మీ సంకల్పం బలపడుతుంది.
+
+━━━━━━━━━━━━━━━━━━
+
+🛕 అదనపు సేవ (ఐచ్ఛికం):
+
+మీ సంకల్ప ఫలం మరింత బలపడాలంటే, అన్నదాన సేవ కూడా చేయవచ్చు.
+
+అన్నదానం మహాపుణ్యం — అవసరమైన వారికి భోజనం అందిస్తుంది.
+
+మీరు అన్నదాన సేవ చేయాలనుకుంటున్నారా?"""
+        
+        buttons = [
+            {"id": "TYAGAM_YES", "title": "🙏 అవును, సేవ చేస్తాను"},
+            {"id": "TYAGAM_NO", "title": "🙏 ఇప్పుడు వద్దు"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
+            phone=user.phone,
+            body_text=message,
+            buttons=buttons,
+        )
+        
+        if msg_id:
+            from app.fsm.states import ConversationState
+            user_service = UserService(self.db)
+            # New state: waiting for optional Tyagam decision
+            await user_service.update_user_state(user, ConversationState.WAITING_FOR_TYAGAM_DECISION)
+            return True
+        
+        return False
+    
+    async def handle_tyagam_decision(self, user: User, wants_tyagam: bool, category: SankalpCategory) -> bool:
+        """Handle user's decision on optional Tyagam."""
+        if wants_tyagam:
+            # Proceed to tier selection
+            return await self.send_tyagam_prompt(user, category)
+        else:
+            # User chose free path - send completion message
+            return await self.send_free_path_completion(user, category)
+    
+    async def send_free_path_completion(self, user: User, category: SankalpCategory) -> bool:
+        """Send completion message for users who chose Pariharam only (no payment)."""
+        deity = getattr(user, 'preferred_deity', 'other') or 'other'
+        deity_telugu = DEITY_TELUGU.get(deity, "భగవంతుడు")
+        name = user.name or "భక్తులు"
+        
+        message = f"""🙏 {name} గారు,
+
+మీ సంకల్పం {deity_telugu} సన్నిధిలో అర్పించబడింది.
+
+మీ పరిహారం నిష్ఠగా చేయండి — మీ మనసు శాంతి పొందుతుంది.
+
+━━━━━━━━━━━━━━━━━━
+
+విశ్వాసంతో ఉండండి. {deity_telugu} మీకు తోడుగా ఉన్నారు.
+
+🙏 మీకు ప్రతిరోజూ రాశిఫలాలు వస్తూనే ఉంటాయి.
+
+ఓం శాంతి 🙏"""
+        
+        msg_id = await self.gupshup.send_text_message(
             phone=user.phone,
             message=message,
         )
         
-        # Store pariharam in session/context
-        # Proceed to Tyagam (tier selection)
-        return await self.send_tyagam_prompt(user, category)
+        if msg_id:
+            from app.fsm.states import ConversationState
+            user_service = UserService(self.db)
+            # Return to daily passive - they got free pariharam
+            await user_service.update_user_state(user, ConversationState.DAILY_PASSIVE)
+            return True
+        
+        return False
+    
+    async def send_pariharam_prompt(self, user: User, category: SankalpCategory) -> bool:
+        """Legacy method - redirects to new temple-style flow."""
+        return await self.send_pariharam_with_optional_tyagam(user, category)
     
     async def send_tyagam_prompt(self, user: User, category: SankalpCategory) -> bool:
         """
