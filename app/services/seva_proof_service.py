@@ -164,9 +164,16 @@ class SevaProofService:
         if msg_id:
             # Increment usage count
             media.increment_usage()
+            
+            # LINK SANKALP TO TEMPLE (Closing the loop)
+            # Record exactly where this seva was performed
+            if media.temple_id:
+                sankalp.temple_id = media.temple_id
+                sankalp.status = "receipt_sent" # Ensure status is updated
+                
             await self.db.commit()
             
-            logger.info(f"Sent seva proof to {user.phone}")
+            logger.info(f"Sent seva proof to {user.phone} (Temple: {temple_info['name']})")
             return True
         
         return False
