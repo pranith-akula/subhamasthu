@@ -18,6 +18,17 @@ class MediaType(str, Enum):
     """Type of media file."""
     IMAGE = "image"
     VIDEO = "video"
+    
+    @classmethod
+    def _missing_(cls, value):
+        # Case insensitive lookup
+        for member in cls:
+            if member.value.lower() == str(value).lower():
+                return member
+            # Also check if member name matches
+            if member.name.lower() == str(value).lower():
+                return member
+        return None
 
 
 # Fallback temple list for Hyderabad region
