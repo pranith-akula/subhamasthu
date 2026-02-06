@@ -204,7 +204,13 @@ class SankalpService:
         return sankalp_statement
     
     async def send_sankalp_framed(self, user: User, category: SankalpCategory) -> bool:
-        """Send the formal sankalp statement and proceed to Pariharam."""
+        """
+        Step 2: Send the formal sankalp statement.
+        
+        Flow: Chinta → Sankalp → Tyagam → (payment) → Pariharam → Punya → Shanti
+        After Sankalp, we proceed to TYAGAM (not Pariharam).
+        Pariharam comes AFTER payment confirmation.
+        """
         statement = await self.frame_sankalp(user, category)
         
         await self.gupshup.send_text_message(
@@ -212,8 +218,8 @@ class SankalpService:
             message=statement,
         )
         
-        # Proceed to Pariharam
-        return await self.send_pariharam_prompt(user, category)
+        # Proceed to TYAGAM (tier selection) - Pariharam comes after payment
+        return await self.send_tyagam_prompt(user, category)
     
     async def send_pariharam_prompt(self, user: User, category: SankalpCategory) -> bool:
         """
@@ -390,24 +396,50 @@ class SankalpService:
     
     async def send_punya_confirmation(self, user: User, sankalp: Sankalp) -> bool:
         """
-        Step 5: పుణ్యం (Punya) - Confirmation and closure.
+        Step 4-5-6: పరిహారం (Pariharam) + పుణ్యం (Punya) + మానసిక శాంతి (Shanti) → Closure
+        
+        Correct psychological arc:
+        Chinta → Sankalp → Tyagam → (payment) → Pariharam → Punya → Shanti → Closure
+        
+        Pariharam is sent AFTER payment confirmation.
         """
         deity_telugu = DEITY_TELUGU.get(sankalp.deity, "దేవుడు")
         category_telugu = SankalpCategory(sankalp.category).display_name_telugu
         families = self._get_families_fed(sankalp.tier)
         name = user.name or "భక్తులు"
         
-        message = f"""🙏✨ మీ సంకల్పం పూర్తయింది ✨🙏
+        # Get specific Pariharam for this category
+        pariharam_options = PARIHARAM_OPTIONS.get(
+            sankalp.category, 
+            PARIHARAM_OPTIONS.get(SankalpCategory.PEACE.value, [])
+        )
+        pariharam = random.choice(pariharam_options) if pariharam_options else "5 నిమిషాలు మౌన ధ్యానం చేయండి"
+        
+        message = f"""🙏✨ మీ త్యాగం స్వీకరించబడింది ✨🙏
 
 {name} గారు,
-
-మీ {category_telugu} సంకల్పం {deity_telugu} సన్నిధిలో అర్పించబడింది.
 
 మీ ${sankalp.amount} త్యాగం ద్వారా {families} కుటుంబాలకు అన్నదాన సేవ జరుగుతుంది.
 
 ━━━━━━━━━━━━━━━━━━
 
-📋 మీ పరిహారం గుర్తుంచుకోండి - నిష్ఠగా చేయండి.
+✨ పరిహారం (మీ భాగస్వామ్యం)
+
+మీ సంకల్పం బలపడటానికి, ఈ చిన్న పరిహారం చేయండి:
+
+🙏 {pariharam}
+
+ఇది మీ మానసిక నిబద్ధత. నిష్ఠగా చేయండి.
+
+━━━━━━━━━━━━━━━━━━
+
+🙏 పుణ్యం
+
+మీ {category_telugu} సంకల్పం {deity_telugu} సన్నిధిలో అర్పించబడింది.
+
+━━━━━━━━━━━━━━━━━━
+
+🧘 మానసిక శాంతి
 
 ఇప్పుడు 7 రోజులు, చింత వదిలి, విశ్వాసంతో ఉండండి.
 
