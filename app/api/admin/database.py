@@ -103,7 +103,7 @@ async def run_migrations_get(
     return {
         "status": "✅ Migration started!",
         "message": "Check Railway logs for progress.",
-        "next_step": "Now visit /admin/seed-temples?password=Zilla831@@"
+        "next_step": "Now visit /admin/seed-temples?password=Zilla831"
     }
 
 
@@ -113,13 +113,13 @@ async def seed_temples_get(
 ):
     """
     Seed temples via browser.
-    Usage: /admin/seed-temples?password=Zilla831@@
+    Usage: /admin/seed-temples?password=Zilla831
     """
     if password != BROWSER_PASSWORD:
         return {"error": "Invalid password. Use ?password=YOUR_PASSWORD"}
     
     from sqlalchemy import select
-    from app.database import AsyncSessionLocal
+    from app.database import get_db_context
     from app.models.temple import Temple
     
     # Temple data
@@ -142,7 +142,7 @@ async def seed_temples_get(
     ]
     
     try:
-        async with AsyncSessionLocal() as db:
+        async with get_db_context() as db:
             # Check if temples already exist
             result = await db.execute(select(Temple).limit(1))
             existing = result.scalar_one_or_none()
