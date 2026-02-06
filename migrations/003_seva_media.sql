@@ -29,6 +29,6 @@ CREATE TABLE IF NOT EXISTS seva_medias (
 -- Index for efficient random selection by usage
 CREATE INDEX IF NOT EXISTS idx_seva_medias_used_count ON seva_medias(used_count);
 
--- Add proof_sent flag to sankalpas
-ALTER TABLE sankalpas ADD COLUMN IF NOT EXISTS proof_sent BOOLEAN DEFAULT FALSE;
-ALTER TABLE sankalpas ADD COLUMN IF NOT EXISTS proof_sent_at TIMESTAMP;
+-- Add proof_sent flag to sankalps
+ALTER TABLE sankalps ADD COLUMN IF NOT EXISTS proof_sent BOOLEAN DEFAULT FALSE;
+ALTER TABLE sankalps ADD COLUMN IF NOT EXISTS proof_sent_at TIMESTAMP;
