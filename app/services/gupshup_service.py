@@ -185,6 +185,70 @@ class GupshupService:
         
         return await self._send_message(payload)
     
+    async def send_image_message(
+        self,
+        phone: str,
+        image_url: str,
+        caption: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Send an image message.
+        
+        Args:
+            phone: Recipient phone number
+            image_url: Public URL of the image
+            caption: Optional caption text
+        """
+        image = {"link": image_url}
+        
+        if caption:
+            image["caption"] = caption
+        
+        payload = {
+            "channel": "whatsapp",
+            "source": self.source_number,
+            "destination": phone,
+            "message": {
+                "type": "image",
+                "image": image,
+            },
+            "src.name": self.app_name,
+        }
+        
+        return await self._send_message(payload)
+    
+    async def send_video_message(
+        self,
+        phone: str,
+        video_url: str,
+        caption: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Send a video message.
+        
+        Args:
+            phone: Recipient phone number
+            video_url: Public URL of the video
+            caption: Optional caption text
+        """
+        video = {"link": video_url}
+        
+        if caption:
+            video["caption"] = caption
+        
+        payload = {
+            "channel": "whatsapp",
+            "source": self.source_number,
+            "destination": phone,
+            "message": {
+                "type": "video",
+                "video": video,
+            },
+            "src.name": self.app_name,
+        }
+        
+        return await self._send_message(payload)
+    
     async def send_document(
         self,
         phone: str,

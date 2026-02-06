@@ -17,6 +17,7 @@ from app.api.webhooks.gupshup import router as gupshup_router
 from app.api.webhooks.razorpay import router as razorpay_router
 from app.api.admin.broadcast import router as broadcast_router
 from app.api.admin.seva import router as seva_router
+from app.api.admin.seva_media import router as seva_media_router
 
 
 @asynccontextmanager
@@ -78,6 +79,11 @@ app.include_router(
 )
 app.include_router(
     seva_router,
+    prefix="/admin",
+    tags=["admin"],
+)
+app.include_router(
+    seva_media_router,
     prefix="/admin",
     tags=["admin"],
 )

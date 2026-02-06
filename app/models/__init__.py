@@ -6,6 +6,7 @@ from app.models.sankalp import Sankalp
 from app.models.payment import Payment
 from app.models.seva import SevaLedger, SevaBatch
 from app.models.rashiphalalu import RashiphalaluCache
+from app.models.seva_media import SevaMedia
 
 __all__ = [
     "User",
@@ -15,4 +16,5 @@ __all__ = [
     "SevaLedger",
     "SevaBatch",
     "RashiphalaluCache",
+    "SevaMedia",
 ]
