@@ -61,7 +61,10 @@ class SevaMedia(Base):
     cloudinary_url = Column(String(500), nullable=False)
     cloudinary_public_id = Column(String(200), nullable=True)  # For deletion
     
-    # Optional metadata (falls back to random Hyderabad temple if not provided)
+    # Temple reference (NEW - links to temples table)
+    temple_id = Column(UUID(as_uuid=True), nullable=True)  # FK added via migration
+    
+    # Legacy metadata (fallback if temple_id not set)
     temple_name = Column(String(200), nullable=True)
     location = Column(String(200), nullable=True)
     
@@ -77,14 +80,29 @@ class SevaMedia(Base):
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow)
     
-    def get_temple_info(self) -> dict:
-        """Get temple info, fallback to random Hyderabad temple if not set."""
+    def get_temple_info(self, temple_obj=None) -> dict:
+        """
+        Get temple info for proof message.
+        
+        Priority:
+        1. Linked Temple object (passed in or fetched via temple_id)
+        2. Legacy temple_name/location fields
+        3. Random from hardcoded fallback list
+        """
         import random
         
+        # If temple object provided (linked from DB)
+        if temple_obj:
+            return {
+                "name": temple_obj.display_name,
+                "location": temple_obj.full_location
+            }
+        
+        # Legacy manual fields
         if self.temple_name and self.location:
             return {"name": self.temple_name, "location": self.location}
         
-        # Pick random temple from fallback list
+        # Fallback to random hardcoded temple
         return random.choice(HYDERABAD_TEMPLES)
     
     def get_seva_time_display(self) -> str:

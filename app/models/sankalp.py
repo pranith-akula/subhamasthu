@@ -97,6 +97,12 @@ class Sankalp(Base):
         nullable=True,
     )
     
+    # Temple where seva was performed (NEW - links to temples table)
+    temple_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
+    )
+    
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
