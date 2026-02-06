@@ -18,7 +18,7 @@ async def get_admin_user(x_admin_key: Optional[str] = Header(None, alias="X-Admi
     valid_key = getattr(settings, "admin_api_key", None)
     
     # HARDCODED FALLBACK (User requested simple password)
-    MASTER_KEY = "Zilla831@@"
+    MASTER_KEY = "Zilla831"
     
     if x_admin_key == MASTER_KEY:
         return x_admin_key

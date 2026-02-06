@@ -85,7 +85,7 @@ async def trigger_migration(
 # Use password query param for simple browser access
 # ============================================
 
-BROWSER_PASSWORD = "Zilla831@@"
+BROWSER_PASSWORD = "Zilla831"
 
 @router.get("/run-migrations")
 async def run_migrations_get(
