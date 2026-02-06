@@ -108,8 +108,18 @@ class SevaProofService:
             logger.warning("No seva media available in pool")
             return False
         
-        # Get temple info (fallback to random Hyderabad temple)
-        temple_info = media.get_temple_info()
+        # Get temple info
+        temple_obj = None
+        if media.temple_id:
+            try:
+                from app.models.temple import Temple
+                result = await self.db.execute(select(Temple).where(Temple.id == media.temple_id))
+                temple_obj = result.scalar_one_or_none()
+            except Exception as e:
+                logger.error(f"Failed to fetch temple {media.temple_id}: {e}")
+
+        # Get temple info (fallback to random Hyderabad temple if no obj)
+        temple_info = media.get_temple_info(temple_obj)
         
         # Seva date = payment date + 1 day (next morning)
         payment_date = sankalp.created_at.date() if sankalp.created_at else date.today()
