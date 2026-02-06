@@ -133,19 +133,17 @@ class SankalpService:
         """
         Step 1: చింత (Chinta) - Problem selection.
         Ask user to identify their worry/concern.
-        """
-        deity_telugu = DEITY_TELUGU.get(user.preferred_deity, "దేవుడు")
-        day_telugu = DAY_TELUGU.get(user.auspicious_day, "శుభ దినం")
         
-        message = f"""🙏 శుభోదయం {user.name or ''}!
-
-ఈ రోజు {day_telugu} — {deity_telugu} కృప మీపై ఉంది.
-
-మీ మనసులో ఏమి చింత ఉంది? ఒక్క నిమిషం ఆగండి, ఆలోచించండి.
-
-మీ సంకల్పాన్ని ధర్మంలో మార్చుకోడానికి ఇది ఒక అవకాశం.
-
-ఏ విషయంలో ఆందోళన ఉంది?"""
+        NOW GPT-PERSONALIZED based on user's Rashi, Deity, and Panchang.
+        """
+        from app.services.personalization_service import PersonalizationService
+        
+        # Generate personalized Chinta prompt via GPT
+        personalization = PersonalizationService(self.db)
+        message = await personalization.generate_chinta_prompt(user)
+        
+        # Add instruction
+        message += "\n\nఏ విషయంలో ఆందోళన ఉంది?"
         
         buttons = [
             {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
@@ -181,25 +179,17 @@ class SankalpService:
     async def frame_sankalp(self, user: User, category: SankalpCategory) -> str:
         """
         Step 2: సంకల్పం (Sankalp) - Generate formal sankalp statement.
+        
+        NOW GPT-PERSONALIZED based on user's Rashi, Nakshatra, Deity, category, and Panchang.
         """
-        deity_telugu = DEITY_TELUGU.get(user.preferred_deity, "దేవుడు")
-        category_telugu = category.display_name_telugu
-        name = user.name or "భక్తులు"
+        from app.services.personalization_service import PersonalizationService
         
-        # Format today's date in Telugu style
-        today = datetime.now()
-        date_telugu = f"{today.day}/{today.month}/{today.year}"
+        # Generate personalized Sankalp statement via GPT
+        personalization = PersonalizationService(self.db)
+        sankalp_statement = await personalization.generate_sankalp_statement(user, category.value)
         
-        sankalp_statement = f"""🙏 సంకల్ప ప్రకటన
-
-"{name} గారి కోసం, {category_telugu} సమస్య నివారణ కోసం, {deity_telugu} సన్నిధిలో ఈ సంకల్పం అర్పిస్తున్నాము.
-
-తేది: {date_telugu}
-భక్తుడు: {name}
-చింత: {category_telugu}
-దేవత: {deity_telugu}"
-
-ఈ సంకల్పం మీ విశ్వాసంతో ఫలిస్తుంది."""
+        # Add footer
+        sankalp_statement = "🙏 సంకల్ప ప్రకటన\n\n" + sankalp_statement + "\n\nఈ సంకల్పం మీ విశ్వాసంతో ఫలిస్తుంది."
         
         return sankalp_statement
     
@@ -229,13 +219,24 @@ class SankalpService:
         
         TEMPLE-STYLE: Give the ritual first, then softly offer optional Tyagam.
         This builds trust and feels like a temple, not a sales pitch.
-        """
-        # Get specific Pariharam for this category
-        options = PARIHARAM_OPTIONS.get(category.value, PARIHARAM_OPTIONS[SankalpCategory.PEACE.value])
-        selected = random.choice(options)
         
-        # Store pariharam in user context for later (optional)
-        # user.last_pariharam = selected
+        NOW GPT-PERSONALIZED based on user's Rashi, Nakshatra, Deity, and category.
+        """
+        from app.services.personalization_service import PersonalizationService
+        
+        # Generate personalized Pariharam via GPT
+        personalization = PersonalizationService(self.db)
+        pariharam = await personalization.generate_pariharam(user, category.value)
+        
+        # Store pariharam in conversation context for later use
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == user.id)
+        )
+        conversation = result.scalar_one_or_none()
+        if conversation:
+            conversation.set_context("last_pariharam", pariharam)
         
         deity = getattr(user, 'preferred_deity', 'other') or 'other'
         deity_telugu = DEITY_TELUGU.get(deity, "భగవంతుడు")
@@ -246,7 +247,7 @@ class SankalpService:
 
 ✨ మీ పరిహారం:
 
-🪷 {selected}
+🪷 {pariharam}
 
 ఈ పరిహారాన్ని నిష్ఠగా చేయండి. మీ సంకల్పం బలపడుతుంది.
 
@@ -476,60 +477,44 @@ class SankalpService:
     
     async def send_punya_confirmation(self, user: User, sankalp: Sankalp) -> bool:
         """
-        Step 4-5-6: పరిహారం (Pariharam) + పుణ్యం (Punya) + మానసిక శాంతి (Shanti) → Closure
+        Step 5: పుణ్యం (Punya) - Merit confirmation after payment.
         
-        Correct psychological arc:
-        Chinta → Sankalp → Tyagam → (payment) → Pariharam → Punya → Shanti → Closure
-        
-        Pariharam is sent AFTER payment confirmation.
+        TEMPLE-STYLE:
+        User already received FREE Pariharam before payment.
+        Now they get personalized Punya confirmation via GPT.
         """
-        deity_telugu = DEITY_TELUGU.get(sankalp.deity, "దేవుడు")
-        category_telugu = SankalpCategory(sankalp.category).display_name_telugu
+        from app.services.personalization_service import PersonalizationService
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        
         families = self._get_families_fed(sankalp.tier)
-        name = user.name or "భక్తులు"
         
-        # Get specific Pariharam for this category
-        pariharam_options = PARIHARAM_OPTIONS.get(
-            sankalp.category, 
-            PARIHARAM_OPTIONS.get(SankalpCategory.PEACE.value, [])
+        # Retrieve stored Pariharam from conversation context
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == user.id)
         )
-        pariharam = random.choice(pariharam_options) if pariharam_options else "5 నిమిషాలు మౌన ధ్యానం చేయండి"
+        conversation = result.scalar_one_or_none()
+        stored_pariharam = None
+        if conversation:
+            stored_pariharam = conversation.get_context("last_pariharam")
         
-        message = f"""🙏✨ మీ త్యాగం స్వీకరించబడింది ✨🙏
-
-{name} గారు,
-
-మీ ${sankalp.amount} త్యాగం ద్వారా {families} కుటుంబాలకు అన్నదాన సేవ జరుగుతుంది.
-
-━━━━━━━━━━━━━━━━━━
-
-✨ పరిహారం (మీ భాగస్వామ్యం)
-
-మీ సంకల్పం బలపడటానికి, ఈ చిన్న పరిహారం చేయండి:
-
-🙏 {pariharam}
-
-ఇది మీ మానసిక నిబద్ధత. నిష్ఠగా చేయండి.
-
-━━━━━━━━━━━━━━━━━━
-
-🙏 పుణ్యం
-
-మీ {category_telugu} సంకల్పం {deity_telugu} సన్నిధిలో అర్పించబడింది.
-
-━━━━━━━━━━━━━━━━━━
-
-🧘 మానసిక శాంతి
-
-ఇప్పుడు 7 రోజులు, చింత వదిలి, విశ్వాసంతో ఉండండి.
-
-మీ మనసు శాంతిగా ఉంచండి. {deity_telugu} మీకు తోడుగా ఉన్నారు.
-
-━━━━━━━━━━━━━━━━━━
-
-🙏 మీ రసీదు త్వరలో వస్తుంది.
-
-ఓం శాంతి శాంతి శాంతిః 🙏"""
+        # If no stored pariharam, generate one
+        if not stored_pariharam:
+            personalization = PersonalizationService(self.db)
+            stored_pariharam = await personalization.generate_pariharam(user, sankalp.category)
+        
+        # Generate personalized Punya confirmation via GPT
+        personalization = PersonalizationService(self.db)
+        message = await personalization.generate_punya_confirmation(
+            user=user,
+            category=sankalp.category,
+            pariharam=stored_pariharam,
+            families_fed=families,
+            amount=float(sankalp.amount),
+        )
+        
+        # Add receipt note
+        message += "\n\n🙏 మీ రసీదు త్వరలో వస్తుంది.\n\nఓం శాంతి శాంతి శాంతిః 🙏"
         
         msg_id = await self.gupshup.send_text_message(
             phone=user.phone,
