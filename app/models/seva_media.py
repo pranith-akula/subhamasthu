@@ -102,8 +102,12 @@ class SevaMedia(Base):
         if self.temple_name and self.location:
             return {"name": self.temple_name, "location": self.location}
         
-        # Fallback to random hardcoded temple
-        return random.choice(HYDERABAD_TEMPLES)
+        # Fallback to generic safe default (DO NOT GUESS)
+        # User warned about mismatch chaos. Better to be generic than wrong.
+        return {
+            "name": "Subhamasthu Seva Kendra", 
+            "location": "Hyderabad"
+        }
     
     def get_seva_time_display(self) -> str:
         """Get formatted seva time, default 12:30 PM."""
