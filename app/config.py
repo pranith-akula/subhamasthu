@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     
     # OpenAI
     openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"  # gpt-4o, gpt-4o-mini, gpt-4-turbo
     
     # Timezone
     default_timezone: str = "America/Chicago"

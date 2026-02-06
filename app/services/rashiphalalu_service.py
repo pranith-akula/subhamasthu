@@ -62,7 +62,11 @@ class RashiphalaluService:
     """Service for generating personalized daily Rashiphalalu in Telugu."""
     
     PROMPT_VERSION = "v2"
-    MODEL = "gpt-4o-mini"
+    
+    # Model is configurable via OPENAI_MODEL env var
+    @property
+    def model(self) -> str:
+        return settings.openai_model or "gpt-4o-mini"
     
     # Pure Telugu system prompt with classical structure
     SYSTEM_PROMPT = """నీవు అనుభవజ్ఞుడైన వేద జ్యోతిష్య పండితుడివి. తెలుగు కుటుంబాలకు వ్యక్తిగత రాశిఫలాలు అందించే పవిత్ర బాధ్యత నీది.
@@ -194,7 +198,7 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
 
         try:
             response = await client.chat.completions.create(
-                model=self.MODEL,
+                model=self.model,
                 messages=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": user_prompt},
