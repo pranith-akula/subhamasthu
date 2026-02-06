@@ -27,17 +27,30 @@
 
 <body class="bg-slate-50 text-slate-900 font-sans" x-data="authGuard()">
 
-    <!-- AUTH GUARD LOGIC (DISABLED) -->
+    <!-- AUTH GUARD LOGIC -->
     <script>
         function authGuard() {
             return {
                 init() {
-                    // Open Access: No login check required.
-                    console.log("Auth Guard Disabled");
+                    const key = localStorage.getItem('admin_key');
+                    // If no key and not on login page, redirect
+                    if (!key && window.location.pathname !== '/admin-panel/login') {
+                        window.location.href = '/admin-panel/login';
+                    }
+
+                    // Add key to all future fetch requests (Global Interceptor hack)
+                    const originalFetch = window.fetch;
+                    window.fetch = function () {
+                        let [resource, config] = arguments;
+                        config = config || {};
+                        config.headers = config.headers || {};
+                        config.headers['X-Admin-Key'] = localStorage.getItem('admin_key');
+                        return originalFetch(resource, config);
+                    };
                 },
                 logout() {
-                    // No-op or redirect to home
-                    window.location.href = '/admin-panel';
+                    localStorage.removeItem('admin_key');
+                    window.location.href = '/admin-panel/login';
                 }
             }
         }
