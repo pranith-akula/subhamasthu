@@ -7,6 +7,7 @@ from app.services.sankalp_service import SankalpService
 from app.services.payment_service import PaymentService
 from app.services.receipt_service import ReceiptService
 from app.services.seva_ledger_service import SevaLedgerService
+from app.services.panchang_service import PanchangService, get_panchang_service
 
 __all__ = [
     "UserService",
@@ -16,4 +17,7 @@ __all__ = [
     "PaymentService",
     "ReceiptService",
     "SevaLedgerService",
+    "PanchangService",
+    "get_panchang_service",
 ]
+

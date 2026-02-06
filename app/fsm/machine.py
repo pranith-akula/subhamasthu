@@ -298,13 +298,13 @@ class FSMMachine:
     
     async def _send_welcome_and_rashi_prompt(self) -> None:
         """Send welcome message and rashi selection."""
-        welcome = """🙏 Subhamasthu! Namaskaram!
+        welcome = """🙏 శుభమస్తు! నమస్కారం!
 
-Welcome to the Telugu NRI Dharmic Sankalp platform.
+తెలుగు కుటుంబాల ధార్మిక సేవా వేదికకు స్వాగతం.
 
-Meeku daily Rashiphalalu, weekly Sankalp opportunities, and Annadanam seva facilitate chestamu.
+మీకు రోజువారీ రాశిఫలాలు, వారపు సంకల్ప అవకాశాలు, అన్నదాన సేవలు అందిస్తాము.
 
-First, mee Rashi select cheyandi:"""
+ముందుగా, మీ రాశి ఎంచుకోండి:"""
         
         # Due to WhatsApp button limits, we'll use a list or multiple messages
         buttons = [
@@ -351,7 +351,7 @@ First, mee Rashi select cheyandi:"""
         if batch <= len(batches):
             await self.gupshup.send_button_message(
                 phone=self.user.phone,
-                body_text=f"More rashis ({batch}/{len(batches)}):",
+                body_text=f"మరిన్ని రాశులు ({batch}/{len(batches)}):",
                 buttons=batches[batch - 1],
             )
     
@@ -365,7 +365,7 @@ First, mee Rashi select cheyandi:"""
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="🙏 Baagundi! Ippudu mee preferred deity select cheyandi:",
+            body_text="🙏 బాగుంది! ఇప్పుడు మీ ఇష్ట దైవాన్ని ఎంచుకోండి:",
             buttons=buttons,
         )
         
@@ -378,7 +378,7 @@ First, mee Rashi select cheyandi:"""
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="More deities:",
+            body_text="మరిన్ని దైవాలు:",
             buttons=buttons2,
         )
     
@@ -397,13 +397,13 @@ First, mee Rashi select cheyandi:"""
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""🌟 Mee Janam Nakshatra enti? (Optional)
+            body_text="""🌟 మీ జన్మ నక్షత్రం ఏమిటి? (ఐచ్ఛికం)
 
-Nakshatra thelisunte select cheyandi, lekapothe Skip cheyandi.
+తెలిస్తే ఎంచుకోండి, లేకపోతే 'వద్దు' నొక్కండి.
 
-This helps us personalize your daily messages.""",
+ఇది మీ వ్యక్తిగత రాశిఫలాలను మెరుగుపరుస్తుంది.""",
             buttons=buttons,
-            footer="Or type your nakshatra name",
+            footer="లేదా మీ నక్షత్రం పేరు టైప్ చేయండి",
         )
     
     async def _send_birth_time_prompt(self) -> None:
@@ -414,12 +414,11 @@ This helps us personalize your daily messages.""",
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""⏰ Mee birth time enti? (Optional)
+            body_text="""⏰ మీ జన్మ సమయం ఏమిటి? (ఐచ్ఛికం)
 
-Format: HH:MM (24-hour)
-Example: 06:30, 14:15, 22:00
+ఉదా: 06:30, 14:15, 22:00
 
-Thelisunte type cheyandi, lekapothe Skip cheyandi.""",
+తెలిస్తే టైప్ చేయండి, లేకపోతే 'వద్దు' నొక్కండి.""",
             buttons=buttons,
         )
     
@@ -433,7 +432,7 @@ Thelisunte type cheyandi, lekapothe Skip cheyandi.""",
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="🙏 Mee weekly sankalp kosam preferred auspicious day edi?",
+            body_text="🙏 వారపు సంకల్పానికి మీ శుభ దినం ఏది?",
             buttons=buttons,
         )
         
@@ -445,7 +444,7 @@ Thelisunte type cheyandi, lekapothe Skip cheyandi.""",
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="More days:",
+            body_text="మరిన్ని దినాలు:",
             buttons=buttons2,
         )
     
@@ -455,36 +454,63 @@ Thelisunte type cheyandi, lekapothe Skip cheyandi.""",
     
     async def _send_onboarding_complete(self) -> None:
         """Send onboarding completion message."""
-        deity_name = self.user.preferred_deity or "దేవుడు"
-        day_name = self.user.auspicious_day or "your chosen day"
+        # Get Telugu names for deity and day
+        deity_telugu = {
+            "venkateshwara": "వేంకటేశ్వర స్వామి",
+            "shiva": "శివుడు",
+            "vishnu": "విష్ణువు",
+            "hanuman": "హనుమంతుడు",
+            "durga": "దుర్గామాత",
+            "lakshmi": "లక్ష్మీదేవి",
+            "ganesha": "గణేషుడు",
+            "saraswati": "సరస్వతీదేవి",
+        }.get(self.user.preferred_deity, self.user.preferred_deity or "దేవుడు")
         
-        # Build preferences list
+        day_telugu = {
+            "monday": "సోమవారం",
+            "tuesday": "మంగళవారం",
+            "wednesday": "బుధవారం",
+            "thursday": "గురువారం",
+            "friday": "శుక్రవారం",
+            "saturday": "శనివారం",
+            "sunday": "ఆదివారం",
+        }.get(self.user.auspicious_day, self.user.auspicious_day or "మీ శుభ దినం")
+        
+        # Get rashi Telugu name
+        try:
+            from app.fsm.states import Rashi
+            rashi = Rashi(self.user.rashi)
+            rashi_telugu = rashi.telugu_name
+        except:
+            rashi_telugu = self.user.rashi
+        
+        # Build preferences list in Telugu
         prefs = [
-            f"📿 Rashi: {self.user.rashi}",
+            f"📿 రాశి: {rashi_telugu}",
         ]
         
         if self.user.nakshatra:
-            prefs.append(f"⭐ Nakshatra: {self.user.nakshatra}")
+            prefs.append(f"⭐ నక్షత్రం: {self.user.nakshatra}")
         
         if self.user.birth_time:
-            prefs.append(f"⏰ Birth Time: {self.user.birth_time}")
+            prefs.append(f"⏰ జన్మ సమయం: {self.user.birth_time}")
         
         prefs.extend([
-            f"🙏 Deity: {deity_name}",
-            f"📅 Auspicious Day: {day_name}",
+            f"🙏 ఇష్ట దైవం: {deity_telugu}",
+            f"📅 శుభ దినం: {day_telugu}",
         ])
         
         prefs_str = "\n".join(prefs)
         
-        message = f"""🙏✨ Onboarding complete! ✨🙏
+        message = f"""🙏✨ నమోదు పూర్తయింది! ✨🙏
 
-Mee preferences saved:
+మీ వివరాలు భద్రపరచబడ్డాయి:
 {prefs_str}
 
-Meeku daily 7:00 AM CST ki Rashiphalalu vastundi.
-{day_name} roju special Sankalp opportunity vastundi.
+మీకు ప్రతిరోజూ ఉదయం 7:00 గంటలకు రాశిఫలాలు వస్తాయి.
+{day_telugu} రోజు ప్రత్యేక సంకల్ప అవకాశం వస్తుంది.
 
-Shubham! 🙏"""
+శుభమస్తు! 🙏"""
         
         await self.gupshup.send_text_message(
             phone=self.user.phone,
@@ -495,7 +521,7 @@ Shubham! 🙏"""
         """Send default response for unhandled states."""
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 Namaskaram! Emi help kavali? 🙏",
+            message="🙏 నమస్కారం! ఏమి సహాయం కావాలి? 🙏",
         )
     
     # === Parsing helpers ===
