@@ -20,6 +20,9 @@ from app.fsm.states import (
 from app.services.user_service import UserService
 from app.services.gupshup_service import GupshupService
 from app.services.sankalp_service import SankalpService
+from sqlalchemy import select, desc
+from app.models.sankalp import Sankalp
+from app.fsm.states import SankalpStatus
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +61,14 @@ class FSMMachine:
             message_id: Message ID for idempotency
         """
         current_state = ConversationState(self.user.state)
+        
+        # --- GLOBAL COMMANDS (Bypass State Machine) ---
+        clean_text = text.lower().strip() if text else ""
+        if clean_text in ["history", "my seva", "my seva history", "నా సేవలు", "na sevalu", "seva list"]:
+            logger.info(f"FSM: Global command '{clean_text}' detected for {self.user.phone}")
+            await self._handle_history_request()
+            return
+        # ----------------------------------------------
         
         logger.info(f"FSM: User {self.user.phone} in state {current_state.value}, input: {text[:50] if text else button_payload}")
         
@@ -711,3 +722,66 @@ class FSMMachine:
             return SankalpTier(payload)
         except ValueError:
             return None
+            return SankalpTier(payload)
+        except ValueError:
+            return None
+
+    # === Global Handlers ===
+
+    async def _handle_history_request(self) -> None:
+        """
+        Handle 'history' command - show past completed sankalps.
+        """
+        try:
+            # Fetch last 5 PAID/CLOSED sankalps
+            result = await self.db.execute(
+                select(Sankalp).where(
+                    Sankalp.user_id == self.user.id,
+                    Sankalp.status.in_([
+                        SankalpStatus.PAID.value, 
+                        SankalpStatus.RECEIPT_SENT.value, 
+                        SankalpStatus.CLOSED.value
+                    ])
+                ).order_by(desc(Sankalp.created_at)).limit(5)
+            )
+            sankalps = result.scalars().all()
+            
+            if not sankalps:
+                await self.gupshup.send_text_message(
+                    phone=self.user.phone,
+                    message="🙏 మీరు ఇప్పటివరకు ఎటువంటి సేవలు చేయలేదు. రాబోయే శుభ దినం నాడు మీ మొదటి సేవను ప్రారంభించండి! శుభమస్తు."
+                )
+                return
+            
+            # Format message
+            lines = ["🙏 **మీ సేవా చరిత్ర (My Seva History)**:\n"]
+            
+            total_amount = 0
+            
+            for idx, s in enumerate(sankalps, 1):
+                # Format date: Jan 15, 2026
+                date_str = s.created_at.strftime("%b %d, %Y")
+                
+                # Get Telugu category name
+                cat_name = s.category.title()
+                if s.category == "annadanam": cat_name = "Annadanam (Food)"
+                elif s.category == "education": cat_name = "Vidhya (Education)"
+                elif s.category == "health": cat_name = "Arogyam (Health)"
+                
+                lines.append(f"{idx}. {cat_name} | ₹{int(s.amount)} | {date_str} ✅")
+                total_amount += s.amount
+                
+            lines.append(f"\n✨ **మొత్తం (Total): ₹{int(total_amount)}**")
+            lines.append("\n🙏 ధన్యవాదాలు! (Type 'menu' to go back)")
+            
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="\n".join(lines)
+            )
+            
+        except Exception as e:
+            logger.error(f"Error fetching history for {self.user.phone}: {e}")
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="క్షమించండి, మీ చరిత్రను పొందడంలో సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+            )
