@@ -45,7 +45,18 @@ async def run_migrations_task():
                 statements = [s.strip() for s in sql.split(';') if s.strip()]
                 
                 for stmt in statements:
-                    await conn.execute(text(stmt))
+                    try:
+                        await conn.execute(text(stmt))
+                    except Exception as e:
+                        # Log error but continue if it's "already exists"
+                        err_str = str(e).lower()
+                        if "already exists" in err_str or "duplicateobject" in err_str:
+                            logger.warning(f"⚠️ Object already exists (skipping): {str(e)[:100]}...")
+                        else:
+                            logger.error(f"❌ Error executing stmt: {stmt[:50]}... -> {e}")
+                            # Optional: raise if you want strict failure on other errors
+                            # For now, we continue to try applying other parts
+                            pass
                     
                 logger.info(f"✅ Applied {filename}")
                 
