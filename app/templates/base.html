@@ -1,61 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subhamasthu | Command Center</title>
-    
+
     <!-- Alpine.js (Logic) -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    
+
     <!-- Tailwind CSS (Style) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <!-- Charts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <style>
-        [x-cloak] { display: none !important; }
+        [x-cloak] {
+            display: none !important;
+        }
     </style>
 </head>
+
 <body class="bg-slate-50 text-slate-900 font-sans" x-data="authGuard()">
 
-    <!-- AUTH GUARD LOGIC -->
+    <!-- AUTH GUARD LOGIC (DISABLED) -->
     <script>
         function authGuard() {
             return {
                 init() {
-                    const key = localStorage.getItem('admin_key');
-                    // If no key and not on login page, redirect
-                    if (!key && window.location.pathname !== '/admin-panel/login') {
-                        window.location.href = '/admin-panel/login';
-                    }
-                    
-                    // Add key to all future fetch requests (Global Interceptor hack)
-                    const originalFetch = window.fetch;
-                    window.fetch = function() {
-                        let [resource, config] = arguments;
-                        config = config || {};
-                        config.headers = config.headers || {};
-                        config.headers['X-Admin-Key'] = localStorage.getItem('admin_key');
-                        return originalFetch(resource, config);
-                    };
+                    // Open Access: No login check required.
+                    console.log("Auth Guard Disabled");
                 },
                 logout() {
-                    localStorage.removeItem('admin_key');
-                    window.location.href = '/admin-panel/login';
+                    // No-op or redirect to home
+                    window.location.href = '/admin-panel';
                 }
             }
         }
     </script>
 
     <div class="flex h-screen overflow-hidden">
-        
+
         <!-- SIDEBAR -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl" x-cloak x-show="window.location.pathname !== '/admin-panel/login'">
+        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl" x-cloak
+            x-show="window.location.pathname !== '/admin-panel/login'">
             <div class="p-6 border-b border-slate-800">
                 <h1 class="text-xl font-bold tracking-tight text-amber-500 flex items-center gap-2">
                     <i data-lucide="sun"></i>
@@ -63,24 +55,28 @@
                 </h1>
                 <p class="text-xs text-slate-400 mt-1">Command Center v2.0</p>
             </div>
-            
+
             <nav class="flex-1 p-4 space-y-1">
-                <a href="/admin-panel" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'dashboard' else 'text-slate-300' }}">
+                <a href="/admin-panel"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'dashboard' else 'text-slate-300' }}">
                     <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     Pulse
                 </a>
-                <a href="/admin-panel/media" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'media' else 'text-slate-300' }}">
+                <a href="/admin-panel/media"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'media' else 'text-slate-300' }}">
                     <i data-lucide="image" class="w-5 h-5"></i>
                     Media Ops
                 </a>
-                <a href="/admin-panel/users" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'users' else 'text-slate-300' }}">
+                <a href="/admin-panel/users"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md hover:bg-slate-800 transition-colors {{ 'bg-slate-800 text-amber-400' if active_page == 'users' else 'text-slate-300' }}">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     Donors
                 </a>
             </nav>
-            
+
             <div class="p-4 border-t border-slate-800">
-                <button @click="logout()" class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:text-red-300 rounded-md w-full transition-colors">
+                <button @click="logout()"
+                    class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-red-400 hover:text-red-300 rounded-md w-full transition-colors">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
                     Logout
                 </button>
@@ -99,4 +95,5 @@
         lucide.createIcons();
     </script>
 </body>
+
 </html>
