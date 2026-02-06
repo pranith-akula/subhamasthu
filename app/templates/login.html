@@ -16,9 +16,9 @@
         <form @submit.prevent="submitKey" class="space-y-6">
             <div class="mb-6">
                 <label class="block text-slate-400 text-sm font-bold mb-2">Admin Password</label>
-                class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none
-                focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                placeholder="••••••••••••" @keydown.enter="submitKey">
+                <input type="password" x-model="key"
+                    class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
+                    placeholder="••••••••••••" @keydown.enter="submitKey">
             </div>
             <button type="submit"
                 class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
