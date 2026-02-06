@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-8 pb-20" x-data="mediaGallery()">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900">Media Operations</h2>
+            <p class="text-slate-500 mt-1">Manage Seva Proof footage and uploads.</p>
+        </div>
+        <button @click="showUploadModal = true"
+            class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            Upload Footage
+        </button>
+    </div>
+
+    <!-- GALLERY GRID -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <template x-for="item in items" :key="item.id">
+            <div
+                class="group relative bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all">
+                <!-- Image/Video Thumbnail -->
+                <div class="aspect-square bg-slate-100 relative">
+                    <template x-if="item.type === 'image'">
+                        <img :src="item.url" class="w-full h-full object-cover">
+                    </template>
+                    <template x-if="item.type === 'video'">
+                        <video :src="item.url" class="w-full h-full object-cover"></video>
+                    </template>
+
+                    <!-- Overlay Info -->
+                    <div
+                        class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                        <p class="text-white text-xs font-medium truncate" x-text="item.caption || 'No Caption'"></p>
+                        <p class="text-white/70 text-[10px]" x-text="formatDate(item.date)"></p>
+                    </div>
+
+                    <!-- Type Badge -->
+                    <div class="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide"
+                        :class="item.type === 'video' ? 'bg-indigo-500 text-white' : 'bg-emerald-500 text-white'">
+                        <span x-text="item.type"></span>
+                    </div>
+                </div>
+
+                <!-- Footer Stats -->
+                <div class="px-3 py-2 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <span class="text-xs text-slate-500" x-text="'Used: ' + item.used"></span>
+                    <button class="text-slate-400 hover:text-red-500 transition-colors">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            </div>
+        </template>
+
+        <!-- Empty State -->
+        <div x-show="items.length === 0 && !loading"
+            class="col-span-full py-12 text-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+            <i data-lucide="image-off" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            <p>No media found in the pool.</p>
+        </div>
+    </div>
+
+    <!-- UPLOAD MODAL -->
+    <div x-show="showUploadModal" x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+        x-transition.opacity>
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full p-6" @click.away="showUploadModal = false">
+            <h3 class="text-lg font-bold text-slate-900 mb-4">Upload New Footage</h3>
+
+            <form @submit.prevent="uploadMedia" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Cloudinary URL</label>
+                    <input type="url" x-model="uploadForm.url" required
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="https://res.cloudinary.com/...">
+                    <p class="text-xs text-slate-400 mt-1">Paste URL from Watcher logs or Cloudinary directly.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                        <select x-model="uploadForm.type"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Families Fed</label>
+                        <input type="number" x-model="uploadForm.families" placeholder="50"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition-colors flex justify-center items-center gap-2"
+                    :disabled="uploading">
+                    <span x-show="!uploading">Add to Pool</span>
+                    <span x-show="uploading" class="animate-pulse">Saving...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function mediaGallery() {
+        return {
+            items: [],
+            loading: false,
+            showUploadModal: false,
+            uploading: false,
+            uploadForm: { url: '', type: 'image', families: 50 },
+
+            async init() {
+                this.fetchMedia();
+            },
+
+            async fetchMedia() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/admin/seva-media/list?limit=50');
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.items = data.items;
+                    }
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async uploadMedia() {
+                this.uploading = true;
+                // Create form data
+                const fd = new FormData();
+                fd.append('cloudinary_url', this.uploadForm.url);
+                fd.append('media_type', this.uploadForm.type);
+                fd.append('families_fed', this.uploadForm.families);
+
+                try {
+                    const res = await fetch('/admin/seva-media/add', {
+                        method: 'POST',
+                        body: fd
+                        // Note: X-Admin-Key is added by global interceptor in base.html
+                    });
+
+                    if (res.ok) {
+                        this.showUploadModal = false;
+                        this.uploadForm.url = ''; // Reset
+                        this.fetchMedia(); // Refresh list
+                    } else {
+                        alert("Upload failed");
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert("Error uploading");
+                } finally {
+                    this.uploading = false;
+                }
+            },
+
+            formatDate(iso) {
+                if (!iso) return '';
+                return new Date(iso).toLocaleDateString();
+            }
+        }
+    }
+</script>
+{% endblock %}

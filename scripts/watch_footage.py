@@ -187,7 +187,7 @@ def main():
     WATCH_DIR.mkdir(exist_ok=True)
     UPLOADED_DIR.mkdir(exist_ok=True)
     
-    logging.info(f"👀 Watching directory: {WATCH_DIR.absolute()}")
+    logging.info(f"Watching directory: {WATCH_DIR.absolute()}")
     logging.info("Drop video files here to auto-upload.")
     
     event_handler = FootageHandler()

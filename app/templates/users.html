@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="p-8 pb-20" x-data="userManage()">
+
+    <!-- HEADER -->
+    <div class="flex justify-between items-end mb-8">
+        <div>
+            <h2 class="text-3xl font-bold tracking-tight text-slate-900">Donor CRM</h2>
+            <p class="text-slate-500 mt-1">View and manage your donor base.</p>
+        </div>
+        <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input type="text" x-model="search" placeholder="Search name or phone..."
+                class="pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none w-64">
+        </div>
+    </div>
+
+    <!-- USERS TABLE -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                    <th class="px-6 py-3 font-semibold text-slate-700">Donor</th>
+                    <th class="px-6 py-3 font-semibold text-slate-700">Join Date</th>
+                    <th class="px-6 py-3 font-semibold text-slate-700">Total Given</th>
+                    <th class="px-6 py-3 font-semibold text-slate-700">Sevas</th>
+                    <th class="px-6 py-3 font-semibold text-slate-700 text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                <template x-for="user in filteredUsers" :key="user.id">
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase"
+                                    x-text="user.name ? user.name[0] : '?'"></div>
+                                <div>
+                                    <p class="font-medium text-slate-900" x-text="user.name || 'Anonymous'"></p>
+                                    <p class="text-slate-500 text-xs" x-text="user.phone"></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-600" x-text="formatDate(user.created_at)"></td>
+                        <td class="px-6 py-4 font-bold text-slate-900" x-text="'$' + user.total_amount"></td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded bg-slate-100 text-slate-600 text-xs font-medium"
+                                x-text="user.sankalp_count + ' Sankalps'"></span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a :href="'https://wa.me/' + user.phone" target="_blank"
+                                class="text-indigo-600 hover:text-indigo-800 text-xs font-medium inline-flex items-center gap-1">
+                                <i data-lucide="message-circle" class="w-3 h-3"></i>
+                                Chat
+                            </a>
+                        </td>
+                    </tr>
+                </template>
+                <tr x-show="filteredUsers.length === 0 && !loading">
+                    <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                        No donors found matching your search.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function userManage() {
+        return {
+            users: [],
+            search: '',
+            loading: false,
+
+            get filteredUsers() {
+                if (!this.search) return this.users;
+                const q = this.search.toLowerCase();
+                return this.users.filter(u =>
+                    (u.name && u.name.toLowerCase().includes(q)) ||
+                    (u.phone && u.phone.includes(q))
+                );
+            },
+
+            async init() {
+                this.fetchUsers();
+            },
+
+            async fetchUsers() {
+                this.loading = true;
+                try {
+                    const res = await fetch('/admin/api/users');
+                    if (res.ok) {
+                        const data = await res.json();
+                        this.users = data.items;
+                    }
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            formatDate(iso) {
+                if (!iso) return '-';
+                return new Date(iso).toLocaleDateString();
+            }
+        }
+    }
+</script>
+{% endblock %}

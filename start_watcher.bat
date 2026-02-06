@@ -1,9 +1,3 @@
 @echo off
-echo Starting Seva Footage Watcher in background...
-start pythonw scripts/watch_footage.py
-echo.
-echo ✅ Watcher is now running hidden in the background!
-echo You can close this terminal now.
-echo.
-echo To stop it later, use Task Manager or run stop_watcher.bat
-pause
+start "" /B pythonw scripts/simple_watcher.py
+echo Watcher started in background!

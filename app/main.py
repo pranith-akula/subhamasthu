@@ -93,3 +93,7 @@ app.include_router(
     prefix="/admin",
     tags=["admin"],
 )
+
+# Admin Dashboard (HTML)
+from app.api.admin.dashboard import router as dashboard_router
+app.include_router(dashboard_router)

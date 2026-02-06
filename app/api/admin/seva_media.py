@@ -82,6 +82,35 @@ async def get_pool_stats(
     }
 
 
+@router.get("/list")
+async def list_seva_media(
+    limit: int = 50,
+    offset: int = 0,
+    db: AsyncSession = Depends(get_db),
+):
+    """List media items for the admin gallery."""
+    from sqlalchemy import select, desc
+    from app.models.seva_media import SevaMedia
+    
+    query = select(SevaMedia).order_by(desc(SevaMedia.created_at)).limit(limit).offset(offset)
+    result = await db.execute(query)
+    media_list = result.scalars().all()
+    
+    return {
+        "status": "success",
+        "items": [
+            {
+                "id": str(m.id),
+                "url": m.cloudinary_url,
+                "type": m.media_type,
+                "date": m.created_at.isoformat() if m.created_at else None,
+                "used": m.used_count,
+                "caption": m.caption
+            } for m in media_list
+        ]
+    }
+
+
 @router.post("/send-test")
 async def send_test_proof(
     phone: str = Form(..., description="Phone number to send test to"),
