@@ -165,14 +165,22 @@ class FSMMachine:
         if not day:
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Please select your preferred auspicious day.",
+                message="దయచేసి మీ శుభ దినం ఎంచుకోండి.",
             )
             await self._send_day_buttons()
             return
         
         await self.user_service.set_user_auspicious_day(self.user, day)
+        
+        # Mark onboarding complete with timestamp
+        from datetime import datetime
+        self.user.onboarded_at = datetime.utcnow()
+        
         await self._send_onboarding_complete()
         await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+        
+        # Day 0: Send immediate personalized Rashiphalalu
+        await self._send_day_zero_rashiphalalu()
     
     async def _handle_onboarded(self, text: str, button_payload: Optional[str]) -> None:
         """Handle ONBOARDED state - transition to DAILY_PASSIVE."""
@@ -184,7 +192,7 @@ class FSMMachine:
         # Any message in passive state just gets a gentle acknowledgment
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 Meeku daily Rashiphalalu vasthu untayi. Mee auspicious day roju special message vastundi. Shubham! 🙏",
+            message="🙏 నమస్కారం! మీకు ప్రతిరోజూ రాశిఫలాలు వస్తాయి. మీ శుభ దినం రోజు ప్రత్యేక సందేశం వస్తుంది. శుభమస్తు! 🙏",
         )
     
     async def _handle_weekly_prompt(self, text: str, button_payload: Optional[str]) -> None:
@@ -523,6 +531,43 @@ class FSMMachine:
             phone=self.user.phone,
             message="🙏 నమస్కారం! ఏమి సహాయం కావాలి? 🙏",
         )
+    
+    async def _send_day_zero_rashiphalalu(self) -> None:
+        """
+        Send personalized Rashiphalalu immediately after onboarding (Day 0).
+        This is the user's first personalized message.
+        """
+        from app.services.rashiphalalu_service import RashiphalaluService
+        
+        try:
+            rashiphalalu_service = RashiphalaluService(self.db)
+            message = await rashiphalalu_service.generate_personalized_message(self.user)
+            
+            if message:
+                # Send intro message first
+                intro = """🌟 మీ మొదటి వ్యక్తిగత రాశిఫలం!
+
+ఇప్పటి నుండి ప్రతిరోజూ ఉదయం 7 గంటలకు మీకు ఇలాంటి వ్యక్తిగత సందేశాలు వస్తాయి."""
+                
+                await self.gupshup.send_text_message(
+                    phone=self.user.phone,
+                    message=intro,
+                )
+                
+                # Send the actual Rashiphalalu
+                await self.gupshup.send_text_message(
+                    phone=self.user.phone,
+                    message=message,
+                )
+                
+                # Increment rashiphalalu_days_sent (Day 0 counts as first)
+                self.user.rashiphalalu_days_sent = 1
+                
+                logger.info(f"Day 0 Rashiphalalu sent to {self.user.phone}")
+            else:
+                logger.warning(f"Could not generate Day 0 Rashiphalalu for {self.user.phone}")
+        except Exception as e:
+            logger.error(f"Day 0 Rashiphalalu failed for {self.user.phone}: {e}")
     
     # === Parsing helpers ===
     

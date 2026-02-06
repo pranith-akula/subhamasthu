@@ -292,6 +292,7 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
     async def broadcast_to_users(self, target_date: Optional[date] = None) -> int:
         """
         Broadcast personalized Rashiphalalu to all active users.
+        Increments rashiphalalu_days_sent for 6-day Sankalp eligibility.
         
         Returns count of messages sent.
         """
@@ -314,9 +315,15 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
                         message=message,
                     )
                     if msg_id:
+                        # Increment the days counter for 6-day eligibility
+                        user.rashiphalalu_days_sent += 1
                         sent += 1
+                        logger.debug(f"Sent to {user.phone}, days_sent={user.rashiphalalu_days_sent}")
             except Exception as e:
                 logger.error(f"Failed to send to {user.phone}: {e}")
+        
+        # Commit all changes
+        await self.db.flush()
         
         logger.info(f"Broadcast complete: {sent} personalized messages sent")
         return sent

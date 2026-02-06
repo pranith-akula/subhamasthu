@@ -91,6 +91,18 @@ class User(Base):
         nullable=True,
     )
     
+    # Onboarding completion timestamp
+    onboarded_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    
+    # Count of Rashiphalalu messages sent (for 6-day eligibility)
+    rashiphalalu_days_sent: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+    )
+    
     # Record timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -129,3 +141,15 @@ class User(Base):
         from datetime import timedelta
         cooldown_end = self.last_sankalp_at + timedelta(days=7)
         return datetime.utcnow() < cooldown_end
+    
+    @property
+    def is_eligible_for_sankalp(self) -> bool:
+        """
+        Check if user is eligible to receive Sankalp prompt.
+        Requires 6+ days of Rashiphalalu and no active cooldown.
+        """
+        return (
+            self.is_onboarded and
+            self.rashiphalalu_days_sent >= 6 and
+            not self.is_in_cooldown
+        )
