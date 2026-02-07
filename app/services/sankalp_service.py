@@ -365,6 +365,40 @@ class SankalpService:
         
         return False
     
+    async def send_frequency_prompt(self, user: User, tier: SankalpTier) -> bool:
+        """
+        Step 4b: Ask for Frequency (Monthly vs One-time).
+        """
+        amount_val = {
+            SankalpTier.S15: "₹1800",
+            SankalpTier.S30: "₹4200",
+            SankalpTier.S50: "₹9000",
+        }.get(tier, "₹1800")
+        
+        message = f"""🙏 **నిత్య అన్నదాన మహా యజ్ఞం**
+
+భక్తా, దైవ కార్యంలో నిలకడ ముఖ్యం.
+
+మీరు చేసే ఈ అన్నదానం ఒక్క రోజుతో ఆగిపోకూడదు. ప్రతీ నెల మీ పేరున పేదలకు అన్నప్రసాదం అందడం వల్ల, మీ ఇంట **అఖండ లక్ష్మీ కటాక్షం** కలుగుతుంది.
+
+"మానవ సేవయే మాధవ సేవ"
+
+ఈ గొప్ప కార్యాన్ని **నెలవారీ శాశ్వత సేవగా** (Monthly Seva) స్వీకరించి, పుణ్యాన్ని శాశ్వతం చేసుకుంటారా?"""
+
+        buttons = [
+            {"id": "FREQ_MONTHLY", "title": "🙏 అవును, ప్రతి నెలా (Yes)"},
+            {"id": "FREQ_ONETIME", "title": "ఈ ఒక్కసారికి చాలు"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
+            phone=user.phone,
+            body_text=message,
+            buttons=buttons,
+            footer="ధర్మం రక్షతి రక్షితః",
+        )
+        
+        return msg_id is not None
+    
     async def create_sankalp(
         self,
         user: User,
@@ -403,71 +437,80 @@ class SankalpService:
         logger.info(f"Created sankalp {sankalp.id} for user {user.phone}")
         return sankalp
     
-    async def create_payment_link(self, sankalp: Sankalp, user: User) -> str:
+    async def create_payment_link(self, sankalp: Sankalp, user: User, is_subscription: bool = False) -> str:
         """
-        Create Razorpay Subscription Link (Recurring).
-        If fails (e.g., international cards issue), fall back to One-Time Payment Link.
+        Create Razorpay Link (Subscription or One-time).
         """
         if not self.razorpay:
             raise ValueError("Razorpay not configured")
         
-        try:
-            # Try creating a subscription first
-            plan_id = await self._get_or_create_plan(sankalp.tier, sankalp.amount, sankalp.currency)
-            
-            subscription = self.razorpay.subscription.create({
-                "plan_id": plan_id,
-                "customer_notify": 1,
-                "quantity": 1,
-                "total_count": 12,  # 1 year subscription
-                "notes": {
-                    "sankalp_id": str(sankalp.id),
-                    "user_id": str(user.id),
-                    "category": sankalp.category,
+        if is_subscription:
+            # 1. Create Subscription
+            try:
+                plan_id = await self._get_or_create_plan(sankalp.tier, sankalp.amount, sankalp.currency)
+                
+                subscription = self.razorpay.subscription.create({
+                    "plan_id": plan_id,
+                    "customer_notify": 1,
+                    "quantity": 1,
+                    "total_count": 120,  # 10 years (effectively indefinite)
+                    "notes": {
+                        "sankalp_id": str(sankalp.id),
+                        "user_id": str(user.id),
+                        "category": sankalp.category,
+                    }
+                })
+                
+                sankalp.payment_link_id = subscription["id"]
+                sankalp.status = SankalpStatus.PAYMENT_PENDING.value
+                sankalp.razorpay_ref = {
+                    "subscription_id": subscription["id"],
+                    "short_url": subscription["short_url"],
+                    "type": "subscription"
                 }
-            })
-            
-            sankalp.payment_link_id = subscription["id"]
-            sankalp.status = SankalpStatus.PAYMENT_PENDING.value
-            sankalp.razorpay_ref = {
-                "subscription_id": subscription["id"],
-                "short_url": subscription["short_url"],
-                "type": "subscription"
-            }
-            
-            logger.info(f"Created subscription {subscription['id']} for sankalp {sankalp.id}")
-            return subscription["short_url"]
-            
-        except Exception as e:
-            logger.error(f"Subscription creation failed: {e}. Falling back to one-time payment.")
-            
-            # Fallback to One-Time Payment Link logic
-            amount_paise = int(sankalp.amount * 100)
-            payment_link = self.razorpay.payment_link.create({
-                "amount": amount_paise,
-                "currency": sankalp.currency,
-                "accept_partial": False,
-                "description": f"సంకల్ప సేవ (One-Time) - {sankalp.category}",
-                "customer": {
-                    "contact": user.phone,
-                    "name": user.name or "భక్తులు",
-                },
-                "notify": {"sms": False, "email": False},
-                "notes": {
-                    "sankalp_id": str(sankalp.id),
-                    "user_id": str(user.id),
-                },
-                "callback_url": settings.app_url + "/payment-success",
-                "callback_method": "get",
-            })
-            
-            sankalp.payment_link_id = payment_link["id"]
-            sankalp.razorpay_ref = {
-                "payment_link_id": payment_link["id"],
-                "short_url": payment_link["short_url"],
-                "type": "onetime"
-            }
-            return payment_link["short_url"]
+                
+                logger.info(f"Created subscription {subscription['id']} for sankalp {sankalp.id}")
+                return subscription["short_url"]
+                
+            except Exception as e:
+                logger.error(f"Subscription creation failed: {e}")
+                raise
+        
+        else:
+            # 2. Create One-Time Payment Link
+            try:
+                amount_paise = int(sankalp.amount * 100)
+                payment_link = self.razorpay.payment_link.create({
+                    "amount": amount_paise,
+                    "currency": sankalp.currency,
+                    "accept_partial": False,
+                    "description": f"సంకల్ప సేవ (One-Time) - {sankalp.category}",
+                    "customer": {
+                        "contact": user.phone,
+                        "name": user.name or "భక్తులు",
+                    },
+                    "notify": {"sms": False, "email": False},
+                    "notes": {
+                        "sankalp_id": str(sankalp.id),
+                        "user_id": str(user.id),
+                    },
+                    "callback_url": settings.app_url + "/payment-success",
+                    "callback_method": "get",
+                })
+                
+                sankalp.payment_link_id = payment_link["id"]
+                sankalp.status = SankalpStatus.PAYMENT_PENDING.value
+                sankalp.razorpay_ref = {
+                    "payment_link_id": payment_link["id"],
+                    "short_url": payment_link["short_url"],
+                    "type": "onetime"
+                }
+                logger.info(f"Created one-time payment link {payment_link['id']} for sankalp {sankalp.id}")
+                return payment_link["short_url"]
+
+            except Exception as e:
+                logger.error(f"Payment link creation failed: {e}")
+                raise
 
     # Simple in-memory cache for Plan IDs to avoid API spam
     _plan_cache = {}

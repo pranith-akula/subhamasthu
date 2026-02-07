@@ -90,6 +90,7 @@ class FSMMachine:
             ConversationState.WAITING_FOR_CATEGORY: self._handle_category_selection,
             ConversationState.WAITING_FOR_TYAGAM_DECISION: self._handle_tyagam_decision,
             ConversationState.WAITING_FOR_TIER: self._handle_tier_selection,
+            ConversationState.WAITING_FOR_FREQUENCY: self._handle_frequency_selection,
             ConversationState.PAYMENT_LINK_SENT: self._handle_payment_pending,
             ConversationState.PAYMENT_CONFIRMED: self._handle_payment_confirmed,
             ConversationState.COOLDOWN: self._handle_cooldown,
@@ -519,24 +520,68 @@ class FSMMachine:
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
             return
         
-        category = SankalpCategory(category_value)
+        sankalp_service = SankalpService(self.db)
+        await sankalp_service.send_frequency_prompt(self.user, tier)
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_FREQUENCY)
+    
+    async def _handle_frequency_selection(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Handle frequency selection (Monthly vs One-time).
+        """
+        is_subscription = False
+        if button_payload == "FREQ_MONTHLY":
+            is_subscription = True
+        elif button_payload == "FREQ_ONETIME":
+            is_subscription = False
+        else:
+            # Invalid input - assumption: default to one-time if lost? or prompt again?
+            # Let's prompt again for clarity
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="🙏 దయచేసి పై ఆప్షన్లలో (నెలవారీ లేదా ఒక్కసారి) ఒకదాన్ని ఎంచుకోండి."
+            )
+            return
+
+        # Retrieve context
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == self.user.id)
+        )
+        conversation = result.scalar_one_or_none()
         
-        # Create sankalp and payment link
+        category_val = conversation.get_context("selected_category") if conversation else None
+        tier_val = conversation.get_context("selected_tier") if conversation else None
+        
+        if not category_val or not tier_val:
+             await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="క్షమించండి, సెషన్ గడువు ముగిసింది. దయచేసి మళ్ళీ ప్రారంభించండి."
+            )
+             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+             return
+
+        category = SankalpCategory(category_val)
+        tier = SankalpTier(tier_val)
+        
+        # Create Sankalp
         sankalp_service = SankalpService(self.db)
         sankalp = await sankalp_service.create_sankalp(self.user, category, tier)
         
         try:
-            payment_url = await sankalp_service.create_payment_link(sankalp, self.user)
+            # Create Link (Subscription or One-time)
+            payment_url = await sankalp_service.create_payment_link(sankalp, self.user, is_subscription=is_subscription)
             await sankalp_service.send_payment_link(self.user, sankalp, payment_url)
             
-            # Store sankalp ID in context
+            # Context Update
             if conversation:
                 conversation.set_context("pending_sankalp_id", str(sankalp.id))
+                
         except Exception as e:
             logger.error(f"Failed to create payment link: {e}")
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
     
