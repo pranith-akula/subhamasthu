@@ -13,11 +13,17 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.database import init_db, close_db
 from app.logging_config import configure_logging
+from app.logging_config import configure_logging
 from app.redis import RedisClient
 import logging
 
-# Import routers
-# ...
+# Import routers - MUST BE AT TOP LEVEL
+from app.api.webhooks.gupshup import router as gupshup_router
+from app.api.webhooks.razorpay import router as razorpay_router
+from app.api.admin.broadcast import router as broadcast_router
+from app.api.admin.seva import router as seva_router
+from app.api.admin.seva_media import router as seva_media_router
+from app.api.admin.database import router as database_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
