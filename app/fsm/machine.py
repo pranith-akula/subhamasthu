@@ -106,19 +106,32 @@ class FSMMachine:
         # Send Welcome Message
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తుకు స్వాగతం. మీ కుటుంబ క్షేమం మరియు ఆయురారోగ్యాల కోసం దైవ సంకల్పం.\n\nప్రారంభించడానికి, దయచేసి మీ రాశిని ఎంచుకోండి."
+            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కుటుంబ క్షేమం, ఆయురారోగ్యాలు మరియు సకల కార్య జయము కొరకు దైవ సంకల్పం.\n\nమీ గోత్ర నామాలతో నిత్యం అర్చన జరిపించుకోవడానికి, దయచేసి మీ వివరాలు తెలియజేయండి.\n\nప్రారంభించడానికి, మీ రాశిని ఎంచుకోండి."
         )
         
         # Send Rashi Group Buttons
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="మీ రాశి ఏ గ్రూపులో ఉందో ఎంచుకోండి:",
+            body_text="✨ మీ రాశి ఏ గ్రూపులో ఉంది?",
             buttons=[
-                {"id": "BTN_RASHI_GRP_1", "title": "మేషం ... కన్య (1-6)"},
-                {"id": "BTN_RASHI_GRP_2", "title": "తుల ... మీనం (7-12)"}
+                {"id": "BTN_RASHI_GRP_1", "title": "మేషం నుండి కన్య (1-6)"},
+                {"id": "BTN_RASHI_GRP_2", "title": "తుల నుండి మీనం (7-12)"}
             ]
         )
         await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_RASHI)
+    
+    async def _send_nakshatra_prompt(self) -> None:
+        """Send prompt for nakshatra input (Buttons: Yes/Skip)."""
+        await self.gupshup.send_button_message(
+            phone=self.user.phone,
+            body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
+            buttons=[
+                {"id": "BTN_SELECT_NAKSHATRA", "title": "నక్షత్రం ఎంచుకుంటాను"},
+                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (Skip)"},
+            ]
+        )
+        # The state should be updated to WAITING_FOR_NAKSHATRA when this prompt is sent
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_NAKSHATRA)
     
     async def _handle_rashi_selection(self, text: str, button_payload: Optional[str]) -> None:
         """Handle rashi selection (MANDATORY)."""
@@ -127,13 +140,13 @@ class FSMMachine:
         if button_payload == "BTN_RASHI_GRP_1":
             # Send List for Rashis 1-6
             rows = [
-                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": r.value}
+                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
                 for r in [Rashi.MESHA, Rashi.VRISHABHA, Rashi.MITHUNA, Rashi.KARKATAKA, Rashi.SIMHA, Rashi.KANYA]
             ]
             await self.gupshup.send_list_message(
                 phone=self.user.phone,
-                body_text="మీ రాశిని ఎంచుకోండి (1-6):",
-                button_text="Select Rashi",
+                body_text="🪔 మీ రాశిని ఎంచుకోండి (1-6):",
+                button_text="రాశిని ఎంచుకోండి",
                 sections=[{"title": "Rashis", "rows": rows}]
             )
             return
@@ -141,13 +154,13 @@ class FSMMachine:
         elif button_payload == "BTN_RASHI_GRP_2":
             # Send List for Rashis 7-12
             rows = [
-                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": r.value}
+                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
                 for r in [Rashi.TULA, Rashi.VRISHCHIKA, Rashi.DHANU, Rashi.MAKARA, Rashi.KUMBHA, Rashi.MEENA]
             ]
             await self.gupshup.send_list_message(
                 phone=self.user.phone,
-                body_text="మీ రాశిని ఎంచుకోండి (7-12):",
-                button_text="Select Rashi",
+                body_text="🪔 మీ రాశిని ఎంచుకోండి (7-12):",
+                button_text="రాశిని ఎంచుకోండి",
                 sections=[{"title": "Rashis", "rows": rows}]
             )
             return
@@ -159,7 +172,7 @@ class FSMMachine:
             # If invalid input, prompts again with groups
             await self.gupshup.send_button_message(
                 phone=self.user.phone,
-                body_text="దయచేసి మీ రాశిని ఎంచుకోండి (Select Group):",
+                body_text="🙏 దయచేసి మీ రాశిని ఖచ్చితంగా ఎంచుకోండి:",
                 buttons=[
                     {"id": "BTN_RASHI_GRP_1", "title": "మేషం ... కన్య (1-6)"},
                     {"id": "BTN_RASHI_GRP_2", "title": "తుల ... మీనం (7-12)"}
@@ -595,19 +608,20 @@ class FSMMachine:
     async def _send_deity_prompt(self) -> None:
         """Send deity selection prompt (List Message)."""
         rows = [
-            {"id": "DEITY_VISHNU", "title": "విష్ణువు/వేంకటేశ్వర", "description": "Vishnu/Venkateshwara"},
-            {"id": "DEITY_SHIVA", "title": "శివుడు (Shiva)", "description": "Om Namah Shivaya"},
-            {"id": "DEITY_HANUMAN", "title": "హనుమాన్ (Hanuman)", "description": "Jai Bajrangbali"},
-            {"id": "DEITY_LAKSHMI", "title": "లక్ష్మీ దేవి (Lakshmi)", "description": "Wealth & Prosperity"},
-            {"id": "DEITY_DURGA", "title": "దుర్గా దేవి (Durga)", "description": "Power & Protection"},
-            {"id": "DEITY_GANESHA", "title": "గణపతి (Ganesha)", "description": "Remover of Obstacles"},
-            {"id": "DEITY_SAIBABA", "title": "సాయిబాబా (Sai Baba)", "description": "Sabka Malik Ek"},
+            {"id": "DEITY_VISHNU", "title": "శ్రీ మహా విష్ణువు", "description": "ఓం నమో నారాయణాయ"},
+            {"id": "DEITY_SHIVA", "title": "పరమేశ్వరుడు (Shiva)", "description": "ఓం నమః శివాయ"},
+            {"id": "DEITY_HANUMAN", "title": "ఆంజనేయ స్వామి", "description": "జై శ్రీరామ్"},
+            {"id": "DEITY_LAKSHMI", "title": "శ్రీ లక్ష్మీ దేవి", "description": "ధన ప్రాప్తి కొరకు"},
+            {"id": "DEITY_DURGA", "title": "శ్రీ దుర్గా మాత", "description": "రక్షణ కొరకు"},
+            {"id": "DEITY_GANESHA", "title": "శ్రీ మహాగణపతి", "description": "విఘ్న నివారణ"},
+            {"id": "DEITY_SAIBABA", "title": "షిరిడీ సాయిబాబా", "description": "ఓం సాయి రామ్"},
+            {"id": "DEITY_VENKATESHWARA", "title": "శ్రీ వేంకటేశ్వర స్వామి", "description": "గోవిందా గోవిందా"},
         ]
         
         await self.gupshup.send_list_message(
             phone=self.user.phone,
-            body_text="🙏 అద్భుతం! మీ ఇష్ట దైవం ఎవరు? (రోజువారీ ప్రార్థన కోసం):",
-            button_text="Select Deity",
+            body_text="🌺 మీ ఇష్ట దైవం ఎవరు? (నిత్యం ఆ స్వామి అనుగ్రహం కొరకు):",
+            button_text="ఇష్ట దైవం",
             sections=[{"title": "Deities", "rows": rows}]
         )
     
@@ -616,23 +630,14 @@ class FSMMachine:
         await self._send_deity_prompt()
     
     async def _send_nakshatra_prompt(self) -> None:
-        """Send nakshatra selection prompt (OPTIONAL)."""
-        # Use WhatsApp list for 27 nakshatras - first show skip option + first batch
-        buttons = [
-            {"id": "SKIP_NAKSHATRA", "title": "⏭️ పర్వాలేదు (Skip)"},
-            {"id": "NAKSH_ASHWINI", "title": "అశ్విని (Ashwini)"},
-            {"id": "NAKSH_BHARANI", "title": "భరణి (Bharani)"},
-        ]
-        
+        """Send prompt for nakshatra input (Buttons: Yes/Skip)."""
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""🌟 మీ జన్మ నక్షత్రం ఏమిటి? (ఐచ్ఛికం)
-
-తెలిస్తే ఎంచుకోండి, లేకపోతే 'పర్వాలేదు' నొక్కండి.
-
-ఇది మీ రాశిఫలాలను మరింత కచ్చితంగా చేస్తుంది.""",
-            buttons=buttons,
-            footer="లేదా టైప్ చేయండి",
+            body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
+            buttons=[
+                {"id": "BTN_SELECT_NAKSHATRA", "title": "నక్షత్రం ఎంచుకుంటాను"},
+                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (Skip)"},
+            ]
         )
     
     async def _send_birth_time_prompt(self) -> None:
@@ -654,19 +659,19 @@ class FSMMachine:
     async def _send_auspicious_day_prompt(self) -> None:
         """Send auspicious day prompt (List Message)."""
         rows = [
-            {"id": "DAY_MONDAY", "title": "సోమవారం (Mon)", "description": "Shiva"},
-            {"id": "DAY_TUESDAY", "title": "మంగళవారం (Tue)", "description": "Hanuman/Subrahmanya"},
-            {"id": "DAY_WEDNESDAY", "title": "బుధవారం (Wed)", "description": "Ayyappa/Vishnu"},
-            {"id": "DAY_THURSDAY", "title": "గురువారం (Thu)", "description": "Sai Baba/Raghavendra"},
-            {"id": "DAY_FRIDAY", "title": "శుక్రవారం (Fri)", "description": "Lakshmi/Durga"},
-            {"id": "DAY_SATURDAY", "title": "శనివారం (Sat)", "description": "Venkateshwara/Shani"},
-            {"id": "DAY_SUNDAY", "title": "ఆదివారం (Sun)", "description": "Surya/All"},
+            {"id": "DAY_MONDAY", "title": "సోమవారం", "description": "శివుని ఆరాధన"},
+            {"id": "DAY_TUESDAY", "title": "మంగళవారం", "description": "హనుమాన్/సుబ్రహ్మణ్య"},
+            {"id": "DAY_WEDNESDAY", "title": "బుధవారం", "description": "విష్ణు/అయ్యప్ప"},
+            {"id": "DAY_THURSDAY", "title": "గురువారం", "description": "సాయి/దత్తాత్రేయ"},
+            {"id": "DAY_FRIDAY", "title": "శుక్రవారం", "description": "లక్ష్మీ/దుర్గా దేవి"},
+            {"id": "DAY_SATURDAY", "title": "శనివారం", "description": "వేంకటేశ్వర/శని దేవుడు"},
+            {"id": "DAY_SUNDAY", "title": "ఆదివారం", "description": "సూర్య భగవానుడు"},
         ]
         
         await self.gupshup.send_list_message(
             phone=self.user.phone,
-            body_text="🙏 వారపు సంకల్పం కోసం, మీకు ఇష్టమైన శుభ దినం ఎంచుకోండి:",
-            button_text="Select Day",
+            body_text="🗓️ వారంలో మీకు ఇష్టమైన శుభ దినం ఏది? (ఆ రోజున ప్రత్యేక సంకల్పం కోసం):",
+            button_text="శుభ దినం",
             sections=[{"title": "Days", "rows": rows}]
         )
         
@@ -682,12 +687,12 @@ class FSMMachine:
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""🎂 మీ పుట్టినరోజు ఎప్పుడు? (Optional)
+            body_text="""🎂 మీ పుట్టినరోజు (Date of Birth) ఎప్పుడు?
             
-తేదీని ఇలా టైప్ చేయండి: DD-MM-YYYY
-ఉదాహరణ: 15-08-1990
+దీని ద్వారా మీ జన్మదినాన ప్రత్యేక అర్చన మరియు ఆశీస్సులు అందించబడతాయి.
 
-దీనివల్ల మీ పుట్టినరోజున ప్రత్యేక ఆశీస్సులు అందుతాయి.""",
+టైప్ చేయండి: DD-MM-YYYY
+(ఉదాహరణ: 15-08-1990)""",
             buttons=buttons,
         )
 
@@ -758,15 +763,17 @@ class FSMMachine:
         
         prefs_str = "\n".join(prefs)
         
-        message = f"""🙏✨ అభినందనలు! శుభమస్తు! ✨🙏
+        prefs_str = "\n".join(prefs)
+        
+        message = f"""🌸 సుస్వాగతం! మీ వివరాలు స్వీకరించబడ్డాయి 🌸
 
-మీ వివరాలు మా వద్ద భద్రంగా ఉన్నాయి:
 {prefs_str}
 
-✅ ప్రతిరోజూ ఉదయం 7:00 గంటలకు మీకు రాశిఫలాలు అందుతాయి.
-✅ ప్రతి {day_telugu} రోజున మీకు ప్రత్యేక "సంకల్పం" అవకాశం ఉంటుంది.
+✅ **నిత్యం:** ప్రతి ఉదయం 7 గంటలకు మీకు దైవ వాణి మరియు రాశిఫలాలు అందుతాయి.
+✅ **వారం:** ప్రతి {day_telugu} రోజున మీకు ప్రత్యేక సంకల్పం చేసుకునే అవకాశం ఉంటుంది.
 
-మీ ధార్మిక ప్రయాణం నేటి నుండి ప్రారంభం! 🙏"""
+మీ జీవితం సుఖసంతోషాలతో వర్ధిల్లాలని కోరుకుంటూ...
+- **శుభమస్తు కుటుంబం** 🙏"""
         
         await self.gupshup.send_text_message(
             phone=self.user.phone,
