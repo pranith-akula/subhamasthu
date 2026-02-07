@@ -192,18 +192,30 @@
         .nav-cta {
             background: var(--gradient-warm);
             color: var(--dark);
-            padding: 0.5rem 1rem;
-            /* Smaller button */
+            padding: 0.4rem 1rem;
+            /* Compact padding */
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
             font-family: 'Noto Sans Telugu', sans-serif;
-            display: flex;
+            display: inline-flex;
+            /* Changed from flex to inline-flex */
             align-items: center;
             gap: 0.5rem;
             transition: transform 0.3s, box-shadow 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            /* Smaller font */
+            height: auto;
+            /* Prevent stretching */
+            line-height: 1;
+            /* Tight line height */
+        }
+
+        .nav-cta svg {
+            width: 20px;
+            /* Force small icon */
+            height: 20px;
         }
 
         .nav-cta:hover {
