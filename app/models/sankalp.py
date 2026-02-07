@@ -77,6 +77,7 @@ class Sankalp(Base):
         String(30),
         default=SankalpStatus.INITIATED.value,
         nullable=False,
+        index=True,
     )
     
     # Razorpay payment link ID
@@ -108,6 +109,7 @@ class Sankalp(Base):
         DateTime(timezone=True),
         default=datetime.utcnow,
         nullable=False,
+        index=True,
     )
     
     updated_at: Mapped[datetime] = mapped_column(

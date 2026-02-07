@@ -50,31 +50,6 @@ PARIHARAM_OPTIONS = {
     ],
 }
 
-# Deity to Telugu name mapping
-DEITY_TELUGU = {
-    "venkateshwara": "వేంకటేశ్వర స్వామి",
-    "shiva": "శివుడు",
-    "vishnu": "విష్ణువు",
-    "hanuman": "హనుమంతుడు",
-    "durga": "దుర్గామాత",
-    "lakshmi": "లక్ష్మీదేవి",
-    "ganesha": "గణేషుడు",
-    "saraswati": "సరస్వతీదేవి",
-    "rama": "శ్రీరాముడు",
-    "krishna": "శ్రీకృష్ణుడు",
-    "saibaba": "సాయిబాబా",
-}
-
-# Day to Telugu name mapping
-DAY_TELUGU = {
-    "sunday": "ఆదివారం",
-    "monday": "సోమవారం",
-    "tuesday": "మంగళవారం",
-    "wednesday": "బుధవారం",
-    "thursday": "గురువారం",
-    "friday": "శుక్రవారం",
-    "saturday": "శనివారం",
-}
 
 
 class SankalpService:
@@ -494,29 +469,34 @@ class SankalpService:
             }
             return payment_link["short_url"]
 
+    # Simple in-memory cache for Plan IDs to avoid API spam
+    _plan_cache = {}
+
     async def _get_or_create_plan(self, tier: str, amount: Decimal, currency: str) -> str:
-        """Get or create a Razorpay Plan for the tier."""
+        """Get or create a Razorpay Plan for the tier (with Caching)."""
+        cache_key = f"{tier}_{amount}_{currency}"
+        
+        # 1. Check Cache
+        if cache_key in self._plan_cache:
+            return self._plan_cache[cache_key]
+
         tier_name = SankalpTier(tier).name
         plan_name = f"Sankalp {tier_name} Monthly"
         amount_paise = int(amount * 100)
         
-        # Check if plan exists in local cache or DB? 
-        # For simplicity, we'll create a deterministic plan based on arguments
-        # But Razorpay requires Plan ID. We can try to fetch all plans and match by name?
-        # A better approach for MVP: Create a new plan if needed.
-        # Ideally, store Plan IDs in DB or Config.
-        
-        # Quick Hack: Create plan every time? NO, limit reached.
-        # Proper way: Check config or list plans.
-        # Since we don't have DB storage for plans, let's list latest plans and check.
-        
         try:
+            # 2. Check Razorpay (List recent plans)
+            # Fetching 20 recent plans should be enough to find active ones
             plans = self.razorpay.plan.all({"count": 20})
             for plan in plans["items"]:
                 if plan["item"]["amount"] == amount_paise and plan["period"] == "monthly":
-                    return plan["id"]
+                    # Found it! Cache and return
+                    plan_id = plan["id"]
+                    self._plan_cache[cache_key] = plan_id
+                    logger.info(f"Found existing plan {plan_id} for {tier_name}")
+                    return plan_id
             
-            # Create new plan if not found
+            # 3. Create New Plan
             plan = self.razorpay.plan.create({
                 "period": "monthly",
                 "interval": 1,
@@ -527,7 +507,12 @@ class SankalpService:
                     "description": "Monthly Sankalp Seva"
                 }
             })
-            return plan["id"]
+            
+            plan_id = plan["id"]
+            self._plan_cache[cache_key] = plan_id
+            logger.info(f"Created new plan {plan_id} for {tier_name}")
+            return plan_id
+            
         except Exception as e:
             logger.error(f"Plan fetching failed: {e}")
             raise

@@ -32,9 +32,9 @@ class UserService:
         # Normalize phone number
         phone = self._normalize_phone(phone)
         
-        # Try to find existing user
+        # Try to find existing user (with row locking)
         result = await self.db.execute(
-            select(User).where(User.phone == phone)
+            select(User).where(User.phone == phone).with_for_update()
         )
         user = result.scalar_one_or_none()
         

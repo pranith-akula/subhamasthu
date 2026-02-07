@@ -1,1 +1,1 @@
-web: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --timeout-keep-alive 5
+web: alembic upgrade head && gunicorn -k uvicorn.workers.UvicornWorker app.main:app --workers 4 --bind 0.0.0.0:$PORT --timeout 120

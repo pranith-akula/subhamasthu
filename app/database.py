@@ -42,8 +42,8 @@ def create_engine_if_configured() -> Optional[AsyncEngine]:
         db_url,
         echo=settings.debug,
         pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=10,
+        pool_size=20,
+        max_overflow=30,
         connect_args={"ssl": True},  # Enable SSL for Neon
     )
 

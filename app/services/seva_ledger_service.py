@@ -32,6 +32,9 @@ class SevaLedgerService:
         
         Groups all unbatched seva ledger entries from the period.
         """
+        assert period_start is not None, "Period start is required"
+        assert period_end is not None, "Period end is required"
+        
         # Generate batch ID
         batch_id = f"SEVA-{period_start.strftime('%Y%m%d')}-{period_end.strftime('%Y%m%d')}"
         

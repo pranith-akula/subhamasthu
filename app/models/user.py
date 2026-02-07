@@ -69,6 +69,7 @@ class User(Base):
     auspicious_day: Mapped[Optional[str]] = mapped_column(
         String(20),
         nullable=True,
+        index=True,
     )
     
     # User timezone (default: America/Chicago for DFW)

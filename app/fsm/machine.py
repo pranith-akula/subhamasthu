@@ -95,12 +95,19 @@ class FSMMachine:
             ConversationState.COOLDOWN: self._handle_cooldown,
         }
         
-        handler = handlers.get(current_state)
-        if handler:
-            await handler(text, button_payload)
-        else:
-            logger.warning(f"No handler for state: {current_state.value}")
-            await self._send_default_response()
+        try:
+            handler = handlers.get(current_state)
+            if handler:
+                await handler(text, button_payload)
+            else:
+                logger.warning(f"No handler for state: {current_state.value}")
+                await self._send_default_response()
+        except Exception as e:
+            logger.error(f"CRITICAL FSM ERROR for user {self.user.id}: {e}", exc_info=True)
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="🙏 క్షమించండి, సాంకేతిక సమస్య తలెత్తింది. దయచేసి కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి."
+            )
     
     async def _handle_new(self, text: str, button_payload: Optional[str]) -> None:
         """Handle NEW state - start onboarding."""
@@ -690,26 +697,19 @@ class FSMMachine:
     async def _send_onboarding_complete(self) -> None:
         """Send onboarding completion message."""
         # Get Telugu names for deity and day
-        deity_telugu = {
-            "venkateshwara": "వేంకటేశ్వర స్వామి",
-            "shiva": "శివుడు",
-            "vishnu": "విష్ణువు",
-            "hanuman": "హనుమంతుడు",
-            "durga": "దుర్గామాత",
-            "lakshmi": "లక్ష్మీదేవి",
-            "ganesha": "గణేషుడు",
-            "saraswati": "సరస్వతీదేవి",
-        }.get(self.user.preferred_deity, self.user.preferred_deity or "దేవుడు")
-        
-        day_telugu = {
-            "monday": "సోమవారం",
-            "tuesday": "మంగళవారం",
-            "wednesday": "బుధవారం",
-            "thursday": "గురువారం",
-            "friday": "శుక్రవారం",
-            "saturday": "శనివారం",
-            "sunday": "ఆదివారం",
-        }.get(self.user.auspicious_day, self.user.auspicious_day or "మీ శుభ దినం")
+        # Get Telugu names for deity and day
+        try:
+            deity_enum = Deity(self.user.preferred_deity) if self.user.preferred_deity else None
+            deity_telugu = deity_enum.telugu_name if deity_enum else "దేవుడు"
+        except ImportError:
+             # Fallback if circular import or validation fails
+            deity_telugu = "దేవుడు"
+
+        try:
+            day_enum = AuspiciousDay(self.user.auspicious_day) if self.user.auspicious_day else None
+            day_telugu = day_enum.telugu_name if day_enum else "మీ శుభ దినం"
+        except ImportError:
+            day_telugu = "మీ శుభ దినం"
         
         # Get rashi Telugu name
         try:
