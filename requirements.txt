@@ -93,13 +93,11 @@ pyarrow==22.0.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.23
-pydantic==2.5.3
-pydantic-settings==2.1.0
-pydantic_core==2.14.6
+pydantic>=2.11.7
+pydantic-settings>=2.1.0
 pydeck==0.9.1
 pydyf==0.12.1
 Pygments==2.19.2
-pyiceberg==0.10.0
 PyJWT==2.10.1
 pyparsing==3.3.1
 pyphen==0.17.2
