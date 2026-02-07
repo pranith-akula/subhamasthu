@@ -172,10 +172,95 @@ async def get_dashboard_stats(
             "category_initial": initial
         })
 
+    # 6. Demographics (DOB & Anniversary Coverage)
+    from app.models.user import User
+    
+    # Total Users
+    total_users_query = select(func.count(User.id))
+    total_users = (await db.execute(total_users_query)).scalar() or 0
+    
+    # Users with DOB
+    dob_query = select(func.count(User.id)).where(User.dob.is_not(None))
+    dob_count = (await db.execute(dob_query)).scalar() or 0
+    
+    # Users with Anniversary
+    anniv_query = select(func.count(User.id)).where(User.wedding_anniversary.is_not(None))
+    anniv_count = (await db.execute(anniv_query)).scalar() or 0
+    
+    # 7. Upcoming Celebrations (Next 7 days)
+    # Fetching all dates and filtering in python for simplicity/timezone handling
+    # Optimization: Select only necessary columns
+    dates_query = select(User.name, User.phone, User.dob, User.wedding_anniversary).where(
+        (User.dob.is_not(None)) | (User.wedding_anniversary.is_not(None))
+    )
+    dates_res = await db.execute(dates_query)
+    users_with_dates = dates_res.all()
+    
+    upcoming = []
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    
+    ist = ZoneInfo("Asia/Kolkata")
+    today = datetime.now(ist).date()
+    
+    for u in users_with_dates:
+        # Check Birthday
+        if u.dob:
+            # Replace year with current year to compare
+            try:
+                this_year_bday = u.dob.replace(year=today.year)
+                days_diff = (this_year_bday - today).days
+                
+                # Handle year wrap-around (e.g. today is Dec 30, bday is Jan 2)
+                if days_diff < 0:
+                     next_year_bday = u.dob.replace(year=today.year + 1)
+                     days_diff = (next_year_bday - today).days
+                
+                if 0 <= days_diff <= 7:
+                    upcoming.append({
+                        "type": "Birthday",
+                        "name": u.name or "User",
+                        "phone": u.phone,
+                        "date": u.dob.strftime("%d %b"),
+                        "days_left": days_diff
+                    })
+            except ValueError:
+                pass # Leap year edge case
+                
+        # Check Anniversary
+        if u.wedding_anniversary:
+            try:
+                this_year_anniv = u.wedding_anniversary.replace(year=today.year)
+                days_diff = (this_year_anniv - today).days
+                
+                if days_diff < 0:
+                     next_year_anniv = u.wedding_anniversary.replace(year=today.year + 1)
+                     days_diff = (next_year_anniv - today).days
+
+                if 0 <= days_diff <= 7:
+                    upcoming.append({
+                        "type": "Anniversary",
+                        "name": u.name or "User",
+                        "phone": u.phone,
+                        "date": u.wedding_anniversary.strftime("%d %b"),
+                        "days_left": days_diff
+                    })
+            except ValueError:
+                pass
+
+    # Sort by days left
+    upcoming.sort(key=lambda x: x['days_left'])
+
     return {
         "revenue": {"total": float(total_revenue)},
         "impact": {"families_fed": total_families_fed},
         "ops": {"pending_sevas": pending_count},
         "media": {"total": media_total},
+        "demographics": {
+            "total_users": total_users,
+            "dob_count": dob_count,
+            "anniv_count": anniv_count
+        },
+        "upcoming_celebrations": upcoming,
         "recent_sankalps": recent_swaps
     }

@@ -91,88 +91,165 @@
     <!-- MAIN CONTENT GRID -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        <!-- Recent Sankalps -->
-        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-bold text-slate-900">Recent Sankalps</h3>
-                <a href="/admin-panel/users" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">View
-                    All</a>
+        <!-- LEFT COLUMN -->
+        <div class="lg:col-span-2 space-y-8">
+
+            <!-- Upcoming Celebrations (New) -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+                x-show="stats.upcoming_celebrations && stats.upcoming_celebrations.length > 0">
+                <div
+                    class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-white">
+                    <h3 class="font-bold text-amber-900 flex items-center gap-2">
+                        <i data-lucide="gift" class="w-5 h-5 text-amber-600"></i>
+                        Upcoming Celebrations
+                    </h3>
+                    <span class="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Next 7
+                        Days</span>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    <template x-for="event in stats.upcoming_celebrations" :key="event.phone + event.type">
+                        <div class="px-6 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg"
+                                    :class="event.type === 'Birthday' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'">
+                                    <span x-text="event.type === 'Birthday' ? '🎂' : '💍'"></span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-900" x-text="event.name"></p>
+                                    <p class="text-xs text-slate-500" x-text="event.type + ' • ' + event.date"></p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-xs font-bold px-2 py-1 rounded-full"
+                                    :class="event.days_left === 0 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'"
+                                    x-text="event.days_left === 0 ? 'TODAY' : event.days_left + ' days'"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
             </div>
-            <div class="divide-y divide-slate-100">
-                <template x-for="item in stats.recent_sankalps" :key="item.id">
-                    <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
-                                <span x-text="item.category_initial"></span>
+
+            <!-- Recent Sankalps -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-900">Recent Sankalps</h3>
+                    <a href="/admin-panel/users" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">View
+                        All</a>
+                </div>
+                <div class="divide-y divide-slate-100">
+                    <template x-for="item in stats.recent_sankalps" :key="item.id">
+                        <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
+                                    <span x-text="item.category_initial"></span>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-900" x-text="item.user_name || 'Anonymous'">
+                                    </p>
+                                    <p class="text-xs text-slate-500" x-text="item.category"></p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm font-bold text-slate-900" x-text="item.user_name || 'Anonymous'"></p>
-                                <p class="text-xs text-slate-500" x-text="item.category"></p>
+                            <div class="text-right">
+                                <p class="text-sm font-bold text-slate-900" x-text="'$' + item.amount"></p>
+                                <p class="text-xs text-emerald-600 font-medium" x-text="item.status"></p>
                             </div>
                         </div>
-                        <div class="text-right">
-                            <p class="text-sm font-bold text-slate-900" x-text="'$' + item.amount"></p>
-                            <p class="text-xs text-emerald-600 font-medium" x-text="item.status"></p>
-                        </div>
+                    </template>
+                    <div x-show="stats.recent_sankalps.length === 0" class="px-6 py-12 text-center text-slate-400">
+                        No recent data available.
                     </div>
-                </template>
-                <div x-show="stats.recent_sankalps.length === 0" class="px-6 py-12 text-center text-slate-400">
-                    No recent data available.
                 </div>
             </div>
         </div>
 
-        <!-- Operational Health -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm h-fit">
-            <div class="px-6 py-4 border-b border-slate-100">
-                <h3 class="font-bold text-slate-900">Operational Health</h3>
+        <!-- RIGHT COLUMN -->
+        <div class="space-y-8">
+
+            <!-- Demographics (New) -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-bold text-slate-900 mb-4">Data Collection</h3>
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-600 flex items-center gap-2"><i data-lucide="cake"
+                                    class="w-4 h-4"></i> Birthdays</span>
+                            <span class="font-bold text-slate-900"
+                                x-text="stats.demographics.dob_count + '/' + stats.demographics.total_users"></span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-1000"
+                                :style="'width: ' + (stats.demographics.total_users > 0 ? (stats.demographics.dob_count / stats.demographics.total_users * 100) : 0) + '%'">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-slate-600 flex items-center gap-2"><i data-lucide="heart"
+                                    class="w-4 h-4"></i> Anniversaries</span>
+                            <span class="font-bold text-slate-900"
+                                x-text="stats.demographics.anniv_count + '/' + stats.demographics.total_users"></span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-pink-500 h-2 rounded-full transition-all duration-1000"
+                                :style="'width: ' + (stats.demographics.total_users > 0 ? (stats.demographics.anniv_count / stats.demographics.total_users * 100) : 0) + '%'">
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="p-6 space-y-6">
-                <!-- Media Health -->
-                <div>
-                    <div class="flex justify-between mb-2">
-                        <span class="text-sm text-slate-600 font-medium">Media Coverage</span>
-                        <span class="text-sm font-bold"
-                            :class="stats.media.total > 10 ? 'text-emerald-600' : 'text-amber-500'"
-                            x-text="stats.media.total > 10 ? 'Healthy' : 'Needs Attention'"></span>
-                    </div>
-                    <div class="w-full bg-slate-100 rounded-full h-2">
-                        <div class="bg-emerald-500 h-2 rounded-full"
-                            :style="'width: ' + Math.min(stats.media.total * 5, 100) + '%'"></div>
-                    </div>
-                    <p class="text-xs text-slate-400 mt-2">Target: 20+ photos in pool</p>
-                </div>
 
-                <!-- Database Status -->
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span class="text-sm text-slate-600">Database</span>
-                    </div>
-                    <span class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">CONNECTED</span>
+            <!-- Operational Health -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm h-fit">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-900">Operational Health</h3>
                 </div>
-
-                <!-- Cloudinary Status -->
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                        <span class="text-sm text-slate-600">Cloudinary</span>
+                <div class="p-6 space-y-6">
+                    <!-- Media Health -->
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-sm text-slate-600 font-medium">Media Coverage</span>
+                            <span class="text-sm font-bold"
+                                :class="stats.media.total > 10 ? 'text-emerald-600' : 'text-amber-500'"
+                                x-text="stats.media.total > 10 ? 'Healthy' : 'Needs Attention'"></span>
+                        </div>
+                        <div class="w-full bg-slate-100 rounded-full h-2">
+                            <div class="bg-emerald-500 h-2 rounded-full"
+                                :style="'width: ' + Math.min(stats.media.total * 5, 100) + '%'"></div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-2">Target: 20+ photos in pool</p>
                     </div>
-                    <span class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">READY</span>
-                </div>
 
-                <!-- Worker Status -->
-                <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                        <span class="text-sm text-slate-600">11 AM Worker</span>
+                    <!-- Database Status -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span class="text-sm text-slate-600">Database</span>
+                        </div>
+                        <span
+                            class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">CONNECTED</span>
                     </div>
-                    <span class="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-0.5 rounded">SCHEDULED</span>
+
+                    <!-- Cloudinary Status -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span class="text-sm text-slate-600">Cloudinary</span>
+                        </div>
+                        <span class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">READY</span>
+                    </div>
+
+                    <!-- Worker Status -->
+                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span class="text-sm text-slate-600">11 AM Worker</span>
+                        </div>
+                        <span class="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-0.5 rounded">SCHEDULED</span>
+                    </div>
                 </div>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -185,6 +262,8 @@
                 impact: { families_fed: 0 },
                 ops: { pending_sevas: 0 },
                 media: { total: 0 },
+                demographics: { total_users: 1, dob_count: 0, anniv_count: 0 },
+                upcoming_celebrations: [],
                 recent_sankalps: []
             },
             async init() {
