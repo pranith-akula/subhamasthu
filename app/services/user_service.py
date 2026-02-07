@@ -22,7 +22,6 @@ class UserService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self._message_cache: set = set()  # In-memory cache for quick dedup
     
     async def get_or_create_user(
         self,
@@ -144,26 +143,44 @@ class UserService:
         message_id: str,
     ) -> bool:
         """Check if message is duplicate (for idempotency)."""
-        # Quick in-memory check
-        cache_key = f"{user_id}:{message_id}"
-        if cache_key in self._message_cache:
-            return True
+        # Redis check (Fast path)
+        try:
+            from app.redis import get_redis
+            redis = await get_redis()
+            
+            cache_key = f"subhamasthu:msg:{user_id}:{message_id}"
+            if await redis.exists(cache_key):
+                return True
+                
+        except Exception:
+            # Fallback if Redis fails
+            pass
         
-        # Check conversation record
+        # Check conversation record (DB is source of truth)
         result = await self.db.execute(
             select(Conversation).where(Conversation.user_id == user_id)
         )
         conversation = result.scalar_one_or_none()
         
         if conversation and conversation.last_inbound_msg_id == message_id:
+            # If in DB but not Redis (expired or restart), populate Redis
+            try:
+                if 'redis' in locals():
+                    await redis.setex(cache_key, 86400, "1")
+            except Exception:
+                pass
             return True
         
         # Update last message ID
         if conversation:
             conversation.last_inbound_msg_id = message_id
         
-        # Add to cache
-        self._message_cache.add(cache_key)
+        # Add to Redis (24h TTL)
+        try:
+            if 'redis' in locals():
+                await redis.setex(cache_key, 86400, "1")
+        except Exception:
+            pass
         
         return False
     

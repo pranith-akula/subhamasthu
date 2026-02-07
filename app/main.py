@@ -6,29 +6,38 @@ Configures routes, middleware, and lifecycle events.
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.database import init_db, close_db
+from app.logging_config import configure_logging
+from app.redis import RedisClient
+import logging
 
 # Import routers
-from app.api.webhooks.gupshup import router as gupshup_router
-from app.api.webhooks.razorpay import router as razorpay_router
-from app.api.admin.broadcast import router as broadcast_router
-from app.api.admin.seva import router as seva_router
-from app.api.admin.seva_media import router as seva_media_router
-from app.api.admin.database import router as database_router
-
+# ...
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifecycle manager."""
     # Startup
-    await init_db()
+    configure_logging()
+    logging.info("Starting up Subhamasthu...")
+    
+    # Initialize Redis
+    try:
+        RedisClient.get_client()
+    except Exception as e:
+        logging.warning(f"Failed to initialize Redis: {e}")
+
     yield
+    
     # Shutdown
+    await RedisClient.close()
     await close_db()
+    logging.info("Shutting down...")
 
 
 app = FastAPI(
@@ -38,6 +47,15 @@ app = FastAPI(
     lifespan=lifespan,
     debug=settings.debug,
 )
+
+# Global Exception Handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logging.error(f"Global exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "message": "Internal Server Error"},
+    )
 
 # CORS middleware
 # CORS middleware
