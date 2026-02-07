@@ -19,6 +19,7 @@ import logging
 
 # Import routers - MUST BE AT TOP LEVEL
 from app.api.webhooks.gupshup import router as gupshup_router
+from app.api.webhooks.meta import router as meta_router
 from app.api.webhooks.razorpay import router as razorpay_router
 from app.api.admin.broadcast import router as broadcast_router
 from app.api.admin.seva import router as seva_router
@@ -94,10 +95,19 @@ async def health_check():
 
 # Register webhook routes
 app.include_router(
+    meta_router,
+    prefix="/webhooks",
+    tags=["webhooks"],
+)
+app.include_router(
     gupshup_router,
     prefix="/webhooks",
     tags=["webhooks"],
 )
+
+# Register Web Pages (Privacy, Terms) - Must be at root level
+from app.api.web_pages import router as pages_router
+app.include_router(pages_router)
 app.include_router(
     razorpay_router,
     prefix="/webhooks",
