@@ -110,7 +110,7 @@ class FSMMachine:
         if not rashi:
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Please select your rashi from the options.",
+                message="దయచేసి మీ రాశిని ఎంచుకోండి.",
             )
             await self._send_rashi_buttons()
             return
@@ -161,7 +161,7 @@ class FSMMachine:
         if not deity:
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Please select your preferred deity.",
+                message="దయచేసి మీ ఇష్ట దైవాన్ని ఎంచుకోండి.",
             )
             await self._send_deity_buttons()
             return
@@ -315,7 +315,7 @@ class FSMMachine:
         if not tier:
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Please select a seva tier.",
+                message="దయచేసి సేవా స్థాయిని ఎంచుకోండి.",
             )
             return
         
@@ -331,7 +331,7 @@ class FSMMachine:
         if not category_value:
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Something went wrong. Please try again.",
+                message="క్షమించండి, ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
             return
@@ -353,7 +353,7 @@ class FSMMachine:
             logger.error(f"Failed to create payment link: {e}")
             await self.gupshup.send_text_message(
                 phone=self.user.phone,
-                message="Sorry, there was an issue. Please try again later.",
+                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
     
@@ -409,7 +409,7 @@ class FSMMachine:
             phone=self.user.phone,
             body_text=welcome,
             buttons=buttons,
-            footer="More rashis in next message",
+            footer="మరిన్ని రాశులు తర్వాతి సందేశంలో...",
         )
         
         # Send remaining rashis in batches
