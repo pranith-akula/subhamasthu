@@ -595,6 +595,58 @@
             opacity: 0.5;
         }
 
+        /* Trust & Divinity Enhancements */
+        .divine-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 4rem auto;
+            color: var(--accent);
+            font-family: 'Noto Serif Telugu', serif;
+            font-size: 1.2rem;
+            opacity: 0.8;
+            max-width: 800px;
+        }
+
+        .divine-divider::before,
+        .divine-divider::after {
+            content: '';
+            height: 1px;
+            flex: 1;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        .trust-section {
+            background: linear-gradient(135deg, #FFFDE7 0%, #FFFFFF 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-top: 1px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+
+        .trust-badge-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .trust-title {
+            font-family: 'Noto Serif Telugu', serif;
+            font-size: 2rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .trust-text {
+            color: var(--text-light);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             nav {
@@ -719,6 +771,11 @@
         </div>
     </section>
 
+    <!-- Divine Divider -->
+    <div class="divine-divider">
+        <span>ఓం నమో నారాయణాయ</span>
+    </div>
+
     <!-- Features Section -->
     <section class="features">
         <div class="section-title">
@@ -781,6 +838,11 @@
         </div>
     </section>
 
+    <!-- Divine Divider -->
+    <div class="divine-divider">
+        <span>లోకాః సమస్తాః సుఖినో భవంతు</span>
+    </div>
+
     <!-- Pricing Section -->
     <section class="pricing">
         <div class="section-title">
@@ -824,6 +886,19 @@
                 </ul>
             </div>
         </div>
+    </section>
+
+    <!-- Trust Section -->
+    <section class="trust-section">
+        <div class="divine-divider" style="margin: 0 auto 2rem;">
+            <span>సత్య ప్రమాణం</span>
+        </div>
+        <div class="trust-badge-icon">⚖️</div>
+        <h2 class="trust-title">ధర్మ రక్షణే మా కర్తవ్యం</h2>
+        <p class="trust-text">
+            శుభమస్తు ద్వారా మీరు చేసే ప్రతి రూపాయి (100%) నేరుగా అన్నదానానికి మరియు గోసేవకు వినియోగించబడుతుంది.
+            ఇది మా <strong style="color: var(--accent);">సత్య ప్రమాణం</strong>. మా లావాదేవీలన్నీ పారదర్శకం.
+        </p>
     </section>
 
     <!-- Footer -->
