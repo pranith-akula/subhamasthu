@@ -40,9 +40,17 @@ app = FastAPI(
 )
 
 # CORS middleware
+# CORS middleware
+origins = [
+    "https://pranith-akula.github.io",
+    "https://web-production-b998a.up.railway.app",
+]
+if settings.is_development:
+    origins.append("*")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.is_development else [],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
