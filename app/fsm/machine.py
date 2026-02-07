@@ -215,21 +215,36 @@ class FSMMachine:
 
         # 2. Handle Group Selection
         if button_payload == "BTN_NAK_GRP_1":
-            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": n.value} 
+            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[:9]]
-            await self.gupshup.send_list_message(self.user.phone, "Select Nakshatra (1-9):", "Select", [{"title": "Nakshatras", "rows": rows}])
+            await self.gupshup.send_list_message(
+                phone=self.user.phone,
+                body_text="⭐ నక్షత్రం ఎంచుకోండి (1-9):",
+                button_text="నక్షత్రం",
+                sections=[{"title": "నక్షత్రాలు", "rows": rows}]
+            )
             return
             
         if button_payload == "BTN_NAK_GRP_2":
-            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": n.value} 
+            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[9:18]]
-            await self.gupshup.send_list_message(self.user.phone, "Select Nakshatra (10-18):", "Select", [{"title": "Nakshatras", "rows": rows}])
+            await self.gupshup.send_list_message(
+                phone=self.user.phone,
+                body_text="⭐ నక్షత్రం ఎంచుకోండి (10-18):",
+                button_text="నక్షత్రం",
+                sections=[{"title": "నక్షత్రాలు", "rows": rows}]
+            )
             return
 
         if button_payload == "BTN_NAK_GRP_3":
-            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": n.value} 
+            rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[18:]]
-            await self.gupshup.send_list_message(self.user.phone, "Select Nakshatra (19-27):", "Select", [{"title": "Nakshatras", "rows": rows}])
+            await self.gupshup.send_list_message(
+                phone=self.user.phone,
+                body_text="⭐ నక్షత్రం ఎంచుకోండి (19-27):",
+                button_text="నక్షత్రం",
+                sections=[{"title": "నక్షత్రాలు", "rows": rows}]
+            )
             return
         
         # 3. Handle Nakshatra Selection
