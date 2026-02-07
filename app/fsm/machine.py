@@ -76,6 +76,7 @@ class FSMMachine:
         # Route to appropriate handler based on state
         handlers = {
             ConversationState.NEW: self._handle_new,
+            ConversationState.WAITING_FOR_NAME: self._handle_name_input,
             ConversationState.WAITING_FOR_RASHI: self._handle_rashi_selection,
             ConversationState.WAITING_FOR_NAKSHATRA: self._handle_nakshatra_selection,
             ConversationState.WAITING_FOR_BIRTH_TIME: self._handle_birth_time,
@@ -103,22 +104,28 @@ class FSMMachine:
     
     async def _handle_new(self, text: str, button_payload: Optional[str]) -> None:
         """Handle NEW state - start onboarding."""
-        # Send Welcome Message
+        # Send Welcome Message & Ask for Name
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కుటుంబ క్షేమం, ఆయురారోగ్యాలు మరియు సకల కార్య జయము కొరకు దైవ సంకల్పం.\n\nమీ గోత్ర నామాలతో నిత్యం అర్చన జరిపించుకోవడానికి, దయచేసి మీ వివరాలు తెలియజేయండి.\n\nప్రారంభించడానికి, మీ రాశిని ఎంచుకోండి."
+            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కుటుంబ క్షేమం మరియు సకల కార్య జయము కొరకు దైవ సంకల్పం.\n\nప్రారంభించడానికి, దయచేసి మీ పేరు తెలియజేయండి."
         )
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_NAME)
+
+    async def _handle_name_input(self, text: str, button_payload: Optional[str]) -> None:
+        """Handle Name input -> Ask for Deity."""
+        name = text.strip()
+        if not name:
+             await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="దయచేసి మీ పేరును టైప్ చేయండి."
+            )
+             return
         
-        # Send Rashi Group Buttons
-        await self.gupshup.send_button_message(
-            phone=self.user.phone,
-            body_text="✨ మీ రాశి ఏ గ్రూపులో ఉంది?",
-            buttons=[
-                {"id": "BTN_RASHI_GRP_1", "title": "మేషం నుండి కన్య (1-6)"},
-                {"id": "BTN_RASHI_GRP_2", "title": "తుల నుండి మీనం (7-12)"}
-            ]
-        )
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_RASHI)
+        await self.user_service.set_user_name(self.user, name)
+        
+        # Next: Deity (Easiest/Divine)
+        await self._send_deity_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DEITY)
     
     async def _send_nakshatra_prompt(self) -> None:
         """Send prompt for nakshatra input (Buttons: Yes/Skip)."""
@@ -243,8 +250,7 @@ class FSMMachine:
         """Handle birth time input (OPTIONAL - user can skip)."""
         # Check if user wants to skip
         if button_payload == "SKIP_BIRTH_TIME" or text.upper() in ["SKIP", "NEXT", "VADDU", "NO"]:
-            await self._send_deity_prompt()
-            await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DEITY)
+            await self._finish_onboarding_flow()
             return
 
         # Handle "Add Time" button click - ask for text
@@ -255,17 +261,14 @@ class FSMMachine:
             )
             return
             
-        # If user typed something (presumably time)
-        pass # Fall through to validation
-        
         # Try to parse birth time (HH:MM format)
         birth_time = self._parse_birth_time(text)
         
         if birth_time:
             await self.user_service.set_user_birth_time(self.user, birth_time)
         
-        await self._send_deity_prompt()
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DEITY)
+        # Finish Onboarding (Hardest step done)
+        await self._finish_onboarding_flow()
     
     async def _handle_deity_selection(self, text: str, button_payload: Optional[str]) -> None:
         """Handle deity selection."""
@@ -307,24 +310,24 @@ class FSMMachine:
         await self._handle_passive(text, button_payload)
         
     async def _handle_dob_input(self, text: str, button_payload: Optional[str]) -> None:
-        """Handle DOB input (Optional) -> Finish Onboarding."""
+        """Handle DOB input (Optional) -> Ask for Rashi."""
         # Check skip
-        if button_payload == "SKIP_DOB" or text.upper() in ["SKIP", "NEXT", "VADDU", "NO"]:
-            await self._finish_onboarding_flow()
-            return
-            
-        # Parse date
-        dob = self._parse_date(text)
-        if dob:
-            await self.user_service.set_user_dob(self.user, dob)
-            await self._finish_onboarding_flow()
-            return
-            
-        # Invalid format - re-prompt or help
-        await self.gupshup.send_text_message(
-            phone=self.user.phone,
-            message="తేదీ ఫార్ మాట్ అర్థం కాలేదు. దయచేసి DD-MM-YYYY (ఉదా: 15-08-1990) లా టైప్ చేయండి లేదా 'Skip' బటన్ నొక్కండి."
-        )
+        if not (button_payload == "SKIP_DOB" or text.upper() in ["SKIP", "NEXT", "VADDU", "NO"]):
+           # Parse date
+           dob = self._parse_date(text)
+           if dob:
+               await self.user_service.set_user_dob(self.user, dob)
+           else:
+               # Invalid format - re-prompt or help
+               await self.gupshup.send_text_message(
+                   phone=self.user.phone,
+                   message="తేదీ ఫార్ మాట్ అర్థం కాలేదు. దయచేసి DD-MM-YYYY (ఉదా: 15-08-1990) లా టైప్ చేయండి లేదా 'Skip' బటన్ నొక్కండి."
+               )
+               return
+
+        # Next: Rashi (Mandatory - Medium Hard)
+        await self._send_rashi_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_RASHI)
 
     async def _finish_onboarding_flow(self) -> None:
         """Helper to mark onboarding complete and send welcome."""
@@ -547,63 +550,19 @@ class FSMMachine:
     # === Helper methods ===
     
     async def _send_welcome_and_rashi_prompt(self) -> None:
-        """Send welcome message and rashi selection."""
-        welcome = """🙏 శుభమస్తు!
+        """Deprecated - use _handle_new and _send_rashi_prompt."""
+        pass
 
-మీ ఆధ్యాత్మిక ప్రయాణానికి స్వాగతం!
-
-ప్రతిరోజూ మీ రాశిఫలాలు పొందడానికి మరియు ప్రతి వారం సంకల్పం చేసుకోవడానికి, దయచేసి వివరాలు అందించండి.
-
-ముందుగా, మీ రాశి ఏది?"""
-        
-        # Due to WhatsApp button limits, we'll use a list or multiple messages
-        buttons = [
-            {"id": "RASHI_MESHA", "title": "మేషం (Aries)"},
-            {"id": "RASHI_VRISHABHA", "title": "వృషభం (Taurus)"},
-            {"id": "RASHI_MITHUNA", "title": "మిథునం (Gemini)"},
-        ]
-        
+    async def _send_rashi_prompt(self) -> None:
+        """Send rashi selection prompt (Buttons)."""
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text=welcome,
-            buttons=buttons,
-            footer="మరిన్ని రాశులు తర్వాతి సందేశంలో...",
+            body_text="✨ మీ రాశి ఏ గ్రూపులో ఉంది?",
+            buttons=[
+                {"id": "BTN_RASHI_GRP_1", "title": "మేషం నుండి కన్య (1-6)"},
+                {"id": "BTN_RASHI_GRP_2", "title": "తుల నుండి మీనం (7-12)"}
+            ]
         )
-        
-        # Send remaining rashis in batches
-        await self._send_rashi_buttons(batch=2)
-    
-    async def _send_rashi_buttons(self, batch: int = 1) -> None:
-        """Send rashi selection buttons in batches."""
-        batches = [
-            [
-                {"id": "RASHI_MESHA", "title": "మేషం (Aries)"},
-                {"id": "RASHI_VRISHABHA", "title": "వృషభం (Taurus)"},
-                {"id": "RASHI_MITHUNA", "title": "మిథునం (Gemini)"},
-            ],
-            [
-                {"id": "RASHI_KARKATAKA", "title": "కర్కాటకం (Cancer)"},
-                {"id": "RASHI_SIMHA", "title": "సింహం (Leo)"},
-                {"id": "RASHI_KANYA", "title": "కన్య (Virgo)"},
-            ],
-            [
-                {"id": "RASHI_TULA", "title": "తుల (Libra)"},
-                {"id": "RASHI_VRISHCHIKA", "title": "వృశ్చికం (Scorpio)"},
-                {"id": "RASHI_DHANU", "title": "ధనుస్సు (Sagitt.)"},
-            ],
-            [
-                {"id": "RASHI_MAKARA", "title": "మకరం (Capricorn)"},
-                {"id": "RASHI_KUMBHA", "title": "కుంభం (Aquarius)"},
-                {"id": "RASHI_MEENA", "title": "మీనం (Pisces)"},
-            ],
-        ]
-        
-        if batch <= len(batches):
-            await self.gupshup.send_button_message(
-                phone=self.user.phone,
-                body_text=f"మరిన్ని రాశులు ({batch}/{len(batches)}):",
-                buttons=batches[batch - 1],
-            )
     
     async def _send_deity_prompt(self) -> None:
         """Send deity selection prompt (List Message)."""

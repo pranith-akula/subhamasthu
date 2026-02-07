@@ -101,6 +101,12 @@ class UserService:
         logger.info(f"User {user.phone} state: {old_state} -> {new_state.value}")
         return user
     
+    async def set_user_name(self, user: User, name: str) -> User:
+        """Set user's name preference."""
+        user.name = name
+        user.updated_at = datetime.utcnow()
+        return user
+    
     async def set_user_rashi(self, user: User, rashi: str) -> User:
         """Set user's rashi preference (MANDATORY)."""
         user.rashi = rashi

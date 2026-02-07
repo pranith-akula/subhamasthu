@@ -14,6 +14,7 @@ class ConversationState(str, Enum):
     
     # Onboarding states
     NEW = "NEW"
+    WAITING_FOR_NAME = "WAITING_FOR_NAME"
     WAITING_FOR_RASHI = "WAITING_FOR_RASHI"
     WAITING_FOR_NAKSHATRA = "WAITING_FOR_NAKSHATRA"  # Optional
     WAITING_FOR_BIRTH_TIME = "WAITING_FOR_BIRTH_TIME"  # Optional
