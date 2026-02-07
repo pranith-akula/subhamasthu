@@ -97,3 +97,15 @@ app.include_router(
 # Admin Dashboard (HTML)
 from app.api.admin.dashboard import router as dashboard_router
 app.include_router(dashboard_router)
+
+# Serve Static Files (Main Website)
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="docs"), name="static")
+
+@app.get("/")
+async def read_root():
+    return FileResponse("docs/index.html")
