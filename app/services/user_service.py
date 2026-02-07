@@ -5,7 +5,7 @@ User Service - User CRUD and state management.
 import uuid
 import logging
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, date, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

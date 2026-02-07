@@ -3,6 +3,7 @@ FSM Machine - Conversation state machine with strict transitions.
 """
 
 import logging
+from datetime import datetime, date, timezone
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
