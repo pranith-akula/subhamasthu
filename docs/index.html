@@ -216,11 +216,12 @@
             position: relative;
             z-index: 10;
             text-align: center;
-            padding: 8rem 2rem 4rem;
-            /* Added top padding to clear header */
+            /* CRITICAL FIX: Huge top padding to clear the 70px header + extra space */
+            padding-top: 140px;
+            padding-bottom: 4rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
             max-width: 900px;
-            margin-top: 40px;
-            /* Extra push */
         }
 
         .hero-badge {
