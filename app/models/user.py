@@ -1,10 +1,10 @@
 """User model - core user data and preferences."""
 
 import uuid
-from datetime import datetime
+from datetime import datetime, date, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Enum as SQLEnum
+from sqlalchemy import String, DateTime, Date, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -97,6 +97,10 @@ class User(Base):
         nullable=True,
     )
     
+    # Personal Dates (Phase 2)
+    dob: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+    wedding_anniversary: Mapped[Optional[date]] = mapped_column(Date, nullable=True)
+
     # Count of Rashiphalalu messages sent (for 6-day eligibility)
     rashiphalalu_days_sent: Mapped[int] = mapped_column(
         default=0,
@@ -106,14 +110,14 @@ class User(Base):
     # Record timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
     

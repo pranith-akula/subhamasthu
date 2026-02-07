@@ -110,7 +110,10 @@ class SankalpService:
         - Not in cooldown (last_sankalp_at > 7 days ago)
         - In DAILY_PASSIVE state
         """
-        today = datetime.now().strftime("%A").upper()
+        from zoneinfo import ZoneInfo
+        
+        ist = ZoneInfo("Asia/Kolkata")
+        today = datetime.now(ist).strftime("%A").upper()
         
         user_service = UserService(self.db)
         all_users = await user_service.get_users_for_weekly_prompt(today)

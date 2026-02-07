@@ -80,6 +80,8 @@ class FSMMachine:
             ConversationState.WAITING_FOR_BIRTH_TIME: self._handle_birth_time,
             ConversationState.WAITING_FOR_DEITY: self._handle_deity_selection,
             ConversationState.WAITING_FOR_AUSPICIOUS_DAY: self._handle_day_selection,
+            ConversationState.WAITING_FOR_DOB: self._handle_dob_input,
+            ConversationState.WAITING_FOR_ANNIVERSARY: self._handle_anniversary_input,
             ConversationState.ONBOARDED: self._handle_onboarded,
             ConversationState.DAILY_PASSIVE: self._handle_passive,
             ConversationState.WEEKLY_PROMPT_SENT: self._handle_weekly_prompt,
@@ -184,20 +186,48 @@ class FSMMachine:
         
         await self.user_service.set_user_auspicious_day(self.user, day)
         
+        # Next: Ask for DOB (Phase 2)
+        await self._send_dob_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DOB)
+    
+    async def _handle_onboarded(self, text: str, button_payload: Optional[str]) -> None:
+        """Handle ONBOARDED state - transition to DAILY_PASSIVE."""
+        await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+        await self._handle_passive(text, button_payload)
+        
+    async def _handle_dob_input(self, text: str, button_payload: Optional[str]) -> None:
+        """Handle DOB input (Optional)."""
+        # Check skip
+        if button_payload == "SKIP_DOB" or text.upper() in ["SKIP", "NEXT", "VADDU"]:
+            await self._send_anniversary_prompt()
+            await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_ANNIVERSARY)
+            return
+            
+        # Parse date
+        dob = self._parse_date(text)
+        if dob:
+            await self.user_service.set_user_dob(self.user, dob)
+            
+        await self._send_anniversary_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_ANNIVERSARY)
+
+    async def _handle_anniversary_input(self, text: str, button_payload: Optional[str]) -> None:
+        """Handle Anniversary input (Optional) -> Finish Onboarding."""
+        # Check skip
+        if not (button_payload == "SKIP_ANNIVERSARY" or text.upper() in ["SKIP", "NEXT", "VADDU"]):
+            anniversary = self._parse_date(text)
+            if anniversary:
+                await self.user_service.set_user_wedding_anniversary(self.user, anniversary)
+        
         # Mark onboarding complete with timestamp
-        from datetime import datetime
-        self.user.onboarded_at = datetime.utcnow()
+        from datetime import datetime, timezone
+        self.user.onboarded_at = datetime.now(timezone.utc)
         
         await self._send_onboarding_complete()
         await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
         
         # Day 0: Send immediate personalized Rashiphalalu
         await self._send_day_zero_rashiphalalu()
-    
-    async def _handle_onboarded(self, text: str, button_payload: Optional[str]) -> None:
-        """Handle ONBOARDED state - transition to DAILY_PASSIVE."""
-        await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
-        await self._handle_passive(text, button_payload)
     
     async def _handle_passive(self, text: str, button_payload: Optional[str]) -> None:
         """Handle DAILY_PASSIVE state - interactive menu for returning users."""
@@ -214,6 +244,7 @@ class FSMMachine:
                 buttons=[
                     {"id": "CMD_MY_SEVA", "title": "నా సేవలు (History)"},
                     {"id": "CMD_SANKALP", "title": "కొత్త సంకల్పం (New)"},
+                    {"id": "CMD_INVITE", "title": "స్నేహితులను ఆహ్వానించండి (Invite)"},
                 ],
                 footer="Subhamasthu Services"
             )
@@ -373,10 +404,10 @@ class FSMMachine:
     
     async def _handle_cooldown(self, text: str, button_payload: Optional[str]) -> None:
         """Handle cooldown state - user completed sankalp recently."""
-        from datetime import datetime, timedelta
+        from datetime import datetime, timezone
         
         if self.user.last_sankalp_at:
-            days_left = 7 - (datetime.utcnow() - self.user.last_sankalp_at).days
+            days_left = 7 - (datetime.now(timezone.utc) - self.user.last_sankalp_at).days
             days_left = max(1, days_left)
         else:
             days_left = 7
@@ -543,6 +574,40 @@ class FSMMachine:
     async def _send_day_buttons(self) -> None:
         """Resend day selection buttons."""
         await self._send_auspicious_day_prompt()
+        
+    async def _send_dob_prompt(self) -> None:
+        """Send DOB prompt (OPTIONAL)."""
+        buttons = [
+            {"id": "SKIP_DOB", "title": "⏭️ పర్వాలేదు (Skip)"},
+        ]
+        
+        await self.gupshup.send_button_message(
+            phone=self.user.phone,
+            body_text="""🎂 మీ పుట్టినరోజు ఎప్పుడు? (Optional)
+            
+తేదీని ఇలా టైప్ చేయండి: DD-MM-YYYY
+ఉదాహరణ: 15-08-1990
+
+దీనివల్ల మీ పుట్టినరోజున ప్రత్యేక ఆశీస్సులు అందుతాయి.""",
+            buttons=buttons,
+        )
+
+    async def _send_anniversary_prompt(self) -> None:
+        """Send Anniversary prompt (OPTIONAL)."""
+        buttons = [
+            {"id": "SKIP_ANNIVERSARY", "title": "⏭️ పర్వాలేదు (Skip)"},
+        ]
+        
+        await self.gupshup.send_button_message(
+            phone=self.user.phone,
+            body_text="""💍 మీ పెళ్లి రోజు ఎప్పుడు? (Optional)
+            
+తేదీని ఇలా టైప్ చేయండి: DD-MM-YYYY
+ఉదాహరణ: 21-05-2015
+
+మీ దాంపత్య జీవితం సుఖసంతోషాలతో ఉండాలని కోరుకుంటూ...""",
+            buttons=buttons,
+        )
     
     async def _send_onboarding_complete(self) -> None:
         """Send onboarding completion message."""
@@ -755,8 +820,51 @@ class FSMMachine:
             return SankalpTier(payload)
         except ValueError:
             return None
+            
+    def _parse_date(self, text: str) -> Optional[date]:
+        """Parse date from DD-MM-YYYY string."""
+        from datetime import datetime, date
+        import re
+        
+        # Clean inputs
+        text = text.strip().replace('/', '-').replace('.', '-')
+        
+        # Match DD-MM-YYYY or DD-MM-YY
+        match = re.search(r'(\d{1,2})-(\d{1,2})-(\d{2,4})', text)
+        if match:
+            try:
+                d, m, y = int(match.group(1)), int(match.group(2)), int(match.group(3))
+                
+                # Handle 2-digit year
+                if y < 100:
+                    y += 2000 if y < 50 else 1900
+                    
+                return date(y, m, d)
+            except ValueError:
+                return None
+                
+        return None
 
     # === Global Handlers ===
+
+    async def _handle_invite_request(self) -> None:
+        """Handle 'invite' command - send referral link."""
+        # TODO: Replace with actual bot phone number
+        link = "https://wa.me/15550204780?text=Om+Namo+Narayanaya"
+        
+        message = f"""🙏 **శుభమస్తును విస్తరించండి**
+        
+మీ బంధుమిత్రులకు కూడా ప్రతిరోజూ రాశిఫలాలు మరియు దైవ సంకల్పం అందాలని కోరుకుంటున్నారా?
+
+ఈ క్రింది లింక్ వారికి పంపండి:
+{link}
+
+"ధర్మం రక్షతి రక్షితః" 🙏"""
+        
+        await self.gupshup.send_text_message(
+            phone=self.user.phone,
+            message=message
+        )
 
     async def _handle_history_request(self) -> None:
         """

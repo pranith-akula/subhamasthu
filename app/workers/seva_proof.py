@@ -4,7 +4,7 @@ Seva Proof Worker - Send proof to yesterday's donors at 11am.
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.database import get_db_session
 from app.services.seva_proof_service import SevaProofService

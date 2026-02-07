@@ -122,19 +122,31 @@ class UserService:
     async def set_user_deity(self, user: User, deity: str) -> User:
         """Set user's preferred deity."""
         user.preferred_deity = deity
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
         return user
     
     async def set_user_auspicious_day(self, user: User, day: str) -> User:
         """Set user's preferred auspicious day."""
         user.auspicious_day = day
-        user.updated_at = datetime.utcnow()
+        user.updated_at = datetime.now(timezone.utc)
+        return user
+    
+    async def set_user_dob(self, user: User, dob: date) -> User:
+        """Set user's date of birth."""
+        user.dob = dob
+        user.updated_at = datetime.now(timezone.utc)
+        return user
+        
+    async def set_user_wedding_anniversary(self, user: User, anniversary: date) -> User:
+        """Set user's wedding anniversary."""
+        user.wedding_anniversary = anniversary
+        user.updated_at = datetime.now(timezone.utc)
         return user
     
     async def set_last_sankalp(self, user: User) -> User:
         """Set last sankalp timestamp (starts cooldown)."""
-        user.last_sankalp_at = datetime.utcnow()
-        user.updated_at = datetime.utcnow()
+        user.last_sankalp_at = datetime.now(timezone.utc)
+        user.updated_at = datetime.now(timezone.utc)
         return user
     
     async def is_duplicate_message(
