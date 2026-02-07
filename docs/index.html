@@ -144,7 +144,8 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            padding: 1rem 2rem;
+            padding: 0.5rem 1.5rem;
+            /* Reduced padding */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -152,6 +153,8 @@
             backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(255, 215, 0, 0.3);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            height: 70px;
+            /* Explicit height control */
         }
 
         .logo {
@@ -162,19 +165,21 @@
         }
 
         .logo-icon {
-            width: 45px;
-            height: 45px;
+            width: 35px;
+            /* Smaller icon */
+            height: 35px;
             background: var(--gradient-warm);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
 
         .logo-text {
             color: var(--white);
-            font-size: 1.8rem;
+            font-size: 1.4rem;
+            /* Smaller text */
             font-weight: 700;
             font-family: 'Noto Serif Telugu', serif;
             letter-spacing: 0.5px;
@@ -187,7 +192,8 @@
         .nav-cta {
             background: var(--gradient-warm);
             color: var(--dark);
-            padding: 0.75rem 1.5rem;
+            padding: 0.5rem 1rem;
+            /* Smaller button */
             border-radius: 50px;
             text-decoration: none;
             font-weight: 700;
@@ -197,6 +203,7 @@
             gap: 0.5rem;
             transition: transform 0.3s, box-shadow 0.3s;
             border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.9rem;
         }
 
         .nav-cta:hover {
@@ -209,8 +216,11 @@
             position: relative;
             z-index: 10;
             text-align: center;
-            padding: 2rem;
+            padding: 8rem 2rem 4rem;
+            /* Added top padding to clear header */
             max-width: 900px;
+            margin-top: 40px;
+            /* Extra push */
         }
 
         .hero-badge {
