@@ -66,6 +66,8 @@ async def razorpay_webhook(
             await handle_payment_link_paid(payload, payment_service)
         elif event_type == "payment.captured":
             await handle_payment_captured(payload, payment_service)
+        elif event_type == "subscription.charged":
+            await handle_subscription_charged(payload, payment_service)
         elif event_type == "payment_link.expired":
             await handle_payment_link_expired(payload, payment_service, db)
         else:
@@ -154,6 +156,48 @@ async def handle_payment_captured(payload: dict, payment_service: PaymentService
         logger.info(f"No sankalp_id in payment notes: {payment_id}")
         return
     
+    await payment_service.process_payment(
+        event_id=event_id,
+        sankalp_id=sankalp_id,
+        payment_id=payment_id,
+        amount=amount,
+        currency=currency,
+    )
+
+
+async def handle_subscription_charged(payload: dict, payment_service: PaymentService) -> None:
+    """
+    Process subscription.charged event.
+    Recurring payment successful.
+    """
+    event_id = payload.get("event_id")
+    event_data = payload.get("payload", {})
+    
+    subscription = event_data.get("subscription", {}).get("entity", {})
+    payment = event_data.get("payment", {}).get("entity", {})
+    
+    subscription_id = subscription.get("id")
+    payment_id = payment.get("id")
+    amount = payment.get("amount", 0) / 100
+    currency = payment.get("currency", "USD")
+    
+    # Extract sankalp_id from subscription notes
+    notes = subscription.get("notes", {})
+    sankalp_id = notes.get("sankalp_id")
+    
+    if not sankalp_id:
+        # Fallback: Check payment notes
+        sankalp_id = payment.get("notes", {}).get("sankalp_id")
+    
+    if not sankalp_id:
+        logger.error(f"No sankalp_id in subscription {subscription_id} notes")
+        return
+
+    logger.info(f"Subscription {subscription_id} charged for sankalp {sankalp_id}")
+
+    # Process payment (Update Sankalp Status)
+    # Note: For recurring months, ideally we create a NEW Sankalp record.
+    # But for MVP, we just confirm the current one is paid (or re-paid).
     await payment_service.process_payment(
         event_id=event_id,
         sankalp_id=sankalp_id,

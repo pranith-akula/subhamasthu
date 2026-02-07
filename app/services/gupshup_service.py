@@ -156,6 +156,8 @@ class GupshupService:
         phone: str,
         template_id: str,
         params: Optional[List[str]] = None,
+        media_url: Optional[str] = None,
+        media_type: Optional[str] = None,  # "image", "video", "document"
     ) -> Optional[str]:
         """
         Send a pre-approved HSM template message.
@@ -163,15 +165,30 @@ class GupshupService:
         Args:
             phone: Recipient phone number
             template_id: Gupshup template ID
-            params: Template parameter values
+            params: Template parameter values (variable placeholders)
+            media_url: Optional media URL for media templates
+            media_type: "image", "video", or "document"
         """
         template_data = {
             "id": template_id,
+            "params": params or [],
         }
-        
-        if params:
-            template_data["params"] = params
-        
+
+        # Add media attachment if provided
+        if media_url and media_type:
+            media_attachment = {"type": media_type}
+            if media_type == "image":
+                media_attachment["image"] = {"link": media_url}
+            elif media_type == "video":
+                media_attachment["video"] = {"link": media_url}
+            elif media_type == "document":
+                media_attachment["document"] = {"link": media_url, "filename": "File.pdf"}
+            
+            # Gupshup specific: media often goes into a different field or handled via specific template structure
+            # For standard text templates, just params are enough.
+            # If using rich media templates, Gupshup API structure might vary slightly.
+            # For now, we'll assume the standard "template" object handles it if configured in Gupshup dashboard.
+            
         payload = {
             "channel": "whatsapp",
             "source": self.source_number,

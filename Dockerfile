@@ -14,5 +14,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY . .
 
-# Use Python startup script - avoids shell/line-ending issues
-CMD ["python", "run.py"]
+# Expose default port
+EXPOSE 8080
+
+# Make start script executable
+COPY start.sh .
+RUN chmod +x start.sh
+
+# Start all services (Web + Worker + Scheduler)
+CMD ["./start.sh"]

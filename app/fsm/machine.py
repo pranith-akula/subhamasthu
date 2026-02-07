@@ -216,10 +216,10 @@ class FSMMachine:
         category = self._parse_category(button_payload)
         
         if not category:
-            await self.gupshup.send_text_message(
-                phone=self.user.phone,
-                message="Please select a category for your sankalp.",
-            )
+            # User replied to template (or invalid input)
+            # Send the actual category buttons now that window is open
+            sankalp_service = SankalpService(self.db)
+            await sankalp_service.send_category_buttons(self.user)
             return
         
         # Store category in context and send tier selection

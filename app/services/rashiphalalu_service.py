@@ -317,9 +317,13 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
                 message = await self.generate_personalized_message(user, target_date)
                 
                 if message:
-                    msg_id = await self.gupshup.send_text_message(
+                    # USE TEMPLATE MESSAGE for 24h compliance
+                    # Template Name: daily_rashiphalalu_v1
+                    # Variables: [message_body]
+                    msg_id = await self.gupshup.send_template_message(
                         phone=user.phone,
-                        message=message,
+                        template_id="daily_rashiphalalu_v1",
+                        params=[message]
                     )
                     if msg_id:
                         # Increment the days counter for 6-day eligibility
