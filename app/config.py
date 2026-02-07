@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     gupshup_source_number: str = ""
     gupshup_webhook_secret: str = ""
     
+    # Meta WhatsApp (Direct)
+    meta_access_token: str = ""
+    meta_phone_number_id: str = ""
+    meta_webhook_verify_token: str = "subhamasthu_secure_webhook"
+    
     # Razorpay (optional for initial setup)
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""

@@ -19,7 +19,8 @@ from app.fsm.states import (
     Nakshatra,
 )
 from app.services.user_service import UserService
-from app.services.gupshup_service import GupshupService
+from app.services.user_service import UserService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.sankalp_service import SankalpService
 from sqlalchemy import select, desc
 from app.models.sankalp import Sankalp
@@ -40,11 +41,11 @@ class FSMMachine:
         self,
         db: AsyncSession,
         user: User,
-        gupshup: GupshupService,
+        whatsapp: MetaWhatsappService,
     ):
         self.db = db
         self.user = user
-        self.gupshup = gupshup
+        self.whatsapp = whatsapp
         self.user_service = UserService(db)
     
     async def process_input(
@@ -108,7 +109,7 @@ class FSMMachine:
                 await self._send_default_response()
         except Exception as e:
             logger.error(f"CRITICAL FSM ERROR for user {self.user.id}: {e}", exc_info=True)
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="🙏 క్షమించండి, సాంకేతిక సమస్య తలెత్తింది. దయచేసి కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి."
             )
@@ -140,7 +141,7 @@ class FSMMachine:
             
         else:
             # User sent something else? Re-prompt or just proceed if positive text
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి 'తథాస్తు' (I Vow) అని నిర్ధారించండి."
             )
@@ -160,7 +161,7 @@ class FSMMachine:
         User confirms reflection. We validate and generate Sankalp.
         """
         # 1. Validation Message
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 మీ ఆవేదన అర్థమైంది. భగవంతుని సన్నిధిలో దీనికి ఉపశమనం లభిస్తుంది."
         )
@@ -190,7 +191,7 @@ class FSMMachine:
         Stage 1 Start: Category Selection.
         """
         if not button_payload:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి కింద ఉన్న బటన్స్ ఉపయోగించి ఎంచుకోండి."
             )
@@ -200,7 +201,7 @@ class FSMMachine:
         try:
             category = SankalpCategory(button_payload)
         except ValueError:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి సరైన ఆప్షన్ ఎంచుకోండి."
             )
@@ -226,7 +227,7 @@ class FSMMachine:
     async def _handle_new(self, text: str, button_payload: Optional[str]) -> None:
         """Handle NEW state - start onboarding."""
         # Send Welcome Message & Ask for Name
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కుటుంబ క్షేమం మరియు సకల కార్య జయము కొరకు దైవ సంకల్పం.\n\nప్రారంభించడానికి, దయచేసి మీ పేరు తెలియజేయండి."
         )
@@ -236,7 +237,7 @@ class FSMMachine:
         """Handle Name input -> Ask for Deity."""
         name = text.strip()
         if not name:
-             await self.gupshup.send_text_message(
+             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి మీ పేరును టైప్ చేయండి."
             )
@@ -250,7 +251,7 @@ class FSMMachine:
     
     async def _send_nakshatra_prompt(self) -> None:
         """Send prompt for nakshatra input (Buttons: Yes/Skip)."""
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
             buttons=[
@@ -271,7 +272,7 @@ class FSMMachine:
                 {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
                 for r in [Rashi.MESHA, Rashi.VRISHABHA, Rashi.MITHUNA, Rashi.KARKATAKA, Rashi.SIMHA, Rashi.KANYA]
             ]
-            await self.gupshup.send_list_message(
+            await self.whatsapp.send_list_message(
                 phone=self.user.phone,
                 body_text="🪔 మీ రాశిని ఎంచుకోండి (1-6):",
                 button_text="రాశిని ఎంచుకోండి",
@@ -285,7 +286,7 @@ class FSMMachine:
                 {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
                 for r in [Rashi.TULA, Rashi.VRISHCHIKA, Rashi.DHANU, Rashi.MAKARA, Rashi.KUMBHA, Rashi.MEENA]
             ]
-            await self.gupshup.send_list_message(
+            await self.whatsapp.send_list_message(
                 phone=self.user.phone,
                 body_text="🪔 మీ రాశిని ఎంచుకోండి (7-12):",
                 button_text="రాశిని ఎంచుకోండి",
@@ -298,7 +299,7 @@ class FSMMachine:
         
         if not rashi:
             # If invalid input, prompts again with groups
-            await self.gupshup.send_button_message(
+            await self.whatsapp.send_button_message(
                 phone=self.user.phone,
                 body_text="🙏 దయచేసి మీ రాశిని ఖచ్చితంగా ఎంచుకోండి:",
                 buttons=[
@@ -323,7 +324,7 @@ class FSMMachine:
             
         # 1. Handle "Yes, Select" -> Show Groups
         if button_payload == "BTN_SELECT_NAKSHATRA":
-            await self.gupshup.send_button_message(
+            await self.whatsapp.send_button_message(
                 phone=self.user.phone,
                 body_text="మీ నక్షత్రం ఏ గ్రూపులో ఉందో ఎంచుకోండి:",
                 buttons=[
@@ -338,7 +339,7 @@ class FSMMachine:
         if button_payload == "BTN_NAK_GRP_1":
             rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[:9]]
-            await self.gupshup.send_list_message(
+            await self.whatsapp.send_list_message(
                 phone=self.user.phone,
                 body_text="⭐ నక్షత్రం ఎంచుకోండి (1-9):",
                 button_text="నక్షత్రం",
@@ -349,7 +350,7 @@ class FSMMachine:
         if button_payload == "BTN_NAK_GRP_2":
             rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[9:18]]
-            await self.gupshup.send_list_message(
+            await self.whatsapp.send_list_message(
                 phone=self.user.phone,
                 body_text="⭐ నక్షత్రం ఎంచుకోండి (10-18):",
                 button_text="నక్షత్రం",
@@ -360,7 +361,7 @@ class FSMMachine:
         if button_payload == "BTN_NAK_GRP_3":
             rows = [{"id": f"ROW_NAK_{n.value}", "title": n.telugu_name, "description": "నక్షత్రం ఎంచుకోండి"} 
                    for n in list(Nakshatra)[18:]]
-            await self.gupshup.send_list_message(
+            await self.whatsapp.send_list_message(
                 phone=self.user.phone,
                 body_text="⭐ నక్షత్రం ఎంచుకోండి (19-27):",
                 button_text="నక్షత్రం",
@@ -391,7 +392,7 @@ class FSMMachine:
 
         # Handle "Add Time" button click - ask for text
         if button_payload == "BTN_ADD_BIRTH_TIME":
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి మీ పుట్టిన సమయాన్ని టైప్ చేయండి (ఉదాహరణకు 10:30 AM లేదా 14:30)."
             )
@@ -411,7 +412,7 @@ class FSMMachine:
         deity = self._parse_deity(text, button_payload)
         
         if not deity:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి మీ ఇష్ట దైవాన్ని ఎంచుకోండి.",
             )
@@ -427,7 +428,7 @@ class FSMMachine:
         day = self._parse_day(text, button_payload)
         
         if not day:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి మీ శుభ దినం ఎంచుకోండి.",
             )
@@ -455,7 +456,7 @@ class FSMMachine:
                await self.user_service.set_user_dob(self.user, dob)
            else:
                # Invalid format - re-prompt or help
-               await self.gupshup.send_text_message(
+               await self.whatsapp.send_text_message(
                    phone=self.user.phone,
                    message="తేదీ ఫార్ మాట్ అర్థం కాలేదు. దయచేసి DD-MM-YYYY (ఉదా: 15-08-1990) లా టైప్ చేయండి లేదా 'వద్దు' (Skip) బటన్ నొక్కండి."
                )
@@ -504,7 +505,7 @@ class FSMMachine:
         
         if any(t in clean_text for t in triggers):
             # Send Main Menu
-            await self.gupshup.send_button_message(
+            await self.whatsapp.send_button_message(
                 phone=self.user.phone,
                 body_text="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తుకు స్వాగతం. మీరు ఎలా ముందుకు వెళ్లాలనుకుంటున్నారు?",
                 buttons=[
@@ -529,7 +530,7 @@ class FSMMachine:
             return
 
         # Default gentle acknowledgment for unknown text
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 నమస్కారం! మీకు ప్రతిరోజూ రాశిఫలాలు వస్తాయి. సేవల కోసం 'ఓం నమో నారాయణాయ' అని పంపండి.",
         )
@@ -600,7 +601,7 @@ class FSMMachine:
             await sankalp_service.send_free_path_completion(self.user, category)
         else:
             # Invalid response - resend options
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="🙏 దయచేసి పై బటన్లలో ఒకటి నొక్కండి.",
             )
@@ -610,7 +611,7 @@ class FSMMachine:
         tier = self._parse_tier(button_payload)
         
         if not tier:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="దయచేసి సేవా స్థాయిని ఎంచుకోండి.",
             )
@@ -626,7 +627,7 @@ class FSMMachine:
         category_value = conversation.get_context("selected_category") if conversation else None
         
         if not category_value:
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="క్షమించండి, ఏదో తప్పు జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.",
             )
@@ -649,7 +650,7 @@ class FSMMachine:
         else:
             # Invalid input - assumption: default to one-time if lost? or prompt again?
             # Let's prompt again for clarity
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="🙏 దయచేసి పై ఆప్షన్లలో (నెలవారీ లేదా ఒక్కసారి) ఒకదాన్ని ఎంచుకోండి."
             )
@@ -667,7 +668,7 @@ class FSMMachine:
         tier_val = conversation.get_context("selected_tier") if conversation else None
         
         if not category_val or not tier_val:
-             await self.gupshup.send_text_message(
+             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="క్షమించండి, సెషన్ గడువు ముగిసింది. దయచేసి మళ్ళీ ప్రారంభించండి."
             )
@@ -692,7 +693,7 @@ class FSMMachine:
                 
         except Exception as e:
             logger.error(f"Failed to create payment link: {e}")
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
@@ -700,14 +701,14 @@ class FSMMachine:
     
     async def _handle_payment_pending(self, text: str, button_payload: Optional[str]) -> None:
         """Handle messages while payment is pending."""
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 సేవా సమర్పణ జరుగుతోంది. దయచేసి వేచి ఉండండి. త్వరలో నిర్ధారణ వస్తుంది. 🙏",
         )
     
     async def _handle_payment_confirmed(self, text: str, button_payload: Optional[str]) -> None:
         """Handle post-payment confirmation."""
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 మీ సంకల్పం నెరవేరింది! ప్రసాదం (రసీదు) మీకు పంపబడింది. శుభమస్తు! 🙏",
         )
@@ -722,7 +723,7 @@ class FSMMachine:
         else:
             days_left = 7
         
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message=f"🙏 హరి ఓం! మీ గత సంకల్పం పూర్తయింది. మరో {days_left} రోజుల తర్వాత మీరు మళ్ళీ సంకల్పం చేసుకోవచ్చు. అప్పటిదాకా నిత్యం రాశిఫలాలు అందుతాయి. శుభం! 🙏",
         )
@@ -735,7 +736,7 @@ class FSMMachine:
 
     async def _send_rashi_prompt(self) -> None:
         """Send rashi selection prompt (Buttons)."""
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="✨ మీ రాశి ఏ గ్రూపులో ఉంది?",
             buttons=[
@@ -757,7 +758,7 @@ class FSMMachine:
             {"id": "DEITY_VENKATESHWARA", "title": "శ్రీ వేంకటేశ్వర స్వామి", "description": "గోవిందా గోవిందా"},
         ]
         
-        await self.gupshup.send_list_message(
+        await self.whatsapp.send_list_message(
             phone=self.user.phone,
             body_text="🌺 మీ ఇష్ట దైవం ఎవరు? (నిత్యం ఆ స్వామి అనుగ్రహం కొరకు):",
             button_text="ఇష్ట దైవం",
@@ -770,7 +771,7 @@ class FSMMachine:
     
     async def _send_nakshatra_prompt(self) -> None:
         """Send prompt for nakshatra input (Buttons: Yes/Skip)."""
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
             buttons=[
@@ -785,7 +786,7 @@ class FSMMachine:
             {"id": "SKIP_BIRTH_TIME", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="""⏰ మీ జన్మ సమయం? (ఐచ్ఛికం)
 
@@ -807,7 +808,7 @@ class FSMMachine:
             {"id": "DAY_SUNDAY", "title": "ఆదివారం", "description": "సూర్య భగవానుడు"},
         ]
         
-        await self.gupshup.send_list_message(
+        await self.whatsapp.send_list_message(
             phone=self.user.phone,
             body_text="🗓️ వారంలో మీకు ఇష్టమైన శుభ దినం ఏది? (ఆ రోజున ప్రత్యేక సంకల్పం కోసం):",
             button_text="శుభ దినం",
@@ -824,7 +825,7 @@ class FSMMachine:
             {"id": "SKIP_DOB", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="""🎂 మీ పుట్టినరోజు ఎప్పుడు?
             
@@ -841,7 +842,7 @@ class FSMMachine:
             {"id": "SKIP_ANNIVERSARY", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=self.user.phone,
             body_text="""💍 మీ పెళ్లి రోజు ఎప్పుడు? (ఐచ్ఛికం)
             
@@ -907,14 +908,14 @@ class FSMMachine:
 మీ జీవితం సుఖసంతోషాలతో వర్ధిల్లాలని కోరుకుంటూ...
 - **శుభమస్తు కుటుంబం** 🙏"""
         
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message=message,
         )
     
     async def _send_default_response(self) -> None:
         """Send default response for unhandled states."""
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 నమస్కారం! నేను శుభమస్తు సేవకుడిని. దయచేసి వివరంగా చెప్పండి.",
         )
@@ -936,13 +937,13 @@ class FSMMachine:
 
 ఇప్పటి నుండి ప్రతిరోజూ ఉదయం 7 గంటలకు మీకు ఇలాంటి వ్యక్తిగత సందేశాలు వస్తాయి."""
                 
-                await self.gupshup.send_text_message(
+                await self.whatsapp.send_text_message(
                     phone=self.user.phone,
                     message=intro,
                 )
                 
                 # Send the actual Rashiphalalu
-                await self.gupshup.send_text_message(
+                await self.whatsapp.send_text_message(
                     phone=self.user.phone,
                     message=message,
                 )
@@ -1099,7 +1100,7 @@ class FSMMachine:
 
 "ధర్మం రక్షతి రక్షితః" 🙏"""
         
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message=message
         )
@@ -1123,7 +1124,7 @@ class FSMMachine:
             sankalps = result.scalars().all()
             
             if not sankalps:
-                await self.gupshup.send_text_message(
+                await self.whatsapp.send_text_message(
                     phone=self.user.phone,
                     message="🙏 మీరు ఇప్పటివరకు ఎటువంటి సేవలు చేయలేదు. రాబోయే శుభ దినం నాడు మీ మొదటి సేవను ప్రారంభించండి! శుభమస్తు."
                 )
@@ -1150,14 +1151,14 @@ class FSMMachine:
             lines.append(f"\n✨ **మొత్తం త్యాగం: ₹{int(total_amount)}**")
             lines.append("\n🙏 ధన్యవాదాలు!")
             
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="\n".join(lines)
             )
             
         except Exception as e:
             logger.error(f"Error fetching history for {self.user.phone}: {e}")
-            await self.gupshup.send_text_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="క్షమించండి, మీ చరిత్రను పొందడంలో సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )

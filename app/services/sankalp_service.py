@@ -20,7 +20,7 @@ from app.config import settings
 from app.models.user import User
 from app.models.sankalp import Sankalp
 from app.fsm.states import SankalpCategory, SankalpTier, SankalpStatus, AuspiciousDay
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.user_service import UserService
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ class SankalpService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.gupshup = GupshupService()
+        self.whatsapp = MetaWhatsappService()
         if settings.razorpay_key_id and settings.razorpay_key_secret:
             self.razorpay = razorpay.Client(
                 auth=(settings.razorpay_key_id, settings.razorpay_key_secret)
@@ -132,7 +132,7 @@ class SankalpService:
         # USE TEMPLATE MESSAGE for 24h compliance (Weekly Re-engagement)
         # Template: weekly_sankalp_alert
         # Variables: [message]
-        msg_id = await self.gupshup.send_template_message(
+        msg_id = await self.whatsapp.send_template_message(
             phone=user.phone,
             template_id="weekly_sankalp_alert",
             params=[message]
@@ -174,7 +174,7 @@ class SankalpService:
             {"id": "START_RITUAL", "title": "🙏 సిద్ధంగా ఉన్నాను"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -202,7 +202,7 @@ class SankalpService:
             {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -240,7 +240,7 @@ class SankalpService:
             {"id": "CONFIRM_REFLECTION", "title": "అవును (Yes)"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -263,7 +263,7 @@ class SankalpService:
             {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
         ]
         
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -274,7 +274,7 @@ class SankalpService:
             {"id": SankalpCategory.PEACE.value, "title": "🧘 మానసిక శాంతి"},
         ]
         
-        await self.gupshup.send_button_message(
+        await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text="మరిన్ని అంశాలు:",
             buttons=buttons2,
@@ -320,7 +320,7 @@ class SankalpService:
             {"id": "AGREE_SANKALP", "title": "🙏 తథాస్తు (I Vow)"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -385,7 +385,7 @@ class SankalpService:
             {"id": "TYAGAM_NO", "title": "మరొకసారి"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -429,7 +429,7 @@ class SankalpService:
 
 ఓం శాంతి 🙏"""
         
-        msg_id = await self.gupshup.send_text_message(
+        msg_id = await self.whatsapp.send_text_message(
             phone=user.phone,
             message=message,
         )
@@ -466,7 +466,7 @@ class SankalpService:
             {"id": SankalpTier.S50.value, "title": "51 మందికి ($50)"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -506,7 +506,7 @@ class SankalpService:
             {"id": "FREQ_ONETIME", "title": "ఈ ఒక్కసారికి చాలు"},
         ]
         
-        msg_id = await self.gupshup.send_button_message(
+        msg_id = await self.whatsapp.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -649,7 +649,7 @@ class SankalpService:
         # Add Scheduling Context
         message += "\n\n🗓️ **వచ్చే శుక్రవారం** మీ పేరున మరియు మీ గోత్రం తో ప్రత్యేక పూజ జరుగుతుంది. మీకు ప్రసాదం (ఫోటో) పంపబడుతుంది.\n\nశుభమస్తు."
         
-        await self.gupshup.send_text_message(
+        await self.whatsapp.send_text_message(
             phone=user.phone,
             message=message
         )
@@ -720,7 +720,7 @@ class SankalpService:
 
 మీ సహాయం నేరుగా ఆలయానికి చేరుతుంది. 🙏"""
         
-        msg_id = await self.gupshup.send_text_message(
+        msg_id = await self.whatsapp.send_text_message(
             phone=user.phone,
             message=message,
         )
@@ -775,7 +775,7 @@ class SankalpService:
         # Add receipt note
         message += "\n\n🙏 మీ సేవ స్వీకరించబడింది.\n\nప్రసాదం (రసీదు) త్వరలో మీకు అందుతుంది.\n\nఓం శాంతి శాంతి శాంతిః 🙏"
         
-        msg_id = await self.gupshup.send_text_message(
+        msg_id = await self.whatsapp.send_text_message(
             phone=user.phone,
             message=message,
         )
