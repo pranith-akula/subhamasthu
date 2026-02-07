@@ -52,10 +52,10 @@ class SankalpCategory(str, Enum):
     def display_name_telugu(self) -> str:
         """Telugu display name for the category."""
         names = {
-            self.FAMILY: "పిల్లలు / పరివారం",
-            self.HEALTH: "ఆరోగ్యం / రక్ష",
-            self.CAREER: "ఉద్యోగం / ఆర్థిక చింత",
-            self.PEACE: "మానసిక శాంతి",
+            self.FAMILY: "పిల్లల భవిష్యత్తు / కుటుంబ క్షేమం",
+            self.HEALTH: "ఆరోగ్య రక్ష / ఆయుష్షు",
+            self.CAREER: "ఉద్యోగ విజయం / ధన ప్రాప్తి",
+            self.PEACE: "మానసిక ప్రశాంతత / గ్రహ దోష నివారణ",
         }
         return names.get(self, self.value)
     
@@ -95,9 +95,9 @@ class SankalpTier(str, Enum):
     def display_name(self) -> str:
         """Display name for the tier."""
         names = {
-            self.S15: "$15 - Samuhik Sankalp",
-            self.S30: "$30 - Vishesh Sankalp",
-            self.S50: "$50 - Parivaar Sankalp",
+            self.S15: "సామూహిక సంకల్పం (₹1800)",
+            self.S30: "విశేష సంకల్పం (₹4200)",
+            self.S50: "పరివార సంకల్పం (₹9000)",
         }
         return names.get(self, self.value)
 

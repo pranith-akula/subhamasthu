@@ -331,14 +331,14 @@ class FSMMachine:
         """Handle messages while payment is pending."""
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 Mee payment kosam waiting. Payment complete chesaka confirmation vastundi. 🙏",
+            message="🙏 సేవా సమర్పణ జరుగుతోంది. దయచేసి వేచి ఉండండి. త్వరలో నిర్ధారణ వస్తుంది. 🙏",
         )
     
     async def _handle_payment_confirmed(self, text: str, button_payload: Optional[str]) -> None:
         """Handle post-payment confirmation."""
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 Mee sankalp poorthi ayyindi! Receipt meeku vachindi. Shubham! 🙏",
+            message="🙏 మీ సంకల్పం నెరవేరింది! ప్రసాదం (రసీదు) మీకు పంపబడింది. శుభమస్తు! 🙏",
         )
     
     async def _handle_cooldown(self, text: str, button_payload: Optional[str]) -> None:
@@ -353,20 +353,20 @@ class FSMMachine:
         
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message=f"🙏 Mee recent sankalp poorthi ayyindi. Mee next sankalp {days_left} days tarvaata available avtundi. Daily Rashiphalalu continue avtayi. Shubham! 🙏",
+            message=f"🙏 హరి ఓం! మీ గత సంకల్పం పూర్తయింది. మరో {days_left} రోజుల తర్వాత మీరు మళ్ళీ సంకల్పం చేసుకోవచ్చు. అప్పటిదాకా నిత్యం రాశిఫలాలు అందుతాయి. శుభం! 🙏",
         )
     
     # === Helper methods ===
     
     async def _send_welcome_and_rashi_prompt(self) -> None:
         """Send welcome message and rashi selection."""
-        welcome = """🙏 శుభమస్తు! నమస్కారం!
+        welcome = """🙏 శుభమస్తు!
 
-తెలుగు కుటుంబాల ధార్మిక సేవా వేదికకు స్వాగతం.
+మీ ఆధ్యాత్మిక ప్రయాణానికి స్వాగతం!
 
-మీకు రోజువారీ రాశిఫలాలు, వారపు సంకల్ప అవకాశాలు, అన్నదాన సేవలు అందిస్తాము.
+ప్రతిరోజూ మీ రాశిఫలాలు పొందడానికి మరియు ప్రతి వారం సంకల్పం చేసుకోవడానికి, దయచేసి వివరాలు అందించండి.
 
-ముందుగా, మీ రాశి ఎంచుకోండి:"""
+ముందుగా, మీ రాశి ఏది?"""
         
         # Due to WhatsApp button limits, we'll use a list or multiple messages
         buttons = [
@@ -427,7 +427,7 @@ class FSMMachine:
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="🙏 బాగుంది! ఇప్పుడు మీ ఇష్ట దైవాన్ని ఎంచుకోండి:",
+            body_text="🙏 అద్భుతం! మీ ఇష్ట దైవం ఎవరు? (రోజువారీ ప్రార్థన కోసం):",
             buttons=buttons,
         )
         
@@ -440,7 +440,7 @@ class FSMMachine:
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="మరిన్ని దైవాలు:",
+            body_text="మరికొందరు దైవాలు:",
             buttons=buttons2,
         )
     
@@ -452,7 +452,7 @@ class FSMMachine:
         """Send nakshatra selection prompt (OPTIONAL)."""
         # Use WhatsApp list for 27 nakshatras - first show skip option + first batch
         buttons = [
-            {"id": "SKIP_NAKSHATRA", "title": "⏭️ Skip / వద్దు"},
+            {"id": "SKIP_NAKSHATRA", "title": "⏭️ పర్వాలేదు (Skip)"},
             {"id": "NAKSH_ASHWINI", "title": "అశ్విని (Ashwini)"},
             {"id": "NAKSH_BHARANI", "title": "భరణి (Bharani)"},
         ]
@@ -461,26 +461,26 @@ class FSMMachine:
             phone=self.user.phone,
             body_text="""🌟 మీ జన్మ నక్షత్రం ఏమిటి? (ఐచ్ఛికం)
 
-తెలిస్తే ఎంచుకోండి, లేకపోతే 'వద్దు' నొక్కండి.
+తెలిస్తే ఎంచుకోండి, లేకపోతే 'పర్వాలేదు' నొక్కండి.
 
-ఇది మీ వ్యక్తిగత రాశిఫలాలను మెరుగుపరుస్తుంది.""",
+ఇది మీ రాశిఫలాలను మరింత కచ్చితంగా చేస్తుంది.""",
             buttons=buttons,
-            footer="లేదా మీ నక్షత్రం పేరు టైప్ చేయండి",
+            footer="లేదా టైప్ చేయండి",
         )
     
     async def _send_birth_time_prompt(self) -> None:
         """Send birth time prompt (OPTIONAL)."""
         buttons = [
-            {"id": "SKIP_BIRTH_TIME", "title": "⏭️ Skip / వద్దు"},
+            {"id": "SKIP_BIRTH_TIME", "title": "⏭️ పర్వాలేదు (Skip)"},
         ]
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""⏰ మీ జన్మ సమయం ఏమిటి? (ఐచ్ఛికం)
+            body_text="""⏰ మీ జన్మ సమయం? (ఐచ్ఛికం)
 
-ఉదా: 06:30, 14:15, 22:00
+ఉదా: 06:30, 14:15
 
-తెలిస్తే టైప్ చేయండి, లేకపోతే 'వద్దు' నొక్కండి.""",
+ఖచ్చితమైన జాతకం కోసం ఉపయోగపడుతుంది.""",
             buttons=buttons,
         )
     
@@ -494,7 +494,7 @@ class FSMMachine:
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="🙏 వారపు సంకల్పానికి మీ శుభ దినం ఏది?",
+            body_text="🙏 వారపు సంకల్పం కోసం, మీకు ఇష్టమైన శుభ దినం ఎంచుకోండి:",
             buttons=buttons,
         )
         
@@ -564,15 +564,15 @@ class FSMMachine:
         
         prefs_str = "\n".join(prefs)
         
-        message = f"""🙏✨ నమోదు పూర్తయింది! ✨🙏
+        message = f"""🙏✨ అభినందనలు! శుభమస్తు! ✨🙏
 
-మీ వివరాలు భద్రపరచబడ్డాయి:
+మీ వివరాలు మా వద్ద భద్రంగా ఉన్నాయి:
 {prefs_str}
 
-మీకు ప్రతిరోజూ ఉదయం 7:00 గంటలకు రాశిఫలాలు వస్తాయి.
-{day_telugu} రోజు ప్రత్యేక సంకల్ప అవకాశం వస్తుంది.
+✅ ప్రతిరోజూ ఉదయం 7:00 గంటలకు మీకు రాశిఫలాలు అందుతాయి.
+✅ ప్రతి {day_telugu} రోజున మీకు ప్రత్యేక "సంకల్పం" అవకాశం ఉంటుంది.
 
-శుభమస్తు! 🙏"""
+మీ ధార్మిక ప్రయాణం నేటి నుండి ప్రారంభం! 🙏"""
         
         await self.gupshup.send_text_message(
             phone=self.user.phone,
@@ -583,7 +583,7 @@ class FSMMachine:
         """Send default response for unhandled states."""
         await self.gupshup.send_text_message(
             phone=self.user.phone,
-            message="🙏 నమస్కారం! ఏమి సహాయం కావాలి? 🙏",
+            message="🙏 నమస్కారం! నేను శుభమస్తు సేవకుడిని. దయచేసి వివరంగా చెప్పండి.",
         )
     
     async def _send_day_zero_rashiphalalu(self) -> None:
@@ -754,25 +754,25 @@ class FSMMachine:
                 return
             
             # Format message
-            lines = ["🙏 **మీ సేవా చరిత్ర (My Seva History)**:\n"]
+            lines = ["🙏 **మీ సేవా చరిత్ర**:\n"]
             
             total_amount = 0
             
             for idx, s in enumerate(sankalps, 1):
-                # Format date: Jan 15, 2026
-                date_str = s.created_at.strftime("%b %d, %Y")
+                # Format date: 15-Jan-2026
+                date_str = s.created_at.strftime("%d-%b-%Y")
                 
                 # Get Telugu category name
-                cat_name = s.category.title()
-                if s.category == "annadanam": cat_name = "Annadanam (Food)"
-                elif s.category == "education": cat_name = "Vidhya (Education)"
-                elif s.category == "health": cat_name = "Arogyam (Health)"
+                try:
+                    cat_name = SankalpCategory(s.category).display_name_telugu
+                except:
+                    cat_name = s.category
                 
                 lines.append(f"{idx}. {cat_name} | ₹{int(s.amount)} | {date_str} ✅")
                 total_amount += s.amount
                 
-            lines.append(f"\n✨ **మొత్తం (Total): ₹{int(total_amount)}**")
-            lines.append("\n🙏 ధన్యవాదాలు! (Type 'menu' to go back)")
+            lines.append(f"\n✨ **మొత్తం త్యాగం: ₹{int(total_amount)}**")
+            lines.append("\n🙏 ధన్యవాదాలు!")
             
             await self.gupshup.send_text_message(
                 phone=self.user.phone,

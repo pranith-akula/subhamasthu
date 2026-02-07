@@ -70,4 +70,4 @@ async def _send_prompt_to_user(user_uuid):
             return
         
         sankalp_service = SankalpService(db)
-        await sankalp_service.send_reflection_prompt(user)
+        await sankalp_service.send_chinta_prompt(user)
