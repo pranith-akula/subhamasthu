@@ -77,3 +77,29 @@ async def terms_of_service():
         </body>
     </html>
     """
+@router.get("/data-deletion", response_class=HTMLResponse)
+async def data_deletion():
+    """Data Deletion Instructions Page."""
+    return """
+    <html>
+        <head>
+            <title>Data Deletion Instructions - Subhamasthu</title>
+            <style>body { font-family: sans-serif; max_width: 800px; margin: 0 auto; padding: 20px; }</style>
+        </head>
+        <body>
+            <h1>Data Deletion Instructions</h1>
+            <p>Subhamasthu respects your privacy and right to be forgotten.</p>
+            
+            <h2>How to Request Data Deletion</h2>
+            <p>If you wish to remove your data (phone number, name, and service history) from our records, please follow these steps:</p>
+            
+            <ol>
+                <li>Send an email to <strong>support@subhamasthu.com</strong>.</li>
+                <li>Subject Line: <strong>Data Deletion Request - [Your Phone Number]</strong>.</li>
+                <li>In the body, confirm that you want your data deleted.</li>
+            </ol>
+            
+            <p>We will process your request within 7 business days and confirm the deletion via email.</p>
+        </body>
+    </html>
+    """
