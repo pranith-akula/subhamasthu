@@ -443,9 +443,7 @@ class SankalpService:
         
         return False
     
-    async def send_pariharam_prompt(self, user: User, category: SankalpCategory) -> bool:
-        """Legacy method - redirects to new temple-style flow."""
-        return await self.send_pariharam_with_optional_tyagam(user, category)
+
     
     async def send_tyagam_prompt(self, user: User, category: SankalpCategory) -> bool:
         """
