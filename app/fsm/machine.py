@@ -142,7 +142,7 @@ class FSMMachine:
             body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
             buttons=[
                 {"id": "BTN_SELECT_NAKSHATRA", "title": "నక్షత్రం ఎంచుకుంటాను"},
-                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (Skip)"},
+                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (వద్దు)"},
             ]
         )
         # The state should be updated to WAITING_FOR_NAKSHATRA when this prompt is sent
@@ -162,7 +162,7 @@ class FSMMachine:
                 phone=self.user.phone,
                 body_text="🪔 మీ రాశిని ఎంచుకోండి (1-6):",
                 button_text="రాశిని ఎంచుకోండి",
-                sections=[{"title": "Rashis", "rows": rows}]
+                sections=[{"title": "రాశులు", "rows": rows}]
             )
             return
 
@@ -176,7 +176,7 @@ class FSMMachine:
                 phone=self.user.phone,
                 body_text="🪔 మీ రాశిని ఎంచుకోండి (7-12):",
                 button_text="రాశిని ఎంచుకోండి",
-                sections=[{"title": "Rashis", "rows": rows}]
+                sections=[{"title": "రాశులు", "rows": rows}]
             )
             return
 
@@ -344,7 +344,7 @@ class FSMMachine:
                # Invalid format - re-prompt or help
                await self.gupshup.send_text_message(
                    phone=self.user.phone,
-                   message="తేదీ ఫార్ మాట్ అర్థం కాలేదు. దయచేసి DD-MM-YYYY (ఉదా: 15-08-1990) లా టైప్ చేయండి లేదా 'Skip' బటన్ నొక్కండి."
+                   message="తేదీ ఫార్ మాట్ అర్థం కాలేదు. దయచేసి DD-MM-YYYY (ఉదా: 15-08-1990) లా టైప్ చేయండి లేదా 'వద్దు' (Skip) బటన్ నొక్కండి."
                )
                return
 
@@ -395,11 +395,11 @@ class FSMMachine:
                 phone=self.user.phone,
                 body_text="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తుకు స్వాగతం. మీరు ఎలా ముందుకు వెళ్లాలనుకుంటున్నారు?",
                 buttons=[
-                    {"id": "CMD_MY_SEVA", "title": "నా సేవలు (History)"},
-                    {"id": "CMD_SANKALP", "title": "కొత్త సంకల్పం (New)"},
-                    {"id": "CMD_INVITE", "title": "స్నేహితులను ఆహ్వానించండి (Invite)"},
+                    {"id": "CMD_MY_SEVA", "title": "నా సేవలు"},
+                    {"id": "CMD_SANKALP", "title": "కొత్త సంకల్పం"},
+                    {"id": "CMD_INVITE", "title": "స్నేహితులను ఆహ్వానించండి"},
                 ],
-                footer="Subhamasthu Services"
+                footer="శుభమస్తు సేవలు"
             )
             return
 
@@ -635,7 +635,7 @@ class FSMMachine:
         """Send deity selection prompt (List Message)."""
         rows = [
             {"id": "DEITY_VISHNU", "title": "శ్రీ మహా విష్ణువు", "description": "ఓం నమో నారాయణాయ"},
-            {"id": "DEITY_SHIVA", "title": "పరమేశ్వరుడు (Shiva)", "description": "ఓం నమః శివాయ"},
+            {"id": "DEITY_SHIVA", "title": "పరమేశ్వరుడు", "description": "ఓం నమః శివాయ"},
             {"id": "DEITY_HANUMAN", "title": "ఆంజనేయ స్వామి", "description": "జై శ్రీరామ్"},
             {"id": "DEITY_LAKSHMI", "title": "శ్రీ లక్ష్మీ దేవి", "description": "ధన ప్రాప్తి కొరకు"},
             {"id": "DEITY_DURGA", "title": "శ్రీ దుర్గా మాత", "description": "రక్షణ కొరకు"},
@@ -648,7 +648,7 @@ class FSMMachine:
             phone=self.user.phone,
             body_text="🌺 మీ ఇష్ట దైవం ఎవరు? (నిత్యం ఆ స్వామి అనుగ్రహం కొరకు):",
             button_text="ఇష్ట దైవం",
-            sections=[{"title": "Deities", "rows": rows}]
+            sections=[{"title": "ఇష్ట దైవాలు", "rows": rows}]
         )
     
     async def _send_deity_buttons(self) -> None:
@@ -662,14 +662,14 @@ class FSMMachine:
             body_text="☀️ అద్భుతం! మీ జన్మ నక్షత్రం వివరాలు ఇవ్వండి. (ఇది జాతక విశ్లేషణకు మరింత సహాయపడుతుంది).",
             buttons=[
                 {"id": "BTN_SELECT_NAKSHATRA", "title": "నక్షత్రం ఎంచుకుంటాను"},
-                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (Skip)"},
+                {"id": "SKIP_NAKSHATRA", "title": "నాకు తెలియదు (వద్దు)"},
             ]
         )
     
     async def _send_birth_time_prompt(self) -> None:
         """Send birth time prompt (OPTIONAL)."""
         buttons = [
-            {"id": "SKIP_BIRTH_TIME", "title": "⏭️ పర్వాలేదు (Skip)"},
+            {"id": "SKIP_BIRTH_TIME", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
         await self.gupshup.send_button_message(
@@ -698,7 +698,7 @@ class FSMMachine:
             phone=self.user.phone,
             body_text="🗓️ వారంలో మీకు ఇష్టమైన శుభ దినం ఏది? (ఆ రోజున ప్రత్యేక సంకల్పం కోసం):",
             button_text="శుభ దినం",
-            sections=[{"title": "Days", "rows": rows}]
+            sections=[{"title": "శుభ దినాలు", "rows": rows}]
         )
         
     async def _send_day_buttons(self) -> None:
@@ -708,12 +708,12 @@ class FSMMachine:
     async def _send_dob_prompt(self) -> None:
         """Send DOB prompt (OPTIONAL)."""
         buttons = [
-            {"id": "SKIP_DOB", "title": "⏭️ పర్వాలేదు (Skip)"},
+            {"id": "SKIP_DOB", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""🎂 మీ పుట్టినరోజు (Date of Birth) ఎప్పుడు?
+            body_text="""🎂 మీ పుట్టినరోజు ఎప్పుడు?
             
 దీని ద్వారా మీ జన్మదినాన ప్రత్యేక అర్చన మరియు ఆశీస్సులు అందించబడతాయి.
 
@@ -725,12 +725,12 @@ class FSMMachine:
     async def _send_anniversary_prompt(self) -> None:
         """Send Anniversary prompt (OPTIONAL)."""
         buttons = [
-            {"id": "SKIP_ANNIVERSARY", "title": "⏭️ పర్వాలేదు (Skip)"},
+            {"id": "SKIP_ANNIVERSARY", "title": "⏭️ పర్వాలేదు (వద్దు)"},
         ]
         
         await self.gupshup.send_button_message(
             phone=self.user.phone,
-            body_text="""💍 మీ పెళ్లి రోజు ఎప్పుడు? (Optional)
+            body_text="""💍 మీ పెళ్లి రోజు ఎప్పుడు? (ఐచ్ఛికం)
             
 తేదీని ఇలా టైప్ చేయండి: DD-MM-YYYY
 ఉదాహరణ: 21-05-2015
@@ -1022,8 +1022,8 @@ class FSMMachine:
             total_amount = 0
             
             for idx, s in enumerate(sankalps, 1):
-                # Format date: 15-Jan-2026
-                date_str = s.created_at.strftime("%d-%b-%Y")
+                # Format date: 15-01-2026
+                date_str = s.created_at.strftime("%d-%m-%Y")
                 
                 # Get Telugu category name
                 try:
