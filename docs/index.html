@@ -12,23 +12,29 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&family=Noto+Serif+Telugu:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <style>
         :root {
-            --primary: #FF6B35;
-            --primary-dark: #E55A2B;
-            --secondary: #7B2D8E;
-            --accent: #FFD700;
-            --dark: #1A1A2E;
-            --dark-light: #16213E;
-            --text: #333;
-            --text-light: #666;
+            --primary: #FF5722;
+            /* Deep Saffron */
+            --primary-dark: #BF360C;
+            --secondary: #FFD700;
+            /* Gold */
+            --accent: #FFC107;
+            /* Amber */
+            --dark: #1A0505;
+            /* Deep Temple Maroon */
+            --dark-light: #2D0A0A;
+            --text: #4E342E;
+            /* Brownish Text */
+            --text-light: #795548;
             --white: #FFFFFF;
-            --gradient-warm: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FFD700 100%);
-            --gradient-spiritual: linear-gradient(135deg, #7B2D8E 0%, #9B4DCA 50%, #FF6B35 100%);
-            --gradient-dark: linear-gradient(180deg, #1A1A2E 0%, #16213E 100%);
+            --bg-cream: #FFFDE7;
+            --gradient-warm: linear-gradient(135deg, #FF5722 0%, #FF8F00 50%, #FFD700 100%);
+            --gradient-divine: radial-gradient(circle at center, #4A0000 0%, #1A0000 100%);
+            --glow: 0 0 15px rgba(255, 215, 0, 0.6);
         }
 
         * {
@@ -39,7 +45,7 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: var(--white);
+            background: var(--bg-cream);
             color: var(--text);
             overflow-x: hidden;
         }
@@ -48,10 +54,17 @@
             font-family: 'Noto Sans Telugu', sans-serif;
         }
 
+        h1,
+        h2,
+        h3,
+        .divine-text {
+            font-family: 'Noto Serif Telugu', serif;
+        }
+
         /* Animated Background */
         .hero {
             min-height: 100vh;
-            background: var(--gradient-dark);
+            background: var(--gradient-divine);
             position: relative;
             display: flex;
             align-items: center;
@@ -66,8 +79,22 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.5;
+            background-image: radial-gradient(var(--accent) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.15;
+            animation: twinkle 4s infinite;
+        }
+
+        @keyframes twinkle {
+
+            0%,
+            100% {
+                opacity: 0.15;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
 
         /* Floating Elements */
@@ -316,27 +343,16 @@
             border-radius: 24px;
             padding: 2.5rem;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.3);
             transition: all 0.4s;
             position: relative;
             overflow: hidden;
         }
 
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: var(--gradient-warm);
-            transform: scaleX(0);
-            transition: transform 0.4s;
-        }
-
         .feature-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--glow);
+            border-color: var(--accent);
         }
 
         .feature-card:hover::before {
@@ -393,7 +409,7 @@
             padding: 2.5rem;
             text-align: center;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
-            border: 2px solid transparent;
+            border: 1px solid rgba(255, 215, 0, 0.3);
             transition: all 0.4s;
             position: relative;
         }
@@ -419,7 +435,8 @@
 
         .pricing-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--glow);
+            border-color: var(--accent);
         }
 
         .pricing-card.popular:hover {
@@ -475,6 +492,8 @@
             padding: 6rem 2rem;
             background: var(--dark);
             color: var(--white);
+            border-top: 4px solid var(--accent);
+            border-bottom: 4px solid var(--accent);
         }
 
         .how-it-works .section-title h2 {
