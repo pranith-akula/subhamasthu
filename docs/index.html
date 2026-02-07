@@ -44,10 +44,11 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Noto Sans Telugu', 'Outfit', sans-serif;
             background: var(--bg-cream);
             color: var(--text);
             overflow-x: hidden;
+            line-height: 1.6;
         }
 
         .telugu {
@@ -147,9 +148,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(26, 26, 46, 0.9);
+            background: linear-gradient(180deg, rgba(26, 5, 5, 0.98) 0%, rgba(55, 10, 10, 0.95) 100%);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         .logo {
@@ -172,8 +174,10 @@
 
         .logo-text {
             color: var(--white);
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 700;
+            font-family: 'Noto Serif Telugu', serif;
+            letter-spacing: 0.5px;
         }
 
         .logo-text span {
@@ -182,20 +186,22 @@
 
         .nav-cta {
             background: var(--gradient-warm);
-            color: var(--white);
+            color: var(--dark);
             padding: 0.75rem 1.5rem;
             border-radius: 50px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-family: 'Noto Sans Telugu', sans-serif;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .nav-cta:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.3);
+            box-shadow: var(--glow);
         }
 
         /* Hero Content */
