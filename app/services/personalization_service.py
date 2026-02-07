@@ -126,7 +126,7 @@ class PersonalizationService:
         target_date: Optional[date] = None,
     ) -> str:
         """
-        Generate personalized Pariharam based on user's profile and category.
+        Generate personalized Pariharam - 3-Day Ritual Journey.
         """
         user_ctx = self._get_user_context(user)
         panchang_ctx = await self._get_panchang_context(target_date)
@@ -141,20 +141,17 @@ class PersonalizationService:
 ఈ రోజు పంచాంగం:
 - వారం: {panchang_ctx['vara']}
 - తిథి: {panchang_ctx['tithi']}
-- నక్షత్రం: {panchang_ctx['nakshatra']}
 
-సంకల్ప విభాగం: {category_telugu}
+సమస్య: {category_telugu}
 
-ఈ వ్యక్తికి వారి రాశి, నక్షత్రం, ఇష్ట దైవం ఆధారంగా ఒక వ్యక్తిగత పరిహారం సూచించు.
+ఈ వ్యక్తికి 3 రోజుల చిన్న ఆధ్యాత్మిక సాధన (Micro-Ritual) సూచించు.
 
-పరిహారం సింపుల్ గా ఉండాలి - ఇంట్లో చేయగలిగేది:
-- మంత్ర జపం (ఎన్ని సార్లు చెప్పు)
-- దీపారాధన
-- ప్రార్థన
-- దానం
+ఫార్మాట్ (ఖచ్చితంగా ఇలాగే ఉండాలి):
+రోజు 1 (మంత్రం): [వారి ఇష్ట దైవానికి సంబంధించిన చిన్న మంత్రం]
+రోజు 2 (క్రియ): [ఒక చిన్న పని - ఉదా: నీరు పోయడం, దీపం, దానం]
+రోజు 3 (నియమం): [ఒక మానసిక మార్పు - ఉదా: కోపం తగ్గించుకోవడం, మౌనం]
 
-కేవలం పరిహారం మాత్రమే రాయి (1-2 వాక్యాలు). అదనపు వివరణ వద్దు.
-పూర్తిగా తెలుగులో రాయండి (ఆంగ్ల లిపి వద్దు)."""
+పూర్తిగా తెలుగులో ఉండాలి."""
 
         client = AsyncOpenAI(api_key=settings.openai_api_key)
         
@@ -165,7 +162,7 @@ class PersonalizationService:
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=100,
+                max_tokens=250,
                 temperature=0.7,
             )
             
@@ -173,9 +170,8 @@ class PersonalizationService:
             
         except Exception as e:
             logger.error(f"Pariharam generation failed: {e}")
-            # Fallback to generic
-            return "11 సార్లు ఇష్ట దేవత నామాన్ని జపించి, దీపం వెలిగించండి."
-    
+            return "రోజు 1: ఓం నమో నారాయణాయ జపం\nరోజు 2: పక్షులకు నీరు పెట్టండి\nరోజు 3: కోపం తగ్గించుకోండి"
+
     async def generate_sankalp_statement(
         self,
         user: User,
@@ -183,11 +179,15 @@ class PersonalizationService:
         target_date: Optional[date] = None,
     ) -> str:
         """
-        Generate personalized Sankalp statement.
+        Generate personalized Sankalp statement with Cosmic Context.
         """
         user_ctx = self._get_user_context(user)
         panchang_ctx = await self._get_panchang_context(target_date)
         category_telugu = CATEGORY_TELUGU.get(category, category)
+        
+        # Generate Sankalp ID
+        import random
+        sid = f"SV-{date.today().year}-{date.today().month:02d}-{random.randint(100,999)}"
         
         prompt = f"""వినియోగదారు వివరాలు:
 - పేరు: {user_ctx['name']}
@@ -195,21 +195,22 @@ class PersonalizationService:
 - నక్షత్రం: {user_ctx['nakshatra'] or 'తెలియదు'}
 - ఇష్ట దైవం: {user_ctx['deity_telugu']}
 
-ఈ రోజు పంచాంగం:
-- వారం: {panchang_ctx['vara']}
+కాస్మిక్ సందర్భం (Cosmic Context):
 - తిథి: {panchang_ctx['tithi']}
+- వారం: {panchang_ctx['vara']}
 - నక్షత్రం: {panchang_ctx['nakshatra']}
-- పక్షం: {panchang_ctx['paksha']}
 
-సంకల్ప విభాగం: {category_telugu}
+సంకల్పం ఆశయం: {category_telugu} (భారం తొలగిపోవాలి)
+Sankalp ID: {sid}
 
-ఈ వ్యక్తి కోసం శాస్త్రీయమైన సంకల్ప వాక్యం రాయి.
+ఈ వివరాలతో ఒక పవిత్రమైన సంకల్పాన్ని రాయి.
+ఇందులో తప్పకుండా ఉండాల్సినవి:
+1. "నేను, [పేరు]..." అని మొదలుపెట్టాలి.
+2. తిథి, నక్షత్రం ప్రస్తావన ఉండాలి ("ఈ శుభ సమయంలో...").
+3. వారి సమస్య ({category_telugu}) భగవంతుని పాదాల చెంత విడుస్తున్నట్లు ఉండాలి.
+4. చివర్లో "Sankalp ID: {sid}" అని ఉండాలి.
 
-ఫార్మాట్:
-"శుభ [వారం], [పక్షం] [తిథి] నాడు, [పేరు] గారు [రాశి] రాశిలో జన్మించి, [ఇష్ట దైవం] భక్తులై, [చింత విభాగం] విషయంలో సంకల్పం చేసుకుంటున్నారు."
-
-కేవలం సంకల్ప వాక్యం మాత్రమే రాయి (2-3 వాక్యాలు).
-పూర్తిగా తెలుగులో రాయండి (ఆంగ్ల లిపి వద్దు)."""
+చాల పవిత్రంగా, బలంగా ఉండాలి."""
 
         client = AsyncOpenAI(api_key=settings.openai_api_key)
         
@@ -220,16 +221,15 @@ class PersonalizationService:
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": prompt},
                 ],
-                max_tokens=150,
+                max_tokens=250,
                 temperature=0.7,
             )
             
             return response.choices[0].message.content.strip()
             
         except Exception as e:
-            logger.error(f"Sankalp statement generation failed: {e}")
-            # Fallback
-            return f"శుభ {panchang_ctx['vara']}, {user_ctx['name']} గారు {user_ctx['deity_telugu']} సన్నిధిలో {category_telugu} విషయంలో సంకల్పం చేసుకుంటున్నారు."
+            logger.error(f"Sankalp generation failed: {e}")
+            return f"నేను, {user_ctx['name']}, ఈ రోజు భగవంతుని సాక్షిగా నా సంకల్పాన్ని తీసుకుంటున్నాను. \n\nSankalp ID: {sid}"
     
     async def generate_chinta_prompt(
         self,

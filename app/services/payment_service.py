@@ -124,9 +124,9 @@ class PaymentService:
             logger.error(f"User not found for sankalp {sankalp.id}")
             return
         
-        # Send closure message
+        # Send closure message (Punya Stage)
         sankalp_service = SankalpService(self.db)
-        await sankalp_service.send_closure_message(user, sankalp)
+        await sankalp_service.send_punya_completion(user, sankalp)
         
         # Generate and send receipt
         receipt_service = ReceiptService(self.db)

@@ -87,13 +87,16 @@ class FSMMachine:
             ConversationState.ONBOARDED: self._handle_onboarded,
             ConversationState.DAILY_PASSIVE: self._handle_passive,
             ConversationState.WEEKLY_PROMPT_SENT: self._handle_weekly_prompt,
+            ConversationState.WAITING_FOR_RITUAL_OPENING: self._handle_ritual_opening,
             ConversationState.WAITING_FOR_CATEGORY: self._handle_category_selection,
+            ConversationState.WAITING_FOR_CHINTA_REFLECTION: self._handle_chinta_reflection,
+            ConversationState.WAITING_FOR_SANKALP_AGREEMENT: self._handle_sankalp_agreement,
             ConversationState.WAITING_FOR_TYAGAM_DECISION: self._handle_tyagam_decision,
             ConversationState.WAITING_FOR_TIER: self._handle_tier_selection,
             ConversationState.WAITING_FOR_FREQUENCY: self._handle_frequency_selection,
             ConversationState.PAYMENT_LINK_SENT: self._handle_payment_pending,
             ConversationState.PAYMENT_CONFIRMED: self._handle_payment_confirmed,
-            ConversationState.COOLDOWN: self._handle_cooldown,
+            ConversationState.RECEIPT_SENT: self._handle_payment_confirmed,
         }
         
         try:
@@ -109,6 +112,116 @@ class FSMMachine:
                 phone=self.user.phone,
                 message="🙏 క్షమించండి, సాంకేతిక సమస్య తలెత్తింది. దయచేసి కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి."
             )
+    
+    async def _handle_sankalp_agreement(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Stage 2 -> Stage 3: Sankalp Vow -> Pariharam & Tyagam Offer.
+        """
+        if button_payload == "AGREE_SANKALP":
+            # User took the vow.
+            # Now show Pariharam (Stage 3) and offer Tyagam (Stage 4)
+            # Retrieve category from context
+            from app.models.conversation import Conversation
+            from sqlalchemy import select
+            result = await self.db.execute(
+                select(Conversation).where(Conversation.user_id == self.user.id)
+            )
+            conversation = result.scalar_one_or_none()
+            category_value = conversation.get_context("selected_category") if conversation else None
+            
+            if not category_value:
+                 await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CATEGORY)
+                 return
+
+            category = SankalpCategory(category_value)
+            sankalp_service = SankalpService(self.db)
+            await sankalp_service.send_pariharam_with_optional_tyagam(self.user, category)
+            # State updated to WAITING_FOR_TYAGAM_DECISION inside service
+            
+        else:
+            # User sent something else? Re-prompt or just proceed if positive text
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="దయచేసి 'తథాస్తు' (I Vow) అని నిర్ధారించండి."
+            )
+
+    async def _handle_ritual_opening(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Stage 0 -> Stage 1: Ritual Opening -> Category Selection.
+        User acknowledges the opening (Breathing/Context).
+        """
+        sankalp_service = SankalpService(self.db)
+        await sankalp_service.send_category_selection(self.user)
+        # State updated to WAITING_FOR_CATEGORY inside service
+
+    async def _handle_chinta_reflection(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Stage 1 -> Stage 2: Reflection -> Cosmic Sankalp.
+        User confirms reflection. We validate and generate Sankalp.
+        """
+        # 1. Validation Message
+        await self.gupshup.send_text_message(
+            phone=self.user.phone,
+            message="🙏 మీ ఆవేదన అర్థమైంది. భగవంతుని సన్నిధిలో దీనికి ఉపశమనం లభిస్తుంది."
+        )
+        
+        # 2. Proceed to Sankalp Generation (Stage 2)
+        # Get category from context
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == self.user.id)
+        )
+        conversation = result.scalar_one_or_none()
+        category_value = conversation.get_context("selected_category") if conversation else None
+        
+        if not category_value:
+             # Fallback if context lost
+             await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CATEGORY)
+             return
+
+        category = SankalpCategory(category_value)
+        sankalp_service = SankalpService(self.db)
+        await sankalp_service.send_sankalp_confirmation(self.user, category)
+        # State updated to WAITING_FOR_TYAGAM_DECISION inside service
+
+    async def _handle_category_selection(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Stage 1 Start: Category Selection.
+        """
+        if not button_payload:
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="దయచేసి కింద ఉన్న బటన్స్ ఉపయోగించి ఎంచుకోండి."
+            )
+            return
+
+        # NEW: Validate category enum
+        try:
+            category = SankalpCategory(button_payload)
+        except ValueError:
+            await self.gupshup.send_text_message(
+                phone=self.user.phone,
+                message="దయచేసి సరైన ఆప్షన్ ఎంచుకోండి."
+            )
+            return
+
+        # Store selection in context
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == self.user.id)
+        )
+        conversation = result.scalar_one_or_none()
+        if conversation:
+            conversation.set_context("selected_category", category.value)
+            await self.db.commit()
+
+        # Update State & Trigger Reflection (Stage 1)
+        sankalp_service = SankalpService(self.db)
+        # CHANGE: Go to Reflection, not Sankalp directly
+        await sankalp_service.send_chinta_reflection(self.user, category)
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CHINTA_REFLECTION)
     
     async def _handle_new(self, text: str, button_payload: Optional[str]) -> None:
         """Handle NEW state - start onboarding."""

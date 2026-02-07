@@ -145,8 +145,108 @@ class SankalpService:
         if msg_id:
             from app.fsm.states import ConversationState
             user_service = UserService(self.db)
+            # CHANGE: Start with Ritual Opening, not Category
+            await user_service.update_user_state(user, ConversationState.WAITING_FOR_RITUAL_OPENING)
+            return True
+            
+        return False
+
+    async def send_ritual_opening(self, user: User) -> bool:
+        """
+        Stage 0: The Sacred Opening.
+        Breathing prompt + Tithi/Day context.
+        """
+        from app.services.panchang_service import get_panchang_service
+        
+        panchang = await get_panchang_service().get_panchang()
+        
+        message = f"""🕯️ **ఈ క్షణంలో, మీ సంకల్ప యాత్ర ప్రారంభం అవుతుంది.**
+        
+ఒక నిమిషం, శ్వాసను మెల్లగా తీసుకుని వదలండి...
+
+**ఈ రోజు:** {panchang.vara_telugu}, {panchang.tithi_telugu}
+**నక్షత్రం:** {panchang.nakshatra_telugu}
+
+మీ మనసును శాంతంగా ఉంచుకోండి.
+మీరు సిద్ధంగా ఉన్నారా?"""
+
+        buttons = [
+            {"id": "START_RITUAL", "title": "🙏 సిద్ధంగా ఉన్నాను"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
+            phone=user.phone,
+            body_text=message,
+            buttons=buttons,
+            footer="ఓం శాంతి శాంతి శాంతిః"
+        )
+        
+        if msg_id:
+            from app.fsm.states import ConversationState
+            user_service = UserService(self.db)
             await user_service.update_user_state(user, ConversationState.WAITING_FOR_CATEGORY)
             return True
+            
+        return False
+
+    async def send_category_selection(self, user: User) -> bool:
+        """
+        Send the category selection buttons (Stage 1 Start).
+        Called after Ritual Opening.
+        """
+        message = "🙏 మీ మనసులో ఉన్న ప్రధానమైన చింత (వరీ) ఏమిటి?"
+        
+        buttons = [
+            {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
+            {"id": SankalpCategory.HEALTH.value, "title": "💪 ఆరోగ్యం/రక్ష"},
+            {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
+            phone=user.phone,
+            body_text=message,
+            buttons=buttons,
+        )
+        
+        if msg_id:
+            from app.fsm.states import ConversationState
+            user_service = UserService(self.db)
+            await user_service.update_user_state(user, ConversationState.WAITING_FOR_CHINTA_REFLECTION)
+            return True
+            
+        return False
+    
+    async def send_chinta_reflection(self, user: User, category: SankalpCategory) -> bool:
+        """
+        Stage 1: Hyper-Personal Reflection.
+        Ask a validation question based on category.
+        """
+        category_prompts = {
+            SankalpCategory.FAMILY: "ఈ చింత మీ గురించి, లేదా మీ కుటుంబ సభ్యుల గురించా?",
+            SankalpCategory.HEALTH: "గత కొంత కాలంగా ఈ ఆరోగ్య సమస్య మిమ్మల్ని బాధిస్తోందా?",
+            SankalpCategory.CAREER: "వృత్తిలో లేదా ఆర్థికంగా మీరు కోరుకున్న ఫలితం రావడం లేదా?",
+            SankalpCategory.PEACE: "మనసులో ఏదో తెలియని భారం లేదా ఆందోళన ఉందా?",
+        }
+        
+        prompt = category_prompts.get(category, "దీని గురించి క్లుప్తంగా చెప్పండి.")
+        
+        message = f"""🕯️ **ఆత్మ పరిశీలన**
+
+{prompt}
+
+(మీరు టైప్ చేసి పంపవచ్చు లేదా 'అవును' అని నొక్కవచ్చు)"""
+
+        buttons = [
+            {"id": "CONFIRM_REFLECTION", "title": "అవును (Yes)"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
+            phone=user.phone,
+            body_text=message,
+            buttons=buttons,
+        )
+        
+        return msg_id is not None
         
         return False
 
@@ -199,25 +299,41 @@ class SankalpService:
         
         return sankalp_statement
     
-    async def send_sankalp_framed(self, user: User, category: SankalpCategory) -> bool:
+    async def send_sankalp_confirmation(self, user: User, category: SankalpCategory) -> bool:
         """
-        Step 2: Send the formal sankalp statement.
-        
-        TEMPLE-STYLE FLOW:
-        Chinta → Sankalp → Pariharam (FREE) → [Optional Tyagam] → Punya
-        
-        After Sankalp, we proceed to PARIHARAM (free ritual).
-        Then we offer optional Tyagam for Annadanam seva.
+        Stage 2: Cosmic Sankalp Confirmation.
+        Send the generated Sankalp and ask for Vow (Agreement).
         """
-        statement = await self.frame_sankalp(user, category)
+        from app.services.personalization_service import PersonalizationService
         
-        await self.gupshup.send_text_message(
+        # Generator now includes Sankalp ID and Cosmic Context
+        personalization = PersonalizationService(self.db)
+        sankalp_statement = await personalization.generate_sankalp_statement(user, category.value)
+        
+        message = f"""🕯️ **మీ పవిత్ర సంకల్పం**
+
+{sankalp_statement}
+
+"నా సంకల్పాన్ని భగవంతుని పాదాల వద్ద ఉంచుతున్నాను." """
+
+        buttons = [
+            {"id": "AGREE_SANKALP", "title": "🙏 తథాస్తు (I Vow)"},
+        ]
+        
+        msg_id = await self.gupshup.send_button_message(
             phone=user.phone,
-            message=statement,
+            body_text=message,
+            buttons=buttons,
+            footer="ఓం తత్సత్"
         )
         
-        # Proceed to PARIHARAM (free ritual instruction)
-        return await self.send_pariharam_with_optional_tyagam(user, category)
+        if msg_id:
+            from app.fsm.states import ConversationState
+            user_service = UserService(self.db)
+            await user_service.update_user_state(user, ConversationState.WAITING_FOR_SANKALP_AGREEMENT)
+            return True
+            
+        return False
     
     async def send_pariharam_with_optional_tyagam(self, user: User, category: SankalpCategory) -> bool:
         """
@@ -333,28 +449,30 @@ class SankalpService:
     
     async def send_tyagam_prompt(self, user: User, category: SankalpCategory) -> bool:
         """
-        Step 4: త్యాగం (Tyagam) - Offering selection.
-        NOT payment, NOT donation. It's Tyagam → Seva.
+        Stage 4: Sacred Tyagam (Seva).
+        Reframed as 'Annadanam Seva' integers (11, 21, 51 meals).
         """
-        message = """🙏 అన్నదాన సేవ
-
-మీ చేతుల మీదుగా కొందరికి ఆకలి తీరాలని సంకల్పించారు. ధన్యవాదాలు.
-
+        message = """🙏 **అన్నదాన మహా యజ్ఞం**
+        
+మీ సంకల్పం బలపడాలంటే, త్యాగం అవసరం.
 "మానవ సేవయే మాధవ సేవ"
 
-ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
+మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?
+
+(ఈ సేవ ద్వారా మీ సంకల్పం సిద్ధిస్తుంది)"""
         
+        # Reframed Tiers: Meals instead of just currency
         buttons = [
-            {"id": SankalpTier.S15.value, "title": "🪷 $21 సాముహిక"},
-            {"id": SankalpTier.S30.value, "title": "🪷 $51 విశేష"},
-            {"id": SankalpTier.S50.value, "title": "🪷 $108 ప్రత్యేక"},
+            {"id": SankalpTier.S15.value, "title": "11 మందికి ($15)"},
+            {"id": SankalpTier.S30.value, "title": "21 మందికి ($30)"},
+            {"id": SankalpTier.S50.value, "title": "51 మందికి ($50)"},
         ]
         
         msg_id = await self.gupshup.send_button_message(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
-            footer="ధార్మిక సేవ",
+            footer="ధర్మం రక్షతి రక్షితః",
         )
         
         if msg_id:
@@ -505,12 +623,40 @@ class SankalpService:
                     "short_url": payment_link["short_url"],
                     "type": "onetime"
                 }
+                
                 logger.info(f"Created one-time payment link {payment_link['id']} for sankalp {sankalp.id}")
                 return payment_link["short_url"]
-
+                
             except Exception as e:
                 logger.error(f"Payment link creation failed: {e}")
                 raise
+
+    async def send_punya_completion(self, user: User, sankalp: Sankalp) -> bool:
+        """
+        Stage 5: Punya (Completion).
+        Send Sankalp Patram and Friday Schedule.
+        """
+        from app.services.personalization_service import PersonalizationService
+        personalization = PersonalizationService(self.db)
+        
+        # Fetch detailed confirmation message
+        message = await personalization.generate_punya_confirmation(
+            user=user, 
+            category=sankalp.category,
+            pariharam=user.get_context("last_pariharam") or "నామ జపం",
+            families_fed=int(sankalp.amount // 2), # Approx calculation
+            amount=float(sankalp.amount)
+        )
+        
+        # Add Scheduling Context
+        message += "\n\n🗓️ **వచ్చే శుక్రవారం** మీ పేరున మరియు మీ గోత్రం తో ప్రత్యేక పూజ జరుగుతుంది. మీకు ప్రసాదం (ఫోటో) పంపబడుతుంది.\n\nశుభమస్తు."
+        
+        await self.gupshup.send_text_message(
+            phone=user.phone,
+            message=message
+        )
+        
+        return True
 
     # Simple in-memory cache for Plan IDs to avoid API spam
     _plan_cache = {}
