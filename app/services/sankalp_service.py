@@ -541,7 +541,15 @@ class SankalpService:
         amount = amount_map.get(tier, Decimal("21.00"))
         
         # Generate sankalp statement
-        deity_telugu = DEITY_TELUGU.get(user.preferred_deity, "దేవుడు")
+        deity = user.preferred_deity
+        try:
+            if hasattr(deity, 'telugu_name'):
+                deity_telugu = deity.telugu_name
+            else:
+                deity_telugu = Deity(str(deity)).telugu_name
+        except:
+             deity_telugu = "భగవంతుడు"
+             
         name = user.name or "భక్తులు"
         sankalp_statement = f"{name} గారి కోసం, {category.display_name_telugu} సమస్య నివారణ కోసం, {deity_telugu} సన్నిధిలో"
         
