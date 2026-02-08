@@ -725,7 +725,12 @@ class SankalpService:
 
     async def send_payment_link(self, user: User, sankalp: Sankalp, payment_url: str) -> bool:
         """Send payment link to user via WhatsApp."""
-        deity_telugu = DEITY_TELUGU.get(sankalp.deity, "దేవుడు")
+        deity = sankalp.deity
+        try:
+             deity_telugu = Deity(str(deity)).telugu_name
+        except:
+             deity_telugu = "భగవంతుడు"
+             
         category_telugu = SankalpCategory(sankalp.category).display_name_telugu
         
         message = f"""🙏 సేవా వివరాలు:

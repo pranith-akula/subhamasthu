@@ -740,10 +740,6 @@ class FSMMachine:
             logger.error(f"Failed to create payment link: {e}")
             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
-                message=f"PAYMENT ERROR: {str(e)}"
-            )
-            await self.whatsapp.send_text_message(
-                phone=self.user.phone,
                 message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
