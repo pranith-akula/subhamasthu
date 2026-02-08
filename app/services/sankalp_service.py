@@ -472,9 +472,9 @@ class SankalpService:
         
         # Reframed Tiers: Meals instead of just currency
         buttons = [
-            {"id": SankalpTier.S15.value, "title": "11 మందికి ($15)"},
-            {"id": SankalpTier.S30.value, "title": "21 మందికి ($30)"},
-            {"id": SankalpTier.S50.value, "title": "51 మందికి ($50)"},
+            {"id": SankalpTier.S15.value, "title": "10 మందికి ($21)"},
+            {"id": SankalpTier.S30.value, "title": "25 మందికి ($51)"},
+            {"id": SankalpTier.S50.value, "title": "50 మందికి ($108)"},
         ]
         
         msg_id = await self.whatsapp.send_button_message(

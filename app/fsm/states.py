@@ -95,9 +95,9 @@ class SankalpTier(str, Enum):
     def amount_usd(self) -> int:
         """Amount in USD cents."""
         amounts = {
-            self.S15: 1500,
-            self.S30: 3000,
-            self.S50: 5000,
+            self.S15: 2100,
+            self.S30: 5100,
+            self.S50: 10800,
         }
         return amounts.get(self, 0)
     
