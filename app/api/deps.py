@@ -30,7 +30,7 @@ async def get_admin_user(
         
     return key
 
-async def get_admin_user_html(
+async def get_admin_html_user(
     request: Request,
     admin_key: Optional[str] = Cookie(None, alias="admin_key")
 ) -> str:
