@@ -191,21 +191,29 @@ class SankalpService:
 
     async def send_category_selection(self, user: User) -> bool:
         """
-        Send the category selection buttons (Stage 1 Start).
+        Send the category selection list (Stage 1 Start).
         Called after Ritual Opening.
         """
         message = "🙏 మీ మనసులో ఉన్న ప్రధానమైన చింత (వరీ) ఏమిటి?"
         
-        buttons = [
-            {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
-            {"id": SankalpCategory.HEALTH.value, "title": "💪 ఆరోగ్యం/రక్ష"},
-            {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
+        sections = [
+            {
+                "title": "వర్గాలు",
+                "rows": [
+                    {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
+                    {"id": SankalpCategory.HEALTH.value, "title": "💪 ఆరోగ్యం/రక్ష"},
+                    {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
+                    {"id": SankalpCategory.PEACE.value, "title": "🧘 మానసిక శాంతి"},
+                ]
+            }
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_list_message(
             phone=user.phone,
             body_text=message,
-            buttons=buttons,
+            button_text="వర్గాన్ని ఎంచుకోండి",
+            sections=sections,
+            footer="శుభమస్తు"
         )
         
         if msg_id:
@@ -248,36 +256,30 @@ class SankalpService:
         
         return msg_id is not None
         
-        return False
-
     async def send_category_buttons(self, user: User) -> bool:
         """
-        Send the category selection buttons.
-        Called by FSM when user replies to the weekly template.
+        Send the category selection buttons (Global Command).
         """
         message = "🙏 మీ సంకల్పం కోసం వర్గం ఎంచుకోండి:"
         
-        buttons = [
-            {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
-            {"id": SankalpCategory.HEALTH.value, "title": "💪 ఆరోగ్యం/రక్ష"},
-            {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
+        sections = [
+            {
+                "title": "వర్గాలు",
+                "rows": [
+                    {"id": SankalpCategory.FAMILY.value, "title": "👨‍👩‍👧 పిల్లలు/పరివారం"},
+                    {"id": SankalpCategory.HEALTH.value, "title": "💪 ఆరోగ్యం/రక్ష"},
+                    {"id": SankalpCategory.CAREER.value, "title": "💼 ఉద్యోగం/ఆర్థికం"},
+                    {"id": SankalpCategory.PEACE.value, "title": "🧘 మానసిక శాంతి"},
+                ]
+            }
         ]
         
-        await self.whatsapp.send_button_message(
+        await self.whatsapp.send_list_message(
             phone=user.phone,
             body_text=message,
-            buttons=buttons,
-        )
-        
-        # Send second set for Peace category
-        buttons2 = [
-            {"id": SankalpCategory.PEACE.value, "title": "🧘 మానసిక శాంతి"},
-        ]
-        
-        await self.whatsapp.send_button_message(
-            phone=user.phone,
-            body_text="మరిన్ని అంశాలు:",
-            buttons=buttons2,
+            button_text="వర్గాన్ని ఎంచుకోండి",
+            sections=sections,
+            footer="శుభమస్తు"
         )
         
         return True
