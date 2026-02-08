@@ -81,7 +81,13 @@ async def login(
              "error": "Invalid Password"
          })
     
-    response = RedirectResponse(url="/admin-panel", status_code=303)
+    # Redirect with authtoken to bypass initial cookie blocking
+    response = RedirectResponse(
+        url=f"/admin-panel?authtoken={password}", 
+        status_code=303
+    )
+    
+    # Still attempt to set cookie for future requests
     response.set_cookie(
         key="admin_key", 
         value=password, 
@@ -89,7 +95,7 @@ async def login(
         max_age=86400 * 30, # 30 days
         path="/",
         samesite="lax",
-        secure=False # Permissive for now to avoid HTTPS/Proxy mismatches
+        secure=True # Required for Railway HTTPS
     )
     logger.info(f"Login successful. Setting cookie for key: ...{password[-4:]}")
     return response

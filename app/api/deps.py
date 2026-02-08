@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Header, HTTPException, status, Cookie, Request
+from fastapi import Header, HTTPException, status, Cookie, Request, Query
 from fastapi.responses import RedirectResponse
 from app.config import settings
 
@@ -32,7 +32,8 @@ async def get_admin_user(
 
 async def get_admin_html_user(
     request: Request,
-    admin_key: Optional[str] = Cookie(None, alias="admin_key")
+    admin_key: Optional[str] = Cookie(None, alias="admin_key"),
+    authtoken: Optional[str] = Query(None)
 ) -> str:
     """
     Validate Admin Key for HTML pages.
@@ -40,6 +41,10 @@ async def get_admin_html_user(
     """
     valid_key = getattr(settings, "admin_api_key", None)
     
+    # Check query param first (fallback for strict cookie policies)
+    if authtoken and valid_key and authtoken == valid_key:
+        return authtoken
+
     if not admin_key or not valid_key or admin_key != valid_key:
         # Redirect to login
         raise HTTPException(
