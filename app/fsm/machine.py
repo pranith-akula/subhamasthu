@@ -70,6 +70,19 @@ class FSMMachine:
             logger.info(f"FSM: Global command '{clean_text}' detected for {self.user.phone}")
             await self._handle_history_request()
             return
+
+        if clean_text in ["invite", "referral", "share", "friend", "ఆహ్వానించండి", "invite friend"]:
+             logger.info(f"FSM: Global command '{clean_text}' detected for {self.user.phone}")
+             await self._handle_invite_request()
+             return
+
+        if clean_text in ["sankalp", "new sankalp", "kotha sankalp", "కొత్త సంకల్పం", "pooja", "puja", "seva", "సంకల్పం"]:
+             logger.info(f"FSM: Global command '{clean_text}' detected for {self.user.phone}")
+             # Trigger Sankalp Flow
+             sankalp_service = SankalpService(self.db)
+             await sankalp_service.send_category_buttons(self.user)
+             await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CATEGORY)
+             return
         # ----------------------------------------------
         
         logger.info(f"FSM: User {self.user.phone} in state {current_state.value}, input: {text[:50] if text else button_payload}")
@@ -523,12 +536,13 @@ class FSMMachine:
             await sankalp_service.send_category_buttons(self.user)
             return
         
-        # Store category in context and send tier selection
+        # Store category in context and send Sankalp Confirmation (Stage 2)
         sankalp_service = SankalpService(self.db)
         try:
-            await sankalp_service.send_tier_selection(self.user, category)
+            # CHANGE: Fixed crash - call send_sankalp_confirmation instead of missing send_tier_selection
+            await sankalp_service.send_sankalp_confirmation(self.user, category)
             
-            # Store category for later use
+            # Store category
             from app.models.conversation import Conversation
             from sqlalchemy import select
             result = await self.db.execute(
@@ -537,12 +551,49 @@ class FSMMachine:
             conversation = result.scalar_one_or_none()
             if conversation:
                 conversation.set_context("selected_category", category.value)
+                
+            await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_SANKALP_AGREEMENT)
+            
         except Exception as e:
             logger.error(f"Failed to handle category selection: {e}")
             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
                 message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
+    
+    async def _handle_sankalp_agreement(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Handle 'I Vow' / 'Tathastu' agreement.
+        Proceed to Pariharam (Stage 3).
+        """
+        # Get category from context
+        from app.models.conversation import Conversation
+        from sqlalchemy import select
+        
+        result = await self.db.execute(
+            select(Conversation).where(Conversation.user_id == self.user.id)
+        )
+        conversation = result.scalar_one_or_none()
+        category_value = conversation.get_context("selected_category") if conversation else None
+        
+        if not category_value:
+             # Fallback if context lost
+             await self.whatsapp.send_text_message(
+                phone=self.user.phone,
+                message="క్షమించండి, సెషన్ గడువు ముగిసింది. దయచేసి 'కొత్త సంకల్పం' అని టైప్ చేయండి."
+            )
+             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+             return
+
+        category = SankalpCategory(category_value)
+        sankalp_service = SankalpService(self.db)
+        
+        # Proceed to Pariharam + Optional Tyagam
+        await sankalp_service.send_pariharam_with_optional_tyagam(self.user, category)
+        
+        # State update handled inside service? verify
+        # send_pariharam_with_optional_tyagam updates to WAITING_FOR_TYAGAM_DECISION
+
     
     async def _handle_tyagam_decision(self, text: str, button_payload: Optional[str]) -> None:
         """
