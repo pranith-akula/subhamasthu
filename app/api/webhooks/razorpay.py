@@ -70,6 +70,8 @@ async def razorpay_webhook(
             await handle_subscription_charged(payload, payment_service)
         elif event_type == "payment_link.expired":
             await handle_payment_link_expired(payload, payment_service, db)
+        elif event_type == "payment.failed":
+            await handle_payment_failed(payload, payment_service, db)
         else:
             logger.info(f"Unhandled Razorpay event: {event_type}")
         
@@ -287,4 +289,73 @@ async def handle_payment_link_expired(
     
     await db.commit()
     logger.info(f"Payment link expired for sankalp {sankalp_id}, user returned to passive")
+
+
+async def handle_payment_failed(
+    payload: dict,
+    payment_service: PaymentService,
+    db: AsyncSession,
+) -> None:
+    """
+    Handle payment.failed event.
+    Notify user and suggest retry with same link.
+    """
+    from sqlalchemy import select
+    from app.models.sankalp import Sankalp
+    from app.models.user import User
+    from app.services.meta_whatsapp_service import MetaWhatsappService
+    
+    event_data = payload.get("payload", {})
+    payment = event_data.get("payment", {}).get("entity", {})
+    
+    payment_id = payment.get("id")
+    notes = payment.get("notes", {})
+    sankalp_id = notes.get("sankalp_id")
+    
+    if not sankalp_id:
+        logger.info(f"No sankalp_id in failed payment: {payment_id}")
+        return
+        
+    try:
+        sankalp_uuid = uuid.UUID(sankalp_id)
+    except ValueError:
+        logger.error(f"Invalid sankalp_id format: {sankalp_id}")
+        return
+        
+    # Get sankalp
+    result = await db.execute(
+        select(Sankalp).where(Sankalp.id == sankalp_uuid)
+    )
+    sankalp = result.scalar_one_or_none()
+    
+    if not sankalp:
+        logger.error(f"Sankalp not found for failed payment: {sankalp_id}")
+        return
+
+    # Check for short_url
+    short_url = None
+    if sankalp.razorpay_ref and isinstance(sankalp.razorpay_ref, dict):
+         short_url = sankalp.razorpay_ref.get("short_url")
+         
+    if not short_url:
+        logger.warning(f"No short_url found for sankalp {sankalp_id}, cannot send retry link")
+        return
+
+    # Get user
+    user_result = await db.execute(
+        select(User).where(User.id == sankalp.user_id)
+    )
+    user = user_result.scalar_one_or_none()
+    
+    if user:
+        # Send failure notification
+        whatsapp = MetaWhatsappService()
+        message = f"⚠️ **చెల్లింపు విఫలమైంది** (Payment Failed)\n\nదయచేసి మళ్ళీ ప్రయత్నించండి:\n{short_url}\n\nమీకు ఏవైనా సమస్యలు ఉంటే, దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+
+        await whatsapp.send_text_message(
+            phone=user.phone,
+            message=message,
+        )
+        
+    logger.info(f"Sent payment failure notification for sankalp {sankalp_id}")
 
