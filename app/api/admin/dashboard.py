@@ -86,8 +86,12 @@ async def login(
         key="admin_key", 
         value=password, 
         httponly=True,
-        max_age=86400 * 30 # 30 days
+        max_age=86400 * 30, # 30 days
+        path="/",
+        samesite="lax",
+        secure=False # Permissive for now to avoid HTTPS/Proxy mismatches
     )
+    logger.info(f"Login successful. Setting cookie for key: ...{password[-4:]}")
     return response
 
 
