@@ -19,7 +19,7 @@ import razorpay
 from app.config import settings
 from app.models.user import User
 from app.models.sankalp import Sankalp
-from app.fsm.states import SankalpCategory, SankalpTier, SankalpStatus, AuspiciousDay
+from app.fsm.states import SankalpCategory, SankalpTier, SankalpStatus, AuspiciousDay, Deity
 from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.user_service import UserService
 
@@ -361,7 +361,16 @@ class SankalpService:
             conversation.set_context("last_pariharam", pariharam)
         
         deity = getattr(user, 'preferred_deity', 'other') or 'other'
-        deity_telugu = DEITY_TELUGU.get(deity, "భగవంతుడు")
+        
+        # Safe conversion to telugu name
+        try:
+            if hasattr(deity, 'telugu_name'):
+                deity_telugu = deity.telugu_name
+            else:
+                # Try to lookup enum from string
+                deity_telugu = Deity(str(deity)).telugu_name
+        except:
+             deity_telugu = "భగవంతుడు"
         
         message = f"""🙏 హరి ఓం!
 
