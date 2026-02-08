@@ -107,6 +107,61 @@ class User(Base):
         default=0,
         nullable=False,
     )
+
+    # === 7-Day Trust Engine ===
+    
+    # Nurture Track (SECURITY, GROWTH, DEVOTION)
+    nurture_track: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        default="DEVOTION",
+        # server_default="DEVOTION",
+        nullable=True,
+    )
+    
+    # Current day in 28-day cycle (1-28)
+    nurture_day: Mapped[int] = mapped_column(
+        # Use default as 1
+        default=1,
+        nullable=False,
+    )
+    
+    # Day for Surprise Blessing (14-20)
+    surprise_day: Mapped[int] = mapped_column(
+        default=17,
+        nullable=False,
+    )
+    
+    # Next scheduled Rashi Phalalu (UTC)
+    next_rashi_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    
+    # Next scheduled Nurture Message (UTC)
+    next_nurture_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    
+    # Last processed Nurture ID (to prevent duplicates)
+    last_nurture_sent_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    
+    # Total Sankalps participating (Lifetime)
+    total_sankalps_count: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+    )
+    
+    # Sankalps in current 28-day cycle
+    sankalps_in_cycle: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+    )
     
     # Record timestamps
     created_at: Mapped[datetime] = mapped_column(

@@ -430,3 +430,20 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
             ]))
         )
         return list(result.scalars().all())
+
+    async def send_daily_rashi_to_user(self, user: User, target_date: Optional[date] = None) -> bool:
+        """Send daily rashiphalalu to a specific user."""
+        if not target_date:
+            from datetime import datetime, timezone
+            target_date = datetime.now(timezone.utc).date()
+            
+        msg = await self.get_daily_rashiphalalu_message_for_user(
+            user, 
+            target_date, 
+            template_name="daily_rashiphalalu_v1"
+        )
+        
+        if msg:
+            await self.whatsapp.send_text_message(user.phone, msg)
+            return True
+        return False

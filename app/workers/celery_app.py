@@ -15,6 +15,7 @@ celery_app = Celery(
     include=[
         "app.workers.daily_rashiphalalu",
         "app.workers.weekly_sankalp",
+        "app.workers.hourly_nurture",
     ],
 )
 
@@ -33,11 +34,16 @@ celery_app.conf.update(
 
 # Beat schedule for periodic tasks
 celery_app.conf.beat_schedule = {
-    # Daily Rashiphalalu at 7:00 AM CST
-    "daily-rashiphalalu-broadcast": {
-        "task": "app.workers.daily_rashiphalalu.broadcast_daily_rashiphalalu",
-        "schedule": crontab(hour=7, minute=0),
+    # Hourly Nurture Check (Handles Rashi & Nurture)
+    "hourly-nurture-check": {
+        "task": "app.workers.hourly_nurture.process_hourly_nurture",
+        "schedule": crontab(minute=0, hour="*"),
     },
+    # DEPRECATED: Daily Rashiphalalu at 7:00 AM CST (Replaced by Hourly)
+    # "daily-rashiphalalu-broadcast": {
+    #     "task": "app.workers.daily_rashiphalalu.broadcast_daily_rashiphalalu",
+    #     "schedule": crontab(hour=7, minute=0),
+    # },
     # Check for weekly sankalp prompts daily at 7:30 AM CST
     "weekly-sankalp-check": {
         "task": "app.workers.weekly_sankalp.send_weekly_sankalp_prompts",
