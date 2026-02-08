@@ -513,6 +513,11 @@ class FSMMachine:
             sankalp_service = SankalpService(self.db)
             await sankalp_service.send_category_buttons(self.user)
             await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CATEGORY)
+
+            return
+
+        if button_payload == "CMD_INVITE":
+            await self._handle_invite_request()
             return
 
         # Default gentle acknowledgment for unknown text
