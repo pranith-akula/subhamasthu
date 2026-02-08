@@ -15,7 +15,7 @@ from app.api.deps import get_admin_user, get_admin_html_user
 from app.config import settings
 from app.models.sankalp import Sankalp
 from app.models.seva_media import SevaMedia, MediaType
-from app.fsm.states import SankalpStatus
+from app.fsm.states import SankalpStatus, ConversationState
 
 # Setup templates
 BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
@@ -305,8 +305,54 @@ async def get_dashboard_stats(
         # Sort by days left
         upcoming.sort(key=lambda x: x['days_left'])
         
+        
+        # --- NEW METRICS ---
+        
+        # 8. Active Users (Completed Onboarding)
+        # We assume anyone NOT in the initial onboarding states is "Active/Onboarded"
+        onboarding_states = [
+            ConversationState.NEW,
+            ConversationState.WAITING_FOR_NAME,
+            ConversationState.WAITING_FOR_RASHI,
+            ConversationState.WAITING_FOR_NAKSHATRA,
+            ConversationState.WAITING_FOR_BIRTH_TIME,
+            ConversationState.WAITING_FOR_DEITY,
+            ConversationState.WAITING_FOR_AUSPICIOUS_DAY
+        ]
+        
+        active_users_query = select(func.count(User.id)).where(
+            User.state.not_in([s.value for s in onboarding_states])
+        )
+        active_users = (await db.execute(active_users_query)).scalar() or 0
+        
+        # 9. Seva Users (Unique users who paid)
+        paid_statuses = [
+            SankalpStatus.PAID,
+            SankalpStatus.RECEIPT_SENT,
+            SankalpStatus.CLOSED
+        ]
+        
+        seva_users_query = select(func.count(func.distinct(Sankalp.user_id))).where(
+            Sankalp.status.in_(paid_statuses)
+        )
+        seva_users = (await db.execute(seva_users_query)).scalar() or 0
+        
+        # 10. Tier Breakdown (Count by Amount)
+        tier_query = select(Sankalp.amount, func.count(Sankalp.id)).where(
+            Sankalp.status.in_(paid_statuses)
+        ).group_by(Sankalp.amount)
+        
+        tier_res = await db.execute(tier_query)
+        tiers = [{"amount": float(row[0]), "count": row[1]} for row in tier_res.all()]
+        # Sort by amount
+        tiers.sort(key=lambda x: x["amount"])
+        
     except Exception as e:
-        logger.error(f"Error calculating demographics/upcoming: {e}")
+        logger.error(f"Error calculating demographics/upcoming/metrics: {e}")
+        # Initialize defaults if hard fail
+        active_users = 0
+        seva_users = 0
+        tiers = []
 
     return {
         "revenue": {"total": float(total_revenue)},
@@ -316,8 +362,11 @@ async def get_dashboard_stats(
         "demographics": {
             "total_users": total_users,
             "dob_count": dob_count,
-            "anniv_count": anniv_count
+            "anniv_count": anniv_count,
+            "active_users": active_users, # New
+            "seva_users": seva_users       # New
         },
+        "tiers": tiers, # New
         "upcoming_celebrations": upcoming,
         "recent_sankalps": recent_swaps
     }

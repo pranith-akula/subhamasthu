@@ -168,8 +168,24 @@
 
             <!-- Demographics (New) -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <h3 class="font-bold text-slate-900 mb-4">Data Collection</h3>
+                <h3 class="font-bold text-slate-900 mb-4">User Growth</h3>
                 <div class="space-y-6">
+                    <!-- User Funnel Stats -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="text-center p-3 bg-slate-50 rounded-lg">
+                            <div class="text-xs text-slate-500 mb-1">Total Active</div>
+                            <div class="text-xl font-bold text-slate-900" x-text="stats.demographics.active_users">--
+                            </div>
+                            <div class="text-[10px] text-slate-400">Onboarded</div>
+                        </div>
+                        <div class="text-center p-3 bg-slate-50 rounded-lg">
+                            <div class="text-xs text-slate-500 mb-1">Seva Users</div>
+                            <div class="text-xl font-bold text-emerald-600" x-text="stats.demographics.seva_users">--
+                            </div>
+                            <div class="text-[10px] text-slate-400">Converted</div>
+                        </div>
+                    </div>
+
                     <div>
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-slate-600 flex items-center gap-2"><i data-lucide="cake"
@@ -183,19 +199,27 @@
                             </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="flex justify-between text-sm mb-2">
-                            <span class="text-slate-600 flex items-center gap-2"><i data-lucide="heart"
-                                    class="w-4 h-4"></i> Anniversaries</span>
-                            <span class="font-bold text-slate-900"
-                                x-text="stats.demographics.anniv_count + '/' + stats.demographics.total_users"></span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2">
-                            <div class="bg-pink-500 h-2 rounded-full transition-all duration-1000"
-                                :style="'width: ' + (stats.demographics.total_users > 0 ? (stats.demographics.anniv_count / stats.demographics.total_users * 100) : 0) + '%'">
+                </div>
+            </div>
+
+            <!-- Sankalp Tiers (New) -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
+                x-show="stats.tiers && stats.tiers.length > 0">
+                <h3 class="font-bold text-slate-900 mb-4">Sankalp Tiers</h3>
+                <div class="space-y-3">
+                    <template x-for="tier in stats.tiers" :key="tier.amount">
+                        <div
+                            class="flex justify-between items-center p-3 hover:bg-slate-50 rounded-lg transition-colors border border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
+                                    <span x-text="'$' + tier.amount"></span>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700">Tier Package</span>
                             </div>
+                            <span class="font-bold text-slate-900" x-text="tier.count + ' Users'"></span>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
 
@@ -262,7 +286,8 @@
                 impact: { families_fed: 0 },
                 ops: { pending_sevas: 0 },
                 media: { total: 0 },
-                demographics: { total_users: 1, dob_count: 0, anniv_count: 0 },
+                demographics: { total_users: 1, dob_count: 0, anniv_count: 0, active_users: 0, seva_users: 0 },
+                tiers: [],
                 upcoming_celebrations: [],
                 recent_sankalps: []
             },
