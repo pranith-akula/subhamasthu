@@ -15,7 +15,7 @@ from app.models.seva_media import SevaMedia, MediaType, HYDERABAD_TEMPLES
 from app.models.sankalp import Sankalp
 from app.models.user import User
 from app.services.meta_whatsapp_service import MetaWhatsappService
-from app.services.cloudinary_service import CloudinaryService
+
 
 logger = logging.getLogger(__name__)
 
