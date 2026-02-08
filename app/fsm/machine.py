@@ -676,6 +676,9 @@ class FSMMachine:
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
             return
         
+        # SAVE THE TIER
+        conversation.set_context("selected_tier", tier.value)
+        
         sankalp_service = SankalpService(self.db)
         await sankalp_service.send_frequency_prompt(self.user, tier)
         await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_FREQUENCY)
