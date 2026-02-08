@@ -558,7 +558,7 @@ class FSMMachine:
             logger.error(f"Failed to handle category selection: {e}")
             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                message=f"క్షమించండి, సాంకేతిక సమస్య ఉంది: {str(e)}"
             )
     
     async def _handle_sankalp_agreement(self, text: str, button_payload: Optional[str]) -> None:

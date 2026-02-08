@@ -97,13 +97,17 @@ class PersonalizationService:
         deity = getattr(user, 'preferred_deity', 'other') or 'other'
         name = user.name or "భక్తులు"
         
+        # Safe Enum conversion
+        rashi_val = rashi.value if hasattr(rashi, 'value') else str(rashi)
+        deity_val = deity.value if hasattr(deity, 'value') else str(deity)
+        
         return {
             "name": name,
-            "rashi": rashi,
-            "rashi_telugu": RASHI_TELUGU.get(rashi.lower(), "మేషం"),
+            "rashi": rashi_val,
+            "rashi_telugu": RASHI_TELUGU.get(rashi_val.lower(), "మేషం"),
             "nakshatra": nakshatra,
-            "deity": deity,
-            "deity_telugu": DEITY_TELUGU.get(deity, "భగవంతుడు"),
+            "deity": deity_val,
+            "deity_telugu": DEITY_TELUGU.get(deity_val.lower(), "భగవంతుడు"),
         }
     
     async def _get_panchang_context(self, target_date: Optional[date] = None) -> dict:
