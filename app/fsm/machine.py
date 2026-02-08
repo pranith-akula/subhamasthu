@@ -1134,8 +1134,11 @@ class FSMMachine:
     async def _handle_invite_request(self) -> None:
         """Handle 'invite' command - send referral link with CTA button."""
         # Generic Share Link (opens contact picker)
-        # Note: WhatsApp requires URL encoded text
-        share_text = "నమస్కారం! నేను శుభమస్తు ద్వారా ప్రతిరోజూ దైవ సంకల్పం తీసుకుంటున్నాను. ఇది నాకు ఎంతో శాంతిని ఇస్తోంది. మీరు కూడా ప్రయత్నించండి: https://wa.me/message/YOUR_LINK"
+        from app.config import settings
+        bot_number = settings.whatsapp_phone_number
+        
+        share_text = f"నమస్కారం! నేను శుభమస్తు ద్వారా ప్రతిరోజూ దైవ సంకల్పం తీసుకుంటున్నాను. ఇది నాకు ఎంతో శాంతిని ఇస్తోంది. మీరు కూడా ప్రయత్నించండి: https://wa.me/{bot_number}?text=Om+Namo+Narayanaya"
+        
         from urllib.parse import quote
         encoded_text = quote(share_text)
         link = f"https://wa.me/?text={encoded_text}"

@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     meta_phone_number_id: str = ""
     meta_webhook_verify_token: str = "subhamasthu_secure_webhook"
     
+    # Bot Phone Number (Public)
+    whatsapp_phone_number: str = "15550204780"
+    
     # Razorpay (optional for initial setup)
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""
