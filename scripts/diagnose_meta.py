@@ -29,16 +29,16 @@ async def check_meta_creds():
             
             if response.status_code == 200:
                 data = response.json()
-                print("✅ Credentials Valid!")
+                print("[SUCCESS] Credentials Valid!")
                 print(f"Phone Name: {data.get('verified_name')}")
                 print(f"Display Phone Number: {data.get('display_phone_number')}")
                 print(f"Quality Rating: {data.get('quality_rating')}")
             else:
-                print("❌ API Error:")
+                print("[ERROR] API Error:")
                 print(response.text)
                 
         except Exception as e:
-            print(f"❌ Connection Failed: {e}")
+            print(f"[ERROR] Connection Failed: {e}")
 
 if __name__ == "__main__":
     asyncio.run(check_meta_creds())
