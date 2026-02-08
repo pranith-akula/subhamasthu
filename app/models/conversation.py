@@ -80,9 +80,14 @@ class Conversation(Base):
     
     def set_context(self, key: str, value: Any) -> None:
         """Set a context value."""
+        # Create a copy to trigger SQLAlchemy change detection on JSON field
         if self.context is None:
-            self.context = {}
-        self.context[key] = value
+            ctx = {}
+        else:
+            ctx = dict(self.context)
+            
+        ctx[key] = value
+        self.context = ctx
     
     def get_context(self, key: str, default: Any = None) -> Any:
         """Get a context value."""
