@@ -34,12 +34,6 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = ""
     
-    # Gupshup WhatsApp (optional - pending verification)
-    gupshup_api_key: str = ""
-    gupshup_app_name: str = "subhamasthu"
-    gupshup_source_number: str = ""
-    gupshup_webhook_secret: str = ""
-    
     # Meta WhatsApp (Direct)
     meta_access_token: str = "EAAVD7ZCopS4YBQviErKG8GEFIYAhk7HzEJGv0KsHMqEZCUtsxkZAXUgyRVnQWFgKrCnhMeiR6nKNq3AnMejssxNcPiYv36UTNtH4RXNX8MbhHCZCadfowZCwBxyMsNAg7LFeum4iNHnJTSQZBiXSOZChVX500qcNg2ivLROWD9IN3oQyiZBjUbcg0IbLgQ3Mbg7LV2q5nfs1aJrHO5TgvUBZCUyvi6YZBoW566BZC5lYMDM5PWZC021AAmFiWKZBJDzel2FZCkP2isnr88nEAuppglG4sBftR9H34ds3a4qQZDZD"
     meta_phone_number_id: str = "1065449376646505"

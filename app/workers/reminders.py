@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import select, extract
 from app.database import get_db_session
 from app.models.user import User
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ async def send_birthday_reminders() -> int:
     logger.info(f"Checking for birthdays on {day}/{month} (IST)")
     
     count = 0
-    gupshup = GupshupService()
+    whatsapp = MetaWhatsappService()
     
     async with get_db_session() as db:
         # Query users with matching DOB day/month
@@ -41,7 +41,7 @@ async def send_birthday_reminders() -> int:
                 # Send generic wish or template
                 msg = f"🎂 జన్మదిన శుభాకాంక్షలు {user.name or ''} గారు!\n\nమీ జీవితం ఆయురారోగ్య ఐశ్వర్యాలతో నిండాలని కోరుకుంటున్నాం.\n\n- శుభమస్తు పరివారం 🙏"
                 
-                await gupshup.send_text_message(
+                await whatsapp.send_text_message(
                     phone=user.phone,
                     message=msg
                 )
@@ -63,7 +63,7 @@ async def send_anniversary_reminders() -> int:
     logger.info(f"Checking for anniversaries on {day}/{month} (IST)")
     
     count = 0
-    gupshup = GupshupService()
+    whatsapp = MetaWhatsappService()
     
     async with get_db_session() as db:
         # Query users with matching Anniversary day/month
@@ -78,7 +78,7 @@ async def send_anniversary_reminders() -> int:
             try:
                 msg = f"💍 పెళ్లిరోజు శుభాకాంక్షలు {user.name or ''} గారు!\n\nమీ దాంపత్యం కలకాలం సుఖసంతోషాలతో వర్ధిల్లాలి.\n\n- శుభమస్తు పరివారం 🙏"
                 
-                await gupshup.send_text_message(
+                await whatsapp.send_text_message(
                     phone=user.phone,
                     message=msg
                 )

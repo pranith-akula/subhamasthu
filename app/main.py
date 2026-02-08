@@ -18,7 +18,6 @@ from app.redis import RedisClient
 import logging
 
 # Import routers - MUST BE AT TOP LEVEL
-from app.api.webhooks.gupshup import router as gupshup_router
 from app.api.webhooks.meta import router as meta_router
 from app.api.webhooks.razorpay import router as razorpay_router
 from app.api.admin.broadcast import router as broadcast_router
@@ -96,11 +95,6 @@ async def health_check():
 # Register webhook routes
 app.include_router(
     meta_router,
-    prefix="/webhooks",
-    tags=["webhooks"],
-)
-app.include_router(
-    gupshup_router,
     prefix="/webhooks",
     tags=["webhooks"],
 )

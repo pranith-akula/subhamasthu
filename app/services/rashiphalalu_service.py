@@ -15,7 +15,7 @@ from app.config import settings
 from app.models.rashiphalalu import RashiphalaluCache
 from app.models.user import User
 from app.fsm.states import Rashi
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.panchang_service import get_panchang_service, PanchangData
 
 logger = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ class RashiphalaluService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.gupshup = GupshupService()
+        self.whatsapp = MetaWhatsappService()
         self.panchang = get_panchang_service()
     
     async def generate_personalized_message(self, user: User, target_date: Optional[date] = None) -> Optional[str]:
@@ -320,10 +320,13 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
                     # USE TEMPLATE MESSAGE for 24h compliance
                     # Template Name: daily_rashiphalalu_v1
                     # Variables: [message_body]
-                    msg_id = await self.gupshup.send_template_message(
+                    msg_id = await self.whatsapp.send_template_message(
                         phone=user.phone,
-                        template_id="daily_rashiphalalu_v1",
-                        params=[message]
+                        template_name="daily_rashiphalalu_v1",
+                        components=[{
+                            "type": "body",
+                            "parameters": [{"type": "text", "text": message}]
+                        }]
                     )
                     if msg_id:
                         # Increment the days counter for 6-day eligibility

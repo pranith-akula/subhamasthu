@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.sankalp import Sankalp
 from app.fsm.states import SankalpCategory, SankalpTier
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +69,7 @@ class ReceiptService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.gupshup = GupshupService()
+        self.whatsapp = MetaWhatsappService()
     
     async def generate_and_send_receipt(
         self,
@@ -86,7 +86,7 @@ class ReceiptService:
             receipt_text = self._generate_telugu_receipt(user, sankalp)
             
             # Send receipt message
-            msg_id = await self.gupshup.send_text_message(
+            msg_id = await self.whatsapp.send_text_message(
                 phone=user.phone,
                 message=receipt_text,
             )

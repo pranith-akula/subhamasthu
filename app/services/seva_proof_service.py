@@ -14,7 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.seva_media import SevaMedia, MediaType, HYDERABAD_TEMPLES
 from app.models.sankalp import Sankalp
 from app.models.user import User
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
+from app.services.cloudinary_service import CloudinaryService
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ class SevaProofService:
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.gupshup = GupshupService()
+        self.whatsapp = MetaWhatsappService()
     
     async def get_random_proof(self) -> Optional[SevaMedia]:
         """
@@ -149,16 +150,18 @@ class SevaProofService:
         
         # Send media via WhatsApp
         if media.media_type == MediaType.VIDEO:
-            msg_id = await self.gupshup.send_video_message(
+            msg_id = await self.whatsapp.send_video_message(
                 phone=user.phone,
-                video_url=media.cloudinary_url,
+                video_id=media.cloudinary_public_id,  # Meta uses ID/URL differently, but service handles standardizing
                 caption=caption,
+                link=media.cloudinary_url
             )
         else:
-            msg_id = await self.gupshup.send_image_message(
+            msg_id = await self.whatsapp.send_image_message(
                 phone=user.phone,
-                image_url=media.cloudinary_url,
+                image_id=media.cloudinary_public_id,
                 caption=caption,
+                link=media.cloudinary_url
             )
         
         if msg_id:
