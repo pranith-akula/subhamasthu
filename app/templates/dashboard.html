@@ -277,16 +277,19 @@
                     const authtoken = urlParams.get('authtoken');
 
                     let apiUrl = '/admin/api/stats';
+                    let headers = {};
                     if (authtoken) {
                         apiUrl += `?authtoken=${authtoken}`;
+                        headers['X-Admin-Key'] = authtoken; // Try Header too
                     }
 
-                    const res = await fetch(apiUrl);
+                    const res = await fetch(apiUrl, { headers: headers });
                     if (res.ok) {
                         this.stats = await res.json();
                     } else if (res.status === 401 || res.status === 403) {
-                        // Only redirect if we don't have a token or token is invalid
-                        window.location.href = '/admin-panel/login';
+                        console.error("Auth failed despite token:", authtoken);
+                        // DONT Redirect immediately, let's show an error to debug
+                        alert("Authentication Failed. Please check the Admin Key in Railway settings.");
                     }
                 } catch (e) {
                     console.error("Dashboard error:", e);

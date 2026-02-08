@@ -16,17 +16,25 @@ async def get_admin_user(
     
     # Check query param first (API Fallback)
     valid_key = getattr(settings, "admin_api_key", None)
+    
+    # DEBUG LOGGING (Temporary)
+    import logging
+    logger = logging.getLogger("auth_debug")
+    logger.info(f"Auth Check: Received='{key or authtoken}' vs Expected='{valid_key}'")
+
     if authtoken and valid_key and authtoken == valid_key:
         return authtoken
     
     if not key:
+        logger.warning("Auth Failed: No key provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Admin Password",
         )
     
     if not valid_key or key != valid_key:
-         raise HTTPException(
+        logger.warning(f"Auth Failed: Mismatch. Received '{key}'")
+        raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Admin Password",
         )
