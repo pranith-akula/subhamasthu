@@ -225,13 +225,16 @@ class FSMMachine:
         await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CHINTA_REFLECTION)
     
     async def _handle_new(self, text: str, button_payload: Optional[str]) -> None:
-        """Handle NEW state - start onboarding."""
-        # Send Welcome Message & Ask for Name
+        """Handle NEW state - start onboarding directly with Rashi."""
+        # Clean Welcome + Rashi Prompt
         await self.whatsapp.send_text_message(
             phone=self.user.phone,
-            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కుటుంబ క్షేమం మరియు సకల కార్య జయము కొరకు దైవ సంకల్పం.\n\nప్రారంభించడానికి, దయచేసి మీ పేరు తెలియజేయండి."
+            message="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తు కుటుంబంలోకి మీకు ఆత్మీయ స్వాగతం. 🌿\n\nమీ కోసం వ్యక్తిగత దైవ వాణి మరియు రాశిఫలాలు అందించడానికి, దయచేసి వివరాలు తెలియజేయండి."
         )
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_NAME)
+        
+        # Send Rashi List directly (No groups)
+        await self._send_rashi_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_RASHI)
 
     async def _handle_name_input(self, text: str, button_payload: Optional[str]) -> None:
         """Handle Name input -> Ask for Deity."""
@@ -265,54 +268,25 @@ class FSMMachine:
     async def _handle_rashi_selection(self, text: str, button_payload: Optional[str]) -> None:
         """Handle rashi selection (MANDATORY)."""
         
-        # 1. Handle Group Selection
-        if button_payload == "BTN_RASHI_GRP_1":
-            # Send List for Rashis 1-6
-            rows = [
-                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
-                for r in [Rashi.MESHA, Rashi.VRISHABHA, Rashi.MITHUNA, Rashi.KARKATAKA, Rashi.SIMHA, Rashi.KANYA]
-            ]
-            await self.whatsapp.send_list_message(
-                phone=self.user.phone,
-                body_text="🪔 మీ రాశిని ఎంచుకోండి (1-6):",
-                button_text="రాశిని ఎంచుకోండి",
-                sections=[{"title": "రాశులు", "rows": rows}]
-            )
+        if button_payload == "ROW_RASHI_MORE":
+            await self._send_rashi_prompt_page_2()
             return
-
-        elif button_payload == "BTN_RASHI_GRP_2":
-            # Send List for Rashis 7-12
-            rows = [
-                {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": "రాశి ఎంచుకోండి"}
-                for r in [Rashi.TULA, Rashi.VRISHCHIKA, Rashi.DHANU, Rashi.MAKARA, Rashi.KUMBHA, Rashi.MEENA]
-            ]
-            await self.whatsapp.send_list_message(
-                phone=self.user.phone,
-                body_text="🪔 మీ రాశిని ఎంచుకోండి (7-12):",
-                button_text="రాశిని ఎంచుకోండి",
-                sections=[{"title": "రాశులు", "rows": rows}]
-            )
-            return
-
+        
         # 2. Handle Rashi Selection (List Row or Text)
         rashi = self._parse_rashi(text, button_payload)
         
         if not rashi:
-            # If invalid input, prompts again with groups
-            await self.whatsapp.send_button_message(
+            await self.whatsapp.send_text_message(
                 phone=self.user.phone,
-                body_text="🙏 దయచేసి మీ రాశిని ఖచ్చితంగా ఎంచుకోండి:",
-                buttons=[
-                    {"id": "BTN_RASHI_GRP_1", "title": "మేషం ... కన్య (1-6)"},
-                    {"id": "BTN_RASHI_GRP_2", "title": "తుల ... మీనం (7-12)"}
-                ]
+                message="దయచేసి మీ రాశిని ఖచ్చితంగా ఎంచుకోండి:"
             )
+            await self._send_rashi_prompt()
             return
         
         await self.user_service.set_user_rashi(self.user, rashi)
-        # Next: Ask for optional nakshatra
-        await self._send_nakshatra_prompt()
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_NAKSHATRA)
+        # Next: Deity (Step 2)
+        await self._send_deity_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DEITY)
     
     async def _handle_nakshatra_selection(self, text: str, button_payload: Optional[str]) -> None:
         """Handle nakshatra selection (OPTIONAL - user can skip)."""
@@ -437,9 +411,8 @@ class FSMMachine:
         
         await self.user_service.set_user_auspicious_day(self.user, day)
         
-        # Next: Ask for DOB (Phase 2)
-        await self._send_dob_prompt()
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_DOB)
+        # FINISH ONBOARDING (No DOB/Time/Nakshatra)
+        await self._finish_onboarding_flow()
     
     async def _handle_onboarded(self, text: str, button_payload: Optional[str]) -> None:
         """Handle ONBOARDED state - transition to DAILY_PASSIVE."""
@@ -748,13 +721,54 @@ class FSMMachine:
         pass
 
     async def _send_rashi_prompt(self) -> None:
-        """Send rashi selection prompt (Buttons)."""
-        await self.whatsapp.send_button_message(
+        """
+        Send rashi selection prompt (Paginated).
+        WhatsApp List Message limit is 10 rows. We have 12 Rashis.
+        Strategy: Show first 9 + 'More'.
+        """
+        # Rashis 1-9 (Mesha to Dhanu)
+        paginated_rashis = [
+            Rashi.MESHA, Rashi.VRISHABHA, Rashi.MITHUNA, Rashi.KARKATAKA, 
+            Rashi.SIMHA, Rashi.KANYA, Rashi.TULA, Rashi.VRISHCHIKA, Rashi.DHANU
+        ]
+        
+        rows = [
+            {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": ""}
+            for r in paginated_rashis
+        ]
+        
+        # Add "More" option as 10th row
+        rows.append({
+            "id": "ROW_RASHI_MORE",
+            "title": "👇 ఇంకా ఉన్నాయి... (More)",
+            "description": "మిగతా రాశులు చూడండి"
+        })
+
+        await self.whatsapp.send_list_message(
             phone=self.user.phone,
-            body_text="✨ మీ రాశి ఏ గ్రూపులో ఉంది?",
-            buttons=[
-                {"id": "BTN_RASHI_GRP_1", "title": "మేషం నుండి కన్య (1-6)"},
-                {"id": "BTN_RASHI_GRP_2", "title": "తుల నుండి మీనం (7-12)"}
+            body_text="✨ మీ రాశిని ఎంచుకోండి:",
+            button_text="రాశిని ఎంచుకోండి",
+            sections=[
+                {"title": "రాశులు (1-9)", "rows": rows}
+            ]
+        )
+
+    async def _send_rashi_prompt_page_2(self) -> None:
+        """Send remaining rashis (10-12)."""
+        # Rashis 10-12 (Makara to Meena)
+        paginated_rashis = [Rashi.MAKARA, Rashi.KUMBHA, Rashi.MEENA]
+        
+        rows = [
+            {"id": f"ROW_RASHI_{r.value}", "title": r.telugu_name, "description": ""}
+            for r in paginated_rashis
+        ]
+        
+        await self.whatsapp.send_list_message(
+            phone=self.user.phone,
+            body_text="✨ మిగతా రాశులు:",
+            button_text="రాశిని ఎంచుకోండి",
+            sections=[
+                {"title": "రాశులు (10-12)", "rows": rows}
             ]
         )
     
@@ -868,62 +882,10 @@ class FSMMachine:
     
     async def _send_onboarding_complete(self) -> None:
         """Send onboarding completion message."""
-        # Get Telugu names for deity and day
-        # Get Telugu names for deity and day
-        try:
-            deity_enum = Deity(self.user.preferred_deity) if self.user.preferred_deity else None
-            deity_telugu = deity_enum.telugu_name if deity_enum else "దేవుడు"
-        except ImportError:
-             # Fallback if circular import or validation fails
-            deity_telugu = "దేవుడు"
-
-        try:
-            day_enum = AuspiciousDay(self.user.auspicious_day) if self.user.auspicious_day else None
-            day_telugu = day_enum.telugu_name if day_enum else "మీ శుభ దినం"
-        except ImportError:
-            day_telugu = "మీ శుభ దినం"
-        
-        # Get rashi Telugu name
-        try:
-            from app.fsm.states import Rashi
-            rashi = Rashi(self.user.rashi)
-            rashi_telugu = rashi.telugu_name
-        except:
-            rashi_telugu = self.user.rashi
-        
-        # Build preferences list in Telugu
-        prefs = [
-            f"📿 రాశి: {rashi_telugu}",
-        ]
-        
-        if self.user.nakshatra:
-            prefs.append(f"⭐ నక్షత్రం: {self.user.nakshatra}")
-        
-        if self.user.birth_time:
-            prefs.append(f"⏰ జన్మ సమయం: {self.user.birth_time}")
-        
-        prefs.extend([
-            f"🙏 ఇష్ట దైవం: {deity_telugu}",
-            f"📅 శుభ దినం: {day_telugu}",
-        ])
-        
-        prefs_str = "\n".join(prefs)
-        
-        prefs_str = "\n".join(prefs)
-        
-        message = f"""🌸 సుస్వాగతం! మీ వివరాలు స్వీకరించబడ్డాయి 🌸
-
-{prefs_str}
-
-✅ **నిత్యం:** ప్రతి ఉదయం 7 గంటలకు మీకు దైవ వాణి మరియు రాశిఫలాలు అందుతాయి.
-✅ **వారం:** ప్రతి {day_telugu} రోజున మీకు ప్రత్యేక సంకల్పం చేసుకునే అవకాశం ఉంటుంది.
-
-మీ జీవితం సుఖసంతోషాలతో వర్ధిల్లాలని కోరుకుంటూ...
-- **శుభమస్తు కుటుంబం** 🙏"""
-        
+        # Just a simple confirmation - content comes next
         await self.whatsapp.send_text_message(
             phone=self.user.phone,
-            message=message,
+            message="🌸 మీ వివరాలు నమోదు చేయబడ్డాయి. ధన్యవాదాలు! 🙏",
         )
     
     async def _send_default_response(self) -> None:
@@ -933,6 +895,20 @@ class FSMMachine:
             message="🙏 నమస్కారం! నేను శుభమస్తు సేవకుడిని. దయచేసి వివరంగా చెప్పండి.",
         )
     
+    async def _finish_onboarding_flow(self) -> None:
+        """Complete onboarding, save state, send Day 0 content."""
+        # 1. Update State
+        await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+        
+        # 2. Send Confirmation (No Summary)
+        await self.whatsapp.send_text_message(
+            phone=self.user.phone,
+            message="🌸 మీ వివరాలు నమోదు చేయబడ్డాయి. ధన్యవాదాలు! 🙏"
+        )
+        
+        # 3. Send Day 0 Rashiphalalu
+        await self._send_day_zero_rashiphalalu()
+
     async def _send_day_zero_rashiphalalu(self) -> None:
         """
         Send personalized Rashiphalalu immediately after onboarding (Day 0).
