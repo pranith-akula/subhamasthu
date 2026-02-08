@@ -1,7 +1,7 @@
 """Services package."""
 
 from app.services.user_service import UserService
-from app.services.gupshup_service import GupshupService
+from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.rashiphalalu_service import RashiphalaluService
 from app.services.sankalp_service import SankalpService
 from app.services.payment_service import PaymentService
@@ -12,7 +12,7 @@ from app.services.personalization_service import PersonalizationService
 
 __all__ = [
     "UserService",
-    "GupshupService",
+    "MetaWhatsappService",
     "RashiphalaluService",
     "SankalpService",
     "PaymentService",

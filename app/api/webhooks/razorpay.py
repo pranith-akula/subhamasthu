@@ -225,7 +225,7 @@ async def handle_payment_link_expired(
     from app.models.user import User
     from app.fsm.states import SankalpStatus, ConversationState
     from app.services.user_service import UserService
-    from app.services.gupshup_service import GupshupService
+    from app.services.meta_whatsapp_service import MetaWhatsappService
     
     event_data = payload.get("payload", {})
     payment_link = event_data.get("payment_link", {}).get("entity", {})
@@ -269,7 +269,7 @@ async def handle_payment_link_expired(
         await user_service.update_user_state(user, ConversationState.DAILY_PASSIVE)
         
         # Send gentle reminder message
-        gupshup = GupshupService()
+        whatsapp = MetaWhatsappService()
         message = """🙏 నమస్కారం!
 
 మీ సంకల్ప లింక్ గడువు ముగిసింది.
@@ -280,7 +280,7 @@ async def handle_payment_link_expired(
 
 🙏 శుభమస్తు!"""
         
-        await gupshup.send_text_message(
+        await whatsapp.send_text_message(
             phone=user.phone,
             message=message,
         )
