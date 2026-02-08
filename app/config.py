@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     redis_url: str = ""
     
     # Meta WhatsApp (Direct)
-    meta_access_token: str = "EAAVD7ZCopS4YBQviErKG8GEFIYAhk7HzEJGv0KsHMqEZCUtsxkZAXUgyRVnQWFgKrCnhMeiR6nKNq3AnMejssxNcPiYv36UTNtH4RXNX8MbhHCZCadfowZCwBxyMsNAg7LFeum4iNHnJTSQZBiXSOZChVX500qcNg2ivLROWD9IN3oQyiZBjUbcg0IbLgQ3Mbg7LV2q5nfs1aJrHO5TgvUBZCUyvi6YZBoW566BZC5lYMDM5PWZC021AAmFiWKZBJDzel2FZCkP2isnr88nEAuppglG4sBftR9H34ds3a4qQZDZD"
-    meta_phone_number_id: str = "1065449376646505"
+    meta_access_token: str = ""
+    meta_phone_number_id: str = ""
     meta_webhook_verify_token: str = "subhamasthu_secure_webhook"
     
     # Razorpay (optional for initial setup)

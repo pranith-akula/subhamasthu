@@ -552,17 +552,24 @@ class FSMMachine:
         
         # Store category in context and send tier selection
         sankalp_service = SankalpService(self.db)
-        await sankalp_service.send_tier_selection(self.user, category)
-        
-        # Store category for later use
-        from app.models.conversation import Conversation
-        from sqlalchemy import select
-        result = await self.db.execute(
-            select(Conversation).where(Conversation.user_id == self.user.id)
-        )
-        conversation = result.scalar_one_or_none()
-        if conversation:
-            conversation.set_context("selected_category", category.value)
+        try:
+            await sankalp_service.send_tier_selection(self.user, category)
+            
+            # Store category for later use
+            from app.models.conversation import Conversation
+            from sqlalchemy import select
+            result = await self.db.execute(
+                select(Conversation).where(Conversation.user_id == self.user.id)
+            )
+            conversation = result.scalar_one_or_none()
+            if conversation:
+                conversation.set_context("selected_category", category.value)
+        except Exception as e:
+            logger.error(f"Failed to handle category selection: {e}")
+            await self.whatsapp.send_text_message(
+                phone=self.user.phone,
+                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+            )
     
     async def _handle_tyagam_decision(self, text: str, button_payload: Optional[str]) -> None:
         """
@@ -588,22 +595,28 @@ class FSMMachine:
             # Fallback to PEACE if no category found
             saved_category = SankalpCategory.PEACE.value
         
-        # Parse button response
-        if button_payload == "TYAGAM_YES":
-            # User wants Annadanam seva - proceed to tier selection
-            sankalp_service = SankalpService(self.db)
-            category = SankalpCategory(saved_category)
-            await sankalp_service.send_tyagam_prompt(self.user, category)
-        elif button_payload == "TYAGAM_NO":
-            # User chose free Pariharam path
-            sankalp_service = SankalpService(self.db)
-            category = SankalpCategory(saved_category)
-            await sankalp_service.send_free_path_completion(self.user, category)
-        else:
-            # Invalid response - resend options
+        try:
+            if button_payload == "TYAGAM_YES":
+                # User wants Annadanam seva - proceed to tier selection
+                sankalp_service = SankalpService(self.db)
+                category = SankalpCategory(saved_category)
+                await sankalp_service.send_tyagam_prompt(self.user, category)
+            elif button_payload == "TYAGAM_NO":
+                # User chose free Pariharam path
+                sankalp_service = SankalpService(self.db)
+                category = SankalpCategory(saved_category)
+                await sankalp_service.send_free_path_completion(self.user, category)
+            else:
+                # Invalid response - resend options
+                await self.whatsapp.send_text_message(
+                    phone=self.user.phone,
+                    message="🙏 దయచేసి పై బటన్లలో ఒకటి నొక్కండి.",
+                )
+        except Exception as e:
+            logger.error(f"Failed to handle tyagam decision: {e}")
             await self.whatsapp.send_text_message(
                 phone=self.user.phone,
-                message="🙏 దయచేసి పై బటన్లలో ఒకటి నొక్కండి.",
+                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
     
     async def _handle_tier_selection(self, text: str, button_payload: Optional[str]) -> None:

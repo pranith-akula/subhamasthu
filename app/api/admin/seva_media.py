@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.api.deps import get_admin_user
 from app.services.seva_proof_service import SevaProofService
 from app.models.seva_media import MediaType
 
@@ -30,6 +31,7 @@ async def add_seva_media(
     caption: Optional[str] = Form(None, description="Custom caption (optional)"),
     cloudinary_public_id: Optional[str] = Form(None),
     db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_admin_user),
 ):
     """
     Add media to the seva proof pool.
@@ -71,6 +73,7 @@ async def add_seva_media(
 @router.get("/pool-stats")
 async def get_pool_stats(
     db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_admin_user),
 ):
     """Get statistics about the seva media pool."""
     service = SevaProofService(db)
@@ -87,6 +90,7 @@ async def list_seva_media(
     limit: int = 50,
     offset: int = 0,
     db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_admin_user),
 ):
     """List media items for the admin gallery."""
     from sqlalchemy import select, desc
@@ -115,6 +119,7 @@ async def list_seva_media(
 async def send_test_proof(
     phone: str = Form(..., description="Phone number to send test to"),
     db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_admin_user),
 ):
     """
     Send a test seva proof to a phone number.
@@ -155,6 +160,7 @@ async def send_test_proof(
 @router.post("/trigger-daily-job")
 async def trigger_daily_job(
     db: AsyncSession = Depends(get_db),
+    _: str = Depends(get_admin_user),
 ):
     """
     Manually trigger the daily seva proof job.

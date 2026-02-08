@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.database import init_db, close_db
 from app.logging_config import configure_logging
-from app.logging_config import configure_logging
+
 from app.redis import RedisClient
 import logging
 

@@ -3,14 +3,16 @@ import logging
 from typing import List
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Form
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.api.deps import get_admin_user
+from app.database import get_db
+from app.api.deps import get_admin_user, get_admin_html_user
+from app.config import settings
 from app.models.sankalp import Sankalp
 from app.models.seva_media import SevaMedia, MediaType
 from app.fsm.states import SankalpStatus
@@ -27,7 +29,10 @@ router = APIRouter()
 # --- VIEW ROUTES (HTML) ---
 
 @router.get("/admin-panel", response_class=HTMLResponse)
-async def view_dashboard(request: Request):
+async def view_dashboard(
+    request: Request,
+    _: str = Depends(get_admin_html_user)
+):
     """Serve the main dashboard page."""
     return templates.TemplateResponse("dashboard.html", {
         "request": request, 
@@ -35,7 +40,10 @@ async def view_dashboard(request: Request):
     })
 
 @router.get("/admin-panel/media", response_class=HTMLResponse)
-async def view_media(request: Request):
+async def view_media(
+    request: Request,
+    _: str = Depends(get_admin_html_user)
+):
     """Serve the media gallery page."""
     return templates.TemplateResponse("media.html", {
         "request": request, 
@@ -43,7 +51,10 @@ async def view_media(request: Request):
     })
 
 @router.get("/admin-panel/users", response_class=HTMLResponse)
-async def view_users(request: Request):
+async def view_users(
+    request: Request,
+    _: str = Depends(get_admin_html_user)
+):
     """Serve the user management page."""
     return templates.TemplateResponse("users.html", {
         "request": request, 
@@ -56,42 +67,73 @@ async def view_login(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+@router.post("/admin-panel/login")
+async def login(
+    request: Request,
+    password: str = Form(...)
+):
+    """Handle login submission."""
+    valid_key = getattr(settings, "admin_api_key", None)
+    
+    if not valid_key or password != valid_key:
+         return templates.TemplateResponse("login.html", {
+             "request": request, 
+             "error": "Invalid Password"
+         })
+    
+    response = RedirectResponse(url="/admin-panel", status_code=303)
+    response.set_cookie(
+        key="admin_key", 
+        value=password, 
+        httponly=True,
+        max_age=86400 * 30 # 30 days
+    )
+    return response
+
+
 # --- API ROUTES (JSON DATA) ---
 
 @router.get("/admin/api/users")
 async def get_users_list(
     db: AsyncSession = Depends(get_db),
-    admin_key: str = Depends(get_admin_user)
+    _: str = Depends(get_admin_user)
 ):
     """Get list of users with stats."""
     from app.models.user import User
+    from sqlalchemy import case, func
     
-    # Simple list for MVP. Ideal: aggregation for total_amount.
-    # We will fetch last 100 users for now.
-    query = select(User).order_by(desc(User.created_at)).limit(100)
-    res = await db.execute(query)
-    users = res.scalars().all()
-    
-    # Calculate stats for each user (inefficient for millions, fine for 100)
-    items = []
-    for u in users:
-        # Count paid sankalps
-        sankalp_query = select(Sankalp).where(
-            Sankalp.user_id == u.id,
-            Sankalp.status.in_([SankalpStatus.PAID, SankalpStatus.RECEIPT_SENT, SankalpStatus.CLOSED])
+    # Optimized query: Fetch Users + Aggregated Sankalp Stats in ONE query
+    # avoiding N+1 problem.
+    query = (
+        select(
+            User,
+            func.count(case(
+                (Sankalp.status.in_([SankalpStatus.PAID, SankalpStatus.RECEIPT_SENT, SankalpStatus.CLOSED]), Sankalp.id),
+                else_=None
+            )).label("sankalp_count"),
+            func.sum(case(
+                (Sankalp.status.in_([SankalpStatus.PAID, SankalpStatus.RECEIPT_SENT, SankalpStatus.CLOSED]), Sankalp.amount),
+                else_=0
+            )).label("total_amount")
         )
-        s_res = await db.execute(sankalp_query)
-        sankalps = s_res.scalars().all()
-        
-        total_amount = sum([s.amount for s in sankalps])
-        
+        .outerjoin(Sankalp, User.id == Sankalp.user_id)
+        .group_by(User.id)
+        .order_by(desc(User.created_at))
+        .limit(100)
+    )
+    
+    res = await db.execute(query)
+    rows = res.all() # Returns list of (User, count, amount) tuples
+    
+    items = []
+    for user, count, amount in rows:
         items.append({
-            "id": str(u.id),
-            "name": u.name,
-            "phone": u.phone,
-            "created_at": u.created_at.isoformat() if u.created_at else None,
-            "sankalp_count": len(sankalps),
-            "total_amount": float(total_amount)
+            "id": str(user.id),
+            "name": user.name,
+            "phone": user.phone,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "sankalp_count": count,
+            "total_amount": float(amount or 0)
         })
         
     return {"status": "success", "items": items}

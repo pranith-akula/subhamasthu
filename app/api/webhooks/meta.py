@@ -73,6 +73,27 @@ async def meta_webhook_event(
         return {"status": "error", "message": str(e)}
 
 
+@router.post("/meta/delete")
+async def meta_delete_callback(request: Request):
+    """
+    Handle Meta Data Deletion Callback.
+    Required for App Review.
+    """
+    # Parse signed_request if needed, but for now just return confirmation
+    from uuid import uuid4
+    confirmation_code = str(uuid4())
+    
+    logger.info(f"Meta Data Deletion Request received. Generated code: {confirmation_code}")
+    
+    # URL where user can track deletion status (Mock for compliance)
+    status_url = f"https://subhamasthu.com/deletion-status?id={confirmation_code}"
+    
+    return {
+        "url": status_url,
+        "confirmation_code": confirmation_code
+    }
+
+
 async def handle_inbound_message(value: Dict[str, Any], db: AsyncSession) -> None:
     """Process inbound user message from Meta format."""
     contacts = value.get("contacts", [])

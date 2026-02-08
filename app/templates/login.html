@@ -29,22 +29,22 @@
                 <p class="text-slate-400 mt-2">Enter your Admin Key to verify identity.</p>
             </div>
 
-            <form @submit.prevent="submitKey" class="space-y-6">
+            <form method="POST" action="/admin-panel/login" class="space-y-6">
                 <div class="mb-6">
                     <label class="block text-slate-400 text-sm font-bold mb-2">Admin Password</label>
-                    <input type="password" x-model="key"
+                    <input type="password" name="password" required
                         class="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                        placeholder="••••••••••••" @keydown.enter="submitKey">
+                        placeholder="••••••••••••">
                 </div>
                 <button type="submit"
-                    class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
-                    :disabled="loading">
-                    <span x-show="!loading">Enter Command Center</span>
-                    <span x-show="loading" class="animate-pulse">Verifying...</span>
+                    class="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <span>Enter Command Center</span>
                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                 </button>
 
-                <p x-show="error" class="text-red-400 text-sm text-center" x-text="error"></p>
+                {% if error %}
+                <p class="text-red-400 text-sm text-center">{{ error }}</p>
+                {% endif %}
             </form>
 
             <div class="mt-8 text-center">
@@ -53,46 +53,16 @@
         </div>
     </div>
 
-    <script>
-        function loginData() {
-            return {
-                key: '',
-                loading: false,
-                error: '',
-                async submitKey() {
-                    this.loading = true;
-                    this.error = '';
-
-                    // Simple verify by trying to hit an admin endpoint
-                    try {
-                        // Use an actual existing protected endpoint
-                        const res = await fetch('/admin/api/stats', {
-                            headers: { 'X-Admin-Key': this.key }
-                        });
-
-                        if (res.ok) {
-                            localStorage.setItem('admin_key', this.key);
-                            window.location.href = '/admin-panel';
-                        } else {
-                            this.error = 'Invalid Access Key';
-                        }
-                    } catch (e) {
-                        this.error = 'Connection Error';
-                        // Fallback for dev: allow saving anyway if offline
-                        // localStorage.setItem('admin_key', this.key);
-                        // window.location.href = '/admin-panel';
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            }
-        }
-    </script>
-
     <!-- Initialize Icons -->
     <script>
         lucide.createIcons();
     </script>
+</body>
+
+<!-- Initialize Icons -->
+<script>
+    lucide.createIcons();
+</script>
 </body>
 
 </html>
