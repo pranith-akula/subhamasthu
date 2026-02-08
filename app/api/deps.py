@@ -5,7 +5,8 @@ from app.config import settings
 
 async def get_admin_user(
     x_admin_key: Optional[str] = Header(None, alias="X-Admin-Key"),
-    admin_key_cookie: Optional[str] = Cookie(None, alias="admin_key")
+    admin_key_cookie: Optional[str] = Cookie(None, alias="admin_key"),
+    authtoken: Optional[str] = Query(None)
 ) -> str:
     """
     Validate the Admin Key from Header or Cookie.
@@ -13,14 +14,16 @@ async def get_admin_user(
     """
     key = x_admin_key or admin_key_cookie
     
+    # Check query param first (API Fallback)
+    valid_key = getattr(settings, "admin_api_key", None)
+    if authtoken and valid_key and authtoken == valid_key:
+        return authtoken
+    
     if not key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing Admin Password",
         )
-    
-    # Check against settings first
-    valid_key = getattr(settings, "admin_api_key", None)
     
     if not valid_key or key != valid_key:
          raise HTTPException(

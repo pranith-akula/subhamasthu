@@ -272,10 +272,20 @@
             async fetchData() {
                 this.loading = true;
                 try {
-                    const res = await fetch('/admin/api/stats');
+                    // Check for authtoken in URL (Login Fallback)
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const authtoken = urlParams.get('authtoken');
+
+                    let apiUrl = '/admin/api/stats';
+                    if (authtoken) {
+                        apiUrl += `?authtoken=${authtoken}`;
+                    }
+
+                    const res = await fetch(apiUrl);
                     if (res.ok) {
                         this.stats = await res.json();
                     } else if (res.status === 401 || res.status === 403) {
+                        // Only redirect if we don't have a token or token is invalid
                         window.location.href = '/admin-panel/login';
                     }
                 } catch (e) {
