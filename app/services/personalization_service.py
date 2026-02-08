@@ -113,7 +113,8 @@ class PersonalizationService:
     async def _get_panchang_context(self, target_date: Optional[date] = None) -> dict:
         """Get today's Panchang for context."""
         target_date = target_date or date.today()
-        panchang = self.panchang.get_panchang(target_date)
+        # FIX: await the async method
+        panchang = await self.panchang.get_panchang(target_date)
         
         return {
             "date": target_date.isoformat(),
