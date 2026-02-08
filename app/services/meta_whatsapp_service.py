@@ -231,3 +231,43 @@ class MetaWhatsappService:
             payload["video"]["caption"] = caption
             
         return await self._send_request(payload)
+
+
+    async def send_cta_url_message(
+        self,
+        phone: str,
+        body_text: str,
+        button_text: str,
+        url: str,
+        header: Optional[str] = None,
+        footer: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Send an interactive CTA URL button message.
+        Note: This message type allows ONE button that opens a website/app.
+        """
+        interactive = {
+            "type": "cta_url",
+            "body": {"text": body_text},
+            "action": {
+                "name": "cta_url",
+                "parameters": {
+                    "display_text": button_text[:20],
+                    "url": url
+                }
+            }
+        }
+        
+        if header:
+            interactive["header"] = {"type": "text", "text": header}
+        if footer:
+            interactive["footer"] = {"text": footer}
+            
+        payload = {
+            "messaging_product": "whatsapp",
+            "to": phone,
+            "type": "interactive",
+            "interactive": interactive
+        }
+        
+        return await self._send_request(payload)

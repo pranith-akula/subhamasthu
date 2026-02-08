@@ -1132,22 +1132,26 @@ class FSMMachine:
     # === Global Handlers ===
 
     async def _handle_invite_request(self) -> None:
-        """Handle 'invite' command - send referral link."""
-        # TODO: Replace with actual bot phone number
-        link = "https://wa.me/15550204780?text=Om+Namo+Narayanaya"
+        """Handle 'invite' command - send referral link with CTA button."""
+        # Generic Share Link (opens contact picker)
+        # Note: WhatsApp requires URL encoded text
+        share_text = "నమస్కారం! నేను శుభమస్తు ద్వారా ప్రతిరోజూ దైవ సంకల్పం తీసుకుంటున్నాను. ఇది నాకు ఎంతో శాంతిని ఇస్తోంది. మీరు కూడా ప్రయత్నించండి: https://wa.me/message/YOUR_LINK"
+        from urllib.parse import quote
+        encoded_text = quote(share_text)
+        link = f"https://wa.me/?text={encoded_text}"
         
-        message = f"""🙏 **శుభమస్తును విస్తరించండి**
+        message = """🙏 **శుభమస్తును విస్తరించండి**
         
 మీ బంధుమిత్రులకు కూడా ప్రతిరోజూ రాశిఫలాలు మరియు దైవ సంకల్పం అందాలని కోరుకుంటున్నారా?
 
-ఈ క్రింది లింక్ వారికి పంపండి:
-{link}
+క్రింది బటన్ నొక్కి వారికి షేర్ చేయండి:"""
 
-"ధర్మం రక్షతి రక్షితః" 🙏"""
-        
-        await self.whatsapp.send_text_message(
+        await self.whatsapp.send_cta_url_message(
             phone=self.user.phone,
-            message=message
+            body_text=message,
+            button_text="స్నేహితులతో పంచుకోండి",
+            url=link,
+            footer="ధర్మం రక్షతి రక్షితః"
         )
 
     async def _handle_history_request(self) -> None:
