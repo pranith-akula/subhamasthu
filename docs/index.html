@@ -1004,7 +1004,7 @@
     </footer>
 
     <script>
-        // Smooth scroll for anchor links
+        // Smooth scroll for anchor links with easing
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -1015,39 +1015,62 @@
             });
         });
 
-        // Navbar background on scroll
-        // Navbar background on scroll
+        // Refined Navbar background on scroll
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
-            if (window.scrollY > 50) {
-                nav.style.background = 'rgba(26, 5, 5, 0.98)'; // Divine Maroon
-                nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.6)';
+            if (window.scrollY > 80) {
+                nav.style.background = 'rgba(255, 250, 240, 0.98)';
+                nav.style.boxShadow = '0 10px 30px rgba(93, 16, 16, 0.1)';
+                nav.style.borderBottom = '1px solid var(--accent)';
             } else {
-                nav.style.background = 'linear-gradient(180deg, rgba(26, 5, 5, 0.98) 0%, rgba(55, 10, 10, 0.95) 100%)';
-                nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.4)';
+                nav.style.background = 'var(--header-bg)';
+                nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+                nav.style.borderBottom = '2px solid var(--accent)';
             }
         });
 
-        // Animate elements on scroll
+        // Staggered Reveal Animations - Class Apart
         const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            threshold: 0.15,
+            rootMargin: '0px 0px -100px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
+            entries.forEach((entry, index) => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                    // Slight delay for staggered effect
+                    setTimeout(() => {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0) scale(1)';
+                        entry.target.style.filter = 'blur(0)';
+                    }, index * 100);
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card, .pricing-card, .step').forEach(el => {
+        document.querySelectorAll('.feature-card, .pricing-card, .step, .section-title').forEach(el => {
             el.style.opacity = '0';
-            el.style.transform = 'translateY(30px)';
-            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            el.style.transform = 'translateY(50px) scale(0.98)';
+            el.style.filter = 'blur(10px)';
+            el.style.transition = 'all 1.2s cubic-bezier(0.19, 1, 0.22, 1)';
             observer.observe(el);
+        });
+
+        // Hero Parallax Effect
+        window.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+            document.querySelectorAll('.floating-om').forEach((om, i) => {
+                const factor = (i + 1) * 0.5;
+                om.style.transform = `translate(${x * factor}px, ${y * factor}px) rotate(${x * 0.2}deg)`;
+            });
+
+            const aura = document.querySelector('.aura');
+            if (aura) {
+                aura.style.left = `${e.clientX - 300}px`;
+                aura.style.top = `${e.clientY - 300}px`;
+            }
         });
     </script>
 </body>
