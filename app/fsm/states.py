@@ -43,6 +43,7 @@ class ConversationState(str, Enum):
     PAYMENT_LINK_SENT = "PAYMENT_LINK_SENT"
     PAYMENT_CONFIRMED = "PAYMENT_CONFIRMED"
     RECEIPT_SENT = "RECEIPT_SENT"
+    WAITING_FOR_MAHA_DECISION = "WAITING_FOR_MAHA_DECISION"  # Maha Sankalp Yes/No
     
     # Cooldown state (post-payment)
     COOLDOWN = "COOLDOWN"

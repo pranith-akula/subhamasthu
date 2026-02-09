@@ -102,6 +102,7 @@ class FSMMachine:
             ConversationState.PAYMENT_LINK_SENT,
             ConversationState.WEEKLY_PROMPT_SENT,
             ConversationState.WAITING_FOR_RITUAL_OPENING,
+            ConversationState.WAITING_FOR_MAHA_DECISION,
         ]
         
         if clean_text in CANCEL_KEYWORDS or button_payload in ["CMD_CANCEL", "CMD_MAIN_MENU"]:
@@ -152,6 +153,7 @@ class FSMMachine:
             ConversationState.PAYMENT_LINK_SENT: self._handle_payment_pending,
             ConversationState.PAYMENT_CONFIRMED: self._handle_payment_confirmed,
             ConversationState.RECEIPT_SENT: self._handle_payment_confirmed,
+            ConversationState.WAITING_FOR_MAHA_DECISION: self._handle_maha_decision,
         }
         
         try:
@@ -714,6 +716,42 @@ class FSMMachine:
                 phone=self.user.phone,
                 message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
             )
+    
+    async def _handle_maha_decision(self, text: str, button_payload: Optional[str]) -> None:
+        """
+        Handle Maha Sankalp decision (Week 4 collective offering).
+        
+        maha_sankalp_yes -> proceed to tier selection
+        maha_sankalp_no -> gracefully decline, return to passive
+        """
+        try:
+            if button_payload == "maha_sankalp_yes":
+                # User wants to participate - start tier selection
+                sankalp_service = SankalpService(self.db)
+                # Use PEACE as default category for Maha Sankalp (collective)
+                await sankalp_service.send_tyagam_prompt(self.user, SankalpCategory.PEACE)
+                
+            elif button_payload == "maha_sankalp_no":
+                # User declined - graceful response
+                await self.whatsapp.send_text_message(
+                    phone=self.user.phone,
+                    message="🙏 అర్థమైంది. మీకు ప్రతిరోజూ రాశిఫలాలు వస్తూనే ఉంటాయి.\n\nఓం శాంతి 🙏"
+                )
+                await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+                
+            else:
+                # Invalid response - re-prompt gently
+                await self.whatsapp.send_text_message(
+                    phone=self.user.phone,
+                    message="🙏 దయచేసి పై బటన్లలో ఒకటి ఎంచుకోండి."
+                )
+        except Exception as e:
+            logger.error(f"Failed to handle maha decision: {e}", exc_info=True)
+            await self.whatsapp.send_text_message(
+                phone=self.user.phone,
+                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+            )
+            await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
     
     async def _handle_tier_selection(self, text: str, button_payload: Optional[str]) -> None:
         """Handle sankalp tier selection."""

@@ -1036,9 +1036,9 @@ class SankalpService:
 మీరు కూడా ఈ దివ్య కార్యంలో భాగస్వామి కావాలనుకుంటున్నారా?"""
         
         # Send with Yes/No buttons
-        msg_id = await self.whatsapp.send_interactive_buttons(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
-            body=message,
+            body_text=message,
             buttons=[
                 {"id": "maha_sankalp_yes", "title": "🙏 అవును"},
                 {"id": "maha_sankalp_no", "title": "ఈ సారి వద్దు"},
@@ -1047,7 +1047,9 @@ class SankalpService:
         
         if msg_id:
             # Update state
-            user.state = ConversationState.WAITING_FOR_MAHA_DECISION.value if hasattr(ConversationState, 'WAITING_FOR_MAHA_DECISION') else "WAITING_FOR_MAHA_DECISION"
+            from app.services.user_service import UserService
+            user_service = UserService(self.db)
+            await user_service.update_user_state(user, ConversationState.WAITING_FOR_MAHA_DECISION)
             user.last_sankalp_prompt_at = datetime.now(timezone.utc)
             user.sankalp_prompts_this_month = (user.sankalp_prompts_this_month or 0) + 1
         
