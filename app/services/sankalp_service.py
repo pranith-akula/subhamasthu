@@ -497,10 +497,10 @@ class SankalpService:
         Step 4b: Ask for Frequency (Monthly vs One-time).
         """
         amount_val = {
-            SankalpTier.S15: "₹1800",
-            SankalpTier.S30: "₹4200",
-            SankalpTier.S50: "₹9000",
-        }.get(tier, "₹1800")
+            SankalpTier.S15: "Dharmika ($21)",
+            SankalpTier.S30: "Punya Vriddhi ($51)",
+            SankalpTier.S50: "Maha Sankalp ($108)",
+        }.get(tier, "Dharmika ($21)")
         
         message = f"""🙏 **నిత్య అన్నదాన మహా యజ్ఞం**
 
@@ -619,7 +619,7 @@ class SankalpService:
                     "amount": amount_paise,
                     "currency": sankalp.currency,
                     "accept_partial": False,
-                    "description": f"సంకల్ప సేవ (ఒక్కసారి) - {sankalp.category}",
+                    "description": f"Sankalp Seva (One-Time) - {sankalp.tier} - {sankalp.category}",
                     "customer": {
                         "contact": user.phone,
                         "name": user.name or "భక్తులు",
@@ -686,8 +686,8 @@ class SankalpService:
         if cache_key in self._plan_cache:
             return self._plan_cache[cache_key]
 
-        tier_name = SankalpTier(tier).name
-        plan_name = f"Sankalp {tier_name} Monthly"
+        tier_obj = SankalpTier(tier)
+        plan_name = f"Sankalp {tier_obj.display_name} Monthly"
         amount_paise = int(amount * 100)
         
         try:

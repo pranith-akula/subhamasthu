@@ -20,6 +20,7 @@ class ConversationState(str, Enum):
     WAITING_FOR_BIRTH_TIME = "WAITING_FOR_BIRTH_TIME"  # Optional
     WAITING_FOR_DEITY = "WAITING_FOR_DEITY"
     WAITING_FOR_AUSPICIOUS_DAY = "WAITING_FOR_AUSPICIOUS_DAY"
+    WAITING_FOR_TRACK_SELECTION = "WAITING_FOR_TRACK_SELECTION" # Strategic Optimization
     
     # Phase 2: Engagement
     WAITING_FOR_DOB = "WAITING_FOR_DOB"
@@ -87,9 +88,9 @@ class SankalpTier(str, Enum):
     Button payloads use these values.
     """
     
-    S15 = "TIER_S15"    # $15 - Samuhik Sankalp
-    S30 = "TIER_S30"    # $30 - Vishesh Sankalp
-    S50 = "TIER_S50"    # $50 - Parivaar Sankalp
+    S15 = "TIER_S15"    # $21 - Dharmika
+    S30 = "TIER_S30"    # $51 - Punya Vriddhi
+    S50 = "TIER_S50"    # $108 - Maha Sankalp
     
     @property
     def amount_usd(self) -> int:
@@ -99,17 +100,18 @@ class SankalpTier(str, Enum):
             self.S30: 5100,
             self.S50: 10800,
         }
-        return amounts.get(self, 0)
+        return amounts.get(self, 2100)
     
     @property
     def display_name(self) -> str:
         """Display name for the tier."""
         names = {
-            self.S15: "సామూహిక సంకల్పం (₹1800)",
-            self.S30: "విశేష సంకల్పం (₹4200)",
-            self.S50: "పరివార సంకల్పం (₹9000)",
+            self.S15: "Dharmika ($21)",
+            self.S30: "Punya Vriddhi ($51)",
+            self.S50: "Maha Sankalp ($108)",
         }
         return names.get(self, self.value)
+
 
 
 class SankalpStatus(str, Enum):

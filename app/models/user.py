@@ -4,9 +4,9 @@ import uuid
 from datetime import datetime, date, timezone
 from typing import Optional
 
-from sqlalchemy import String, DateTime, Date, Enum as SQLEnum
+from sqlalchemy import String, DateTime, Date, Enum as SQLEnum, Integer, Float
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.fsm.states import ConversationState, Rashi, Deity, AuspiciousDay
@@ -162,6 +162,15 @@ class User(Base):
         default=0,
         nullable=False,
     )
+    
+    # Engagement Metrics (Strategic Optimization)
+    last_engagement_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    streak_days: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    lifetime_value: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # In Rupees
+    risk_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+    # Relationships
+    message_logs: Mapped[list["MessageLog"]] = relationship(back_populates="user")
     
     # Record timestamps
     created_at: Mapped[datetime] = mapped_column(

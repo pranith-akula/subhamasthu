@@ -8,6 +8,7 @@ from app.models.seva import SevaLedger, SevaBatch
 from app.models.rashiphalalu import RashiphalaluCache
 from app.models.seva_media import SevaMedia
 from app.models.temple import Temple
+from app.models.message_log import MessageLog
 
 __all__ = [
     "User",
@@ -19,4 +20,5 @@ __all__ = [
     "RashiphalaluCache",
     "SevaMedia",
     "Temple",
+    "MessageLog",
 ]

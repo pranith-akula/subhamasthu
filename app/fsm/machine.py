@@ -96,6 +96,7 @@ class FSMMachine:
             ConversationState.WAITING_FOR_BIRTH_TIME: self._handle_birth_time,
             ConversationState.WAITING_FOR_DEITY: self._handle_deity_selection,
             ConversationState.WAITING_FOR_AUSPICIOUS_DAY: self._handle_day_selection,
+            ConversationState.WAITING_FOR_TRACK_SELECTION: self._handle_track_selection,
             ConversationState.WAITING_FOR_DOB: self._handle_dob_input,
             ConversationState.WAITING_FOR_ANNIVERSARY: self._handle_anniversary_input,
             ConversationState.ONBOARDED: self._handle_onboarded,
@@ -424,9 +425,35 @@ class FSMMachine:
         
         await self.user_service.set_user_auspicious_day(self.user, day)
         
-        # FINISH ONBOARDING (No DOB/Time/Nakshatra)
-        await self._finish_onboarding_flow()
+        # Next: Track Selection (Strategic Opt)
+        await self._send_track_selection_prompt()
+        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_TRACK_SELECTION)
     
+    async def _send_track_selection_prompt(self) -> None:
+        """Ask 'What matters most?' for track selection."""
+        await self.whatsapp.send_button_message(
+            phone=self.user.phone,
+            body_text="🙏 చివరిగా ఒక చిన్న ప్రశ్న: \n\nప్రస్తుతం మీ జీవితంలో మీకు ముఖ్యమైనది ఏంటి?",
+            buttons=[
+                {"id": "TRACK_DEVOTION", "title": "Bhakti (Peace)"},
+                {"id": "TRACK_GROWTH", "title": "Vriddhi (Growth)"},
+                {"id": "TRACK_SECURITY", "title": "Raksha (Family)"}
+            ]
+        )
+
+    async def _handle_track_selection(self, text: str, button_payload: Optional[str]) -> None:
+        """Handle track selection."""
+        track = "DEVOTION" # Default
+        if button_payload == "TRACK_GROWTH":
+            track = "GROWTH"
+        elif button_payload == "TRACK_SECURITY":
+            track = "SECURITY"
+            
+        self.user.nurture_track = track
+        # Important: Flush changes if needed, but session commit usually happens at end of request
+        
+        await self._finish_onboarding_flow()
+
     async def _handle_onboarded(self, text: str, button_payload: Optional[str]) -> None:
         """Handle ONBOARDED state - transition to DAILY_PASSIVE."""
         await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
