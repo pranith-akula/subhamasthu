@@ -104,7 +104,7 @@ class FSMMachine:
             ConversationState.WAITING_FOR_RITUAL_OPENING,
         ]
         
-        if clean_text in CANCEL_KEYWORDS or button_payload == "CMD_CANCEL":
+        if clean_text in CANCEL_KEYWORDS or button_payload in ["CMD_CANCEL", "CMD_MAIN_MENU"]:
             if current_state in CANCELLABLE_STATES:
                 logger.info(f"FSM: User {self.user.phone} cancelled flow from {current_state.value}")
                 

@@ -106,6 +106,43 @@ class MetaWhatsappService:
         }
         
         return await self._send_request(payload)
+    
+    async def send_button_message_with_menu(
+        self,
+        phone: str,
+        body_text: str,
+        buttons: List[Dict[str, str]],
+        header: Optional[str] = None,
+        footer: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Send button message with automatic 'Main Menu' option.
+        
+        - If <= 2 buttons: Appends 'Menu' button
+        - If 3 buttons: Adds footer hint 'Type 0 for menu'
+        
+        This gives users a consistent way to exit any flow.
+        """
+        MENU_BUTTON = {"id": "CMD_MAIN_MENU", "title": "🏠 Menu"}
+        
+        # Determine how to add menu option
+        if len(buttons) <= 2:
+            # Add Menu as 3rd button
+            buttons_with_menu = buttons + [MENU_BUTTON]
+            final_footer = footer
+        else:
+            # Can't fit button - add hint to footer
+            buttons_with_menu = buttons[:3]
+            hint = "Type 0 for menu"
+            final_footer = f"{footer} | {hint}" if footer else hint
+        
+        return await self.send_button_message(
+            phone=phone,
+            body_text=body_text,
+            buttons=buttons_with_menu,
+            header=header,
+            footer=final_footer,
+        )
 
     async def send_list_message(
         self,

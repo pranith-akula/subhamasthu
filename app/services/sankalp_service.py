@@ -174,7 +174,7 @@ class SankalpService:
             {"id": "START_RITUAL", "title": "🙏 సిద్ధంగా ఉన్నాను"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -248,7 +248,7 @@ class SankalpService:
             {"id": "CONFIRM_REFLECTION", "title": "అవును (Yes)"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -322,7 +322,7 @@ class SankalpService:
             {"id": "AGREE_SANKALP", "title": "🙏 తథాస్తు (I Vow)"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -394,7 +394,7 @@ class SankalpService:
             {"id": "TYAGAM_NO", "title": "మరొకసారి"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -476,7 +476,7 @@ class SankalpService:
             {"id": SankalpTier.S50.value, "title": "50 మందికి ($108)"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
@@ -517,7 +517,7 @@ class SankalpService:
             {"id": "FREQ_ONETIME", "title": "ఈ ఒక్కసారికి చాలు"},
         ]
         
-        msg_id = await self.whatsapp.send_button_message(
+        msg_id = await self.whatsapp.send_button_message_with_menu(
             phone=user.phone,
             body_text=message,
             buttons=buttons,
