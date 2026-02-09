@@ -165,9 +165,10 @@ class FSMMachine:
                 await self._send_default_response()
         except Exception as e:
             logger.error(f"CRITICAL FSM ERROR for user {self.user.id}: {e}", exc_info=True)
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="🙏 క్షమించండి, సాంకేతిక సమస్య తలెత్తింది. దయచేసి కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి."
+                body_text="🙏 క్షమించండి, సాంకేతిక సమస్య తలెత్తింది. దయచేసి కాసేపటి తర్వాత మళ్ళీ ప్రయత్నించండి.",
+                buttons=[]
             )
     
     async def _handle_sankalp_agreement(self, text: str, button_payload: Optional[str]) -> None:
@@ -630,9 +631,10 @@ class FSMMachine:
             
         except Exception as e:
             logger.error(f"Failed to handle category selection: {e}")
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                body_text="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                buttons=[]
             )
     
     async def _handle_sankalp_agreement(self, text: str, button_payload: Optional[str]) -> None:
@@ -652,9 +654,10 @@ class FSMMachine:
         
         if not category_value:
              # Fallback if context lost
-             await self.whatsapp.send_text_message(
+             await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, సెషన్ గడువు ముగిసింది. దయచేసి 'కొత్త సంకల్పం' అని టైప్ చేయండి."
+                body_text="క్షమించండి, సెషన్ గడువు ముగిసింది. దయచేసి మళ్ళీ ప్రారంభించండి.",
+                buttons=[]
             )
              await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
              return
@@ -712,9 +715,10 @@ class FSMMachine:
                 )
         except Exception as e:
             logger.error(f"Failed to handle tyagam decision: {e}")
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                body_text="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                buttons=[]
             )
     
     async def _handle_maha_decision(self, text: str, button_payload: Optional[str]) -> None:
@@ -757,9 +761,10 @@ class FSMMachine:
                 )
         except Exception as e:
             logger.error(f"Failed to handle maha decision: {e}", exc_info=True)
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                body_text="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                buttons=[]
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
     
@@ -853,9 +858,10 @@ class FSMMachine:
                 
         except Exception as e:
             logger.error(f"Failed to create payment link: {e}")
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                body_text="క్షమించండి, సాంకేతిక సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                buttons=[]
             )
             await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
     
@@ -869,9 +875,10 @@ class FSMMachine:
                 await self._handle_tier_selection(text, button_payload)
                 return
 
-        await self.whatsapp.send_text_message(
+        await self.whatsapp.send_button_message_with_menu(
             phone=self.user.phone,
-            message="🙏 సేవా సమర్పణ జరుగుతోంది. దయచేసి వేచి ఉండండి. త్వరలో నిర్ధారణ వస్తుంది. 🙏",
+            body_text="🙏 సేవా సమర్పణ జరుగుతోంది. దయచేసి వేచి ఉండండి. త్వరలో నిర్ధారణ వస్తుంది. 🙏",
+            buttons=[]
         )
     
     async def _handle_payment_confirmed(self, text: str, button_payload: Optional[str]) -> None:
@@ -1336,7 +1343,8 @@ class FSMMachine:
             
         except Exception as e:
             logger.error(f"Error fetching history for {self.user.phone}: {e}")
-            await self.whatsapp.send_text_message(
+            await self.whatsapp.send_button_message_with_menu(
                 phone=self.user.phone,
-                message="క్షమించండి, మీ చరిత్రను పొందడంలో సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి."
+                body_text="క్షమించండి, మీ చరిత్రను పొందడంలో సమస్య ఉంది. దయచేసి కాసేపటి తర్వాత ప్రయత్నించండి.",
+                buttons=[]
             )
