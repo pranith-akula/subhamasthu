@@ -727,6 +727,16 @@ class FSMMachine:
         try:
             if button_payload == "maha_sankalp_yes":
                 # User wants to participate - start tier selection
+                # Save category context for tier selection handler
+                from app.models.conversation import Conversation
+                from sqlalchemy import select
+                result = await self.db.execute(
+                    select(Conversation).where(Conversation.user_id == self.user.id)
+                )
+                conversation = result.scalar_one_or_none()
+                if conversation:
+                    conversation.set_context("selected_category", SankalpCategory.PEACE.value)
+                
                 sankalp_service = SankalpService(self.db)
                 # Use PEACE as default category for Maha Sankalp (collective)
                 await sankalp_service.send_tyagam_prompt(self.user, SankalpCategory.PEACE)
