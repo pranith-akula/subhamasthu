@@ -10,6 +10,7 @@ from app.models.seva_media import SevaMedia
 from app.models.temple import Temple
 from app.models.message_log import MessageLog
 from app.models.seva_execution import SevaExecution
+from app.models.ritual_event import RitualEvent
 
 __all__ = [
     "User",
@@ -23,4 +24,6 @@ __all__ = [
     "Temple",
     "MessageLog",
     "SevaExecution",
+    "RitualEvent",
 ]
+

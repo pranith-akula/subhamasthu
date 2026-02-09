@@ -826,3 +826,145 @@ class SankalpService:
             SankalpTier.S50.value: 50,
         }
         return mapping.get(tier, 10)
+    
+    # === Ritual Cadence Methods (Phase 3) ===
+    
+    async def send_light_blessing(self, user: User) -> bool:
+        """
+        Week 2: Light Blessing - Personalized collective prayer.
+        Low ask, maintains warmth and connection.
+        """
+        from app.services.impact_service import ImpactService
+        
+        # Get active devotees count for personalization
+        impact_service = ImpactService(self.db)
+        impact = await impact_service.get_global_impact(use_cache=True)
+        active_devotees = impact.get("active_devotees", 100)
+        
+        name = user.name or "భక్తుడు"
+        
+        message = f"""🙏 {name}, ఈ వారం మీ కుటుంబం కోసం సామూహిక ఆశీర్వాదం.
+
+{active_devotees} మంది భక్తులతో కలిసి మీరు ఈ రోజు ఒక మౌన ప్రార్థనలో భాగస్వాములు.
+
+"సర్వే జనాః సుఖినో భవంతు"
+
+మీకు మరియు మీ కుటుంబానికి శుభం కలుగుగాక! 🙏"""
+        
+        msg_id = await self.whatsapp.send_text_message(
+            phone=user.phone,
+            message=message,
+        )
+        
+        return msg_id is not None
+    
+    async def send_silent_wisdom(self, user: User) -> bool:
+        """
+        Week 3: Silent Wisdom - Shloka + Impact, NO ask.
+        Builds trust surplus for long-term retention.
+        
+        Structure:
+        1. Shloka
+        2. Life interpretation
+        3. Impact summary
+        4. Gentle blessing
+        """
+        from app.services.impact_service import ImpactService
+        
+        # Get this week's impact
+        impact_service = ImpactService(self.db)
+        weekly = await impact_service.get_weekly_summary_data()
+        personal = await impact_service.get_user_impact(user.id)
+        
+        meals_this_week = weekly.get("meals", 0)
+        cities = weekly.get("cities", 0)
+        personal_meals = personal.get("lifetime_meals", 0)
+        
+        # Rotating shlokas for variety
+        shlokas = [
+            (
+                "న హి కశ్చిత్ క్షణమపి జాతు తిష్ఠత్యకర్మకృత్",
+                "భగవద్గీత 3.5",
+                "ఎవరూ ఒక్క క్షణం కూడా కర్మ చేయకుండా ఉండలేరు."
+            ),
+            (
+                "యద్యదాచరతి శ్రేష్ఠః తత్తదేవేతరో జనః",
+                "భగవద్గీత 3.21",
+                "శ్రేష్ఠులు ఆచరించేది సామాన్యులు అనుసరిస్తారు."
+            ),
+            (
+                "సుఖదుఃఖే సమే కృత్వా లాభాలాభౌ జయాజయౌ",
+                "భగవద్గీత 2.38",
+                "సుఖదుఃఖాలు, లాభనష్టాలు సమానంగా భావించు."
+            ),
+        ]
+        
+        import random
+        shloka, source, interpretation = random.choice(shlokas)
+        
+        message = f"""🕉 ఈ వారం మీ ధ్యానం కోసం:
+
+"{shloka}"
+— {source}
+
+{interpretation}
+
+—
+
+📊 ఈ వారం శుభమస్తు సమూహం:
+🍚 {meals_this_week} కుటుంబాలకు అన్నదానం
+📍 {cities} నగరాలలో సేవ
+
+మీరు ఇప్పటివరకు {personal_meals} కుటుంబాలకు సేవ చేశారు.
+
+ధర్మం రక్షతి రక్షితః 🙏"""
+        
+        msg_id = await self.whatsapp.send_text_message(
+            phone=user.phone,
+            message=message,
+        )
+        
+        return msg_id is not None
+    
+    async def send_maha_sankalp(self, user: User) -> bool:
+        """
+        Week 4: Maha Sankalp - Elevated collective positioning.
+        High ask, gated by intensity score.
+        
+        Feels larger than personal chinta - collective protection.
+        """
+        from app.services.impact_service import ImpactService
+        
+        # Get active devotees for social proof
+        impact_service = ImpactService(self.db)
+        impact = await impact_service.get_global_impact(use_cache=True)
+        active_devotees = impact.get("active_devotees", 100)
+        
+        name = user.name or "భక్తుడు"
+        
+        message = f"""🙏 {name}, ఈ నెల మహా సంకల్పం ప్రారంభమైంది.
+
+ఈ సామూహిక యజ్ఞం సమస్త భక్తుల రక్షణ & సమృద్ధి కోసం నిర్వహించబడుతోంది.
+
+{active_devotees} మంది భక్తులు ఈ మహా సంకల్పంలో పాల్గొంటున్నారు.
+
+మీరు కూడా ఈ దివ్య కార్యంలో భాగస్వామి కావాలనుకుంటున్నారా?"""
+        
+        # Send with Yes/No buttons
+        msg_id = await self.whatsapp.send_interactive_buttons(
+            phone=user.phone,
+            body=message,
+            buttons=[
+                {"id": "maha_sankalp_yes", "title": "🙏 అవును"},
+                {"id": "maha_sankalp_no", "title": "ఈ సారి వద్దు"},
+            ]
+        )
+        
+        if msg_id:
+            # Update state
+            user.state = ConversationState.WAITING_FOR_MAHA_DECISION.value if hasattr(ConversationState, 'WAITING_FOR_MAHA_DECISION') else "WAITING_FOR_MAHA_DECISION"
+            user.last_sankalp_prompt_at = datetime.now(timezone.utc)
+            user.sankalp_prompts_this_month = (user.sankalp_prompts_this_month or 0) + 1
+        
+        return msg_id is not None
+

@@ -169,6 +169,54 @@ class User(Base):
     lifetime_value: Mapped[int] = mapped_column(Integer, default=0, nullable=False) # In Rupees
     risk_score: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
 
+    # === Ritual Lifecycle System (Phase 3) ===
+    
+    # Current day in 28-day ritual cycle (1-28)
+    ritual_cycle_day: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+    
+    # When ritual cycle started for this user
+    ritual_cycle_started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    
+    # Last time sankalp prompt was sent
+    last_sankalp_prompt_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    
+    # Current ritual phase: INITIATION, BLESSING, SILENT, MAHA
+    ritual_phase: Mapped[str] = mapped_column(
+        String(20),
+        default="INITIATION",
+        nullable=False,
+    )
+    
+    # Intensity score for behavioral gating (0+)
+    ritual_intensity_score: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+    
+    # Last chinta category selected (for personalization)
+    last_chinta_category: Mapped[Optional[str]] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+    
+    # Sankalp prompts sent this month (hard cap: 2)
+    sankalp_prompts_this_month: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
     # Relationships
     message_logs: Mapped[list["MessageLog"]] = relationship(back_populates="user")
     
