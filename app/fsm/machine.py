@@ -468,9 +468,8 @@ class FSMMachine:
         
         await self.user_service.set_user_auspicious_day(self.user, day)
         
-        # Next: Track Selection (Strategic Opt)
-        await self._send_track_selection_prompt()
-        await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_TRACK_SELECTION)
+        # Finish Onboarding (Day 0)
+        await self._finish_onboarding_flow()
     
     async def _send_track_selection_prompt(self) -> None:
         """Ask 'What matters most?' for track selection."""
@@ -1111,9 +1110,9 @@ class FSMMachine:
             
             if message:
                 # Send intro message first
-                intro = """🌟 మీ మొదటి వ్యక్తిగత రాశిఫలం!
+                intro = """🌟 మీ మొదటి వ్యక్తిగత దైవ వాణి మరియు రాశిఫలం!
 
-ఇప్పటి నుండి ప్రతిరోజూ ఉదయం 7 గంటలకు మీకు ఇలాంటి వ్యక్తిగత సందేశాలు వస్తాయి."""
+నేటి నుండి ప్రతిరోజూ ఉదయం మీకు ఇలాంటి వ్యక్తిగత మార్గదర్శనం అందుతుంది. 🙏"""
                 
                 await self.whatsapp.send_text_message(
                     phone=self.user.phone,
