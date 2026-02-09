@@ -17,24 +17,35 @@
 
     <style>
         :root {
-            --primary: #C62828;
-            /* Deep Deity Red */
-            --primary-dark: #8B0000;
+            /* Apple-Inspired Divine Palette */
+            --primary: #1D1D1F;
+            /* Deity Ink (Apple standard) */
+            --primary-light: #424245;
             --accent: #D4AF37;
             /* Burnished Gold */
-            --gold-gradient: linear-gradient(45deg, #B8860B, #FFD700, #B8860B);
-            --dark: #2C0F0F;
-            /* Temple Wood Brown */
-            --text-main: #3E2723;
-            /* Deep Umber */
-            --text-soft: #6D4C41;
-            --white: #FFFFFF;
-            --bg-divine: #FFFAF0;
-            /* Sandalwood / Floral White */
-            --bg-glass: rgba(255, 255, 255, 0.4);
-            --border-glass: rgba(212, 175, 55, 0.2);
-            --shadow-divine: 0 10px 40px rgba(93, 16, 16, 0.08);
-            --glow-gold: 0 0 25px rgba(212, 175, 55, 0.3);
+            --bg-canvas: #F5F5F7;
+            /* Ceramic White */
+            --bg-pure: #FFFFFF;
+            --text-main: #1D1D1F;
+            --text-soft: #86868B;
+            /* Apple soft grey */
+            --divine-warm: #FFF9C4;
+            /* Soft Sandalwood Accent */
+
+            /* Glassmorphism */
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(0, 0, 0, 0.05);
+
+            /* Spacing & Radii */
+            --section-pad: 8rem;
+            --card-radius: 28px;
+
+            /* Shadows */
+            --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
+            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.08);
+
+            /* Compatibility with existing */
+            --header-bg: rgba(255, 250, 240, 0.95);
         }
 
         * {
@@ -44,12 +55,12 @@
         }
 
         body {
-            font-family: 'Outfit', 'Noto Sans Telugu', sans-serif;
-            background: var(--bg-divine);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Outfit", "Noto Sans Telugu", sans-serif;
+            background: var(--bg-canvas);
             color: var(--text-main);
             overflow-x: hidden;
-            line-height: 1.8;
-            letter-spacing: 0.01em;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         .telugu {
@@ -59,22 +70,21 @@
         h1,
         h2,
         h3,
-        .divine-text {
-            font-family: 'Noto Serif Telugu', serif;
+        .divine-header {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Outfit", "Noto Serif Telugu", serif;
+            letter-spacing: -0.022em;
         }
 
         /* Animated Background */
         .hero {
             min-height: 100vh;
-            background: var(--bg-divine);
+            background: var(--bg-pure);
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background-image:
-                radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.05) 0%, transparent 50%),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l1.5 5 5 1.5-5 1.5-1.5 5-1.5-5-5-1.5 5-1.5z' fill='%23d4af37' fill-opacity='0.1'/%3E%3C/svg%3E");
+            padding: 2rem;
         }
 
         .hero::before {
@@ -155,15 +165,17 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            padding: 0.5rem 1.5rem;
+            padding: 0 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--header-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 2px solid var(--secondary);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            height: 70px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            height: 52px;
+            /* Apple standard */
+            transition: all 0.3s;
         }
 
         .logo {
@@ -186,11 +198,10 @@
         }
 
         .logo-text {
-            color: var(--primary-dark);
-            font-size: 1.5rem;
-            font-weight: 800;
-            font-family: 'Noto Serif Telugu', serif;
-            letter-spacing: 0.5px;
+            color: var(--text-main);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .logo-text span {
@@ -271,11 +282,12 @@
         }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-size: clamp(3rem, 10vw, 5.5rem);
             font-weight: 800;
-            color: var(--primary-dark);
-            line-height: 1.2;
-            margin-bottom: 1rem;
+            color: var(--text-main);
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
         }
 
         .hero h1 .telugu {
@@ -287,30 +299,33 @@
         }
 
         .hero p {
-            font-size: 1.25rem;
-            color: var(--dark);
-            max-width: 600px;
-            margin: 0 auto 2rem;
-            line-height: 1.8;
+            font-size: clamp(1.2rem, 3vw, 1.75rem);
+            color: var(--text-soft);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.4;
             font-weight: 500;
+            letter-spacing: -0.01em;
         }
 
         .hero-cta {
             display: inline-flex;
             align-items: center;
-            gap: 1rem;
-            background: var(--primary);
-            color: var(--bg-divine);
-            padding: 1.2rem 3.5rem;
-            border-radius: 100px;
+            gap: 0.75rem;
+            background: #0071E3;
+            /* Apple Blue */
+            color: var(--white);
+            padding: 1.1rem 2.5rem;
+            border-radius: 980px;
             text-decoration: none;
-            font-size: 1.3rem;
-            font-weight: 700;
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-            box-shadow: 0 15px 45px rgba(198, 40, 40, 0.2);
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.15rem;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hero-cta:hover {
+            background: #0077ED;
+            transform: scale(1.02);
         }
 
         .hero-cta::before {
@@ -373,10 +388,133 @@
             font-weight: 600;
         }
 
-        /* Features Section */
+        /* Clearer Features & Cards */
         .features {
-            padding: 6rem 2rem;
-            background: var(--white);
+            padding: var(--section-pad) 2rem;
+            background: var(--bg-pure);
+        }
+
+        .feature-card {
+            background: var(--bg-canvas);
+            border-radius: var(--card-radius);
+            padding: 3.5rem;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
+            box-shadow: none;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-float);
+        }
+
+        .feature-icon {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            display: inline-block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Steps Section */
+        .how-it-works {
+            padding: var(--section-pad) 2rem;
+            background: var(--bg-pure);
+        }
+
+        .step {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .step h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .step p {
+            color: var(--text-soft);
+        }
+
+        /* Pricing Area */
+        .pricing {
+            padding: var(--section-pad) 2rem;
+            background: var(--bg-pure);
+        }
+
+        .pricing-card {
+            background: var(--bg-pure);
+            border-radius: var(--card-radius);
+            padding: 4rem 2rem;
+            text-align: center;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--glass-border);
+        }
+
+        .pricing-card.popular {
+            background: var(--bg-canvas);
+            border: none;
+        }
+
+        .pricing-card h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .pricing-card .price {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            letter-spacing: -0.04em;
+        }
+
+        .pricing-card p {
+            color: var(--text-soft);
+            margin-bottom: 2.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Trust Section */
+        .trust-section {
+            padding: var(--section-pad) 2rem;
+            background: var(--bg-canvas);
+            text-align: center;
+        }
+
+        .trust-title {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .trust-text {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.5rem;
+            color: var(--text-soft);
+            line-height: 1.6;
+            font-weight: 500;
         }
 
         .section-title {
@@ -851,65 +989,61 @@
         <span>ఓం నమో నారాయణాయ</span>
     </div>
 
-    <!-- Features Section -->
+    <!-- Benefits: Your Path to Peace -->
     <section class="features">
         <div class="section-title">
-            <h2 class="telugu">మీకు లభించే సేవలు</h2>
-            <p class="telugu">సంపూర్ణ ధార్మిక అనుభవం - మీ వాట్సాప్ ద్వారా</p>
+            <h2 class="telugu">మీ శాంతి కోసం</h2>
+            <p class="telugu">సంపూర్ణ ఆధ్యాత్మిక అనుభవం. నేరుగా మీ వాట్సాప్ ద్వారా.</p>
         </div>
 
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🌅</div>
-                <h3 class="telugu">నిత్య రాశిఫలాలు</h3>
-                <!-- <div class="telugu-title telugu">నిత్య రాశిఫలాలు</div> -->
-                <p class="telugu">ఉదయం 7 గంటలకు మీ వ్యక్తిగత రాశిఫలాలు, శుభ సమయాలు మరియు పరిహారాలు - పూర్తిగా తెలుగులో.
+                <h3 class="telugu">నిత్య మార్గదర్శనం</h3>
+                <p class="telugu">ప్రతి ఉదయం మీ రాశికి తగిన దైవ వాణి మరియు రాశిఫలాలు. ప్రశాంతమైన రోజూ కోసం సిద్ధం కండి.
                 </p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon">🙏</div>
-                <h3 class="telugu">సంకల్పం & పరిహారం</h3>
-                <!-- <div class="telugu-title telugu">సంకల్పం & పరిహారం</div> -->
-                <p class="telugu">మీ కుటుంబం కోసం, ఆరోగ్యం కోసం లేదా ఉద్యోగ విజయం కోసం ప్రత్యేక సంకల్పం మరియు పరిహార
-                    సూచనలు.</p>
+                <h3 class="telugu">వ్యక్తిగత సంకల్పం</h3>
+                <p class="telugu">మీ కుటుంబ శ్రేయస్సు కోసం ప్రత్యేక సంకల్పాలు. దైవ కృపతో మీ ప్రయత్నాలకు బలాన్ని
+                    చేకూర్చుకోండి.</p>
             </div>
 
             <div class="feature-card">
                 <div class="feature-icon">🍚</div>
-                <h3 class="telugu">అన్నదాన సేవ</h3>
-                <!-- <div class="telugu-title telugu">అన్నదాన సేవ</div> -->
-                <p class="telugu">మీరు చేసే ప్రతి 'త్యాగం' (Payment) 100% పేదలకు అన్నదానం కోసం వినియోగించబడుతుంది.
-                    నమ్మకమే మా పునాది.</p>
+                <h3 class="telugu">మానవ సేవ</h3>
+                <p class="telugu">మీరు అందించే ప్రతి సహకారం అన్నదానం కోసం. ఇది కేవలం సేవ మాత్రమే కాదు, సామాజిక బాధ్యత.
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- How It Works -->
-    <section class="how-it-works">
+    <!-- Journey: Simple. Secure. Sacred. -->
+    <section class="how-it-works" style="background: var(--bg-pure); color: var(--text-main); border: none;">
         <div class="section-title">
-            <h2 class="telugu">సులభమైన విధానం</h2>
-            <p class="telugu">ఎటువంటి యాప్ డౌన్లోడ్ అవసరం లేదు - కేవలం 2 నిమిషాల్లో</p>
+            <h2 class="telugu">కేవలం మూడు నిమిషాల్లో</h2>
+            <p class="telugu">ఎటువంటి యాప్ అవసరం లేదు. అంతా మీ వాట్సాప్ లోనే.</p>
         </div>
 
         <div class="steps">
             <div class="step">
-                <div class="step-number">1</div>
-                <h3 class="telugu">వాట్సాప్ లో పలకరించండి</h3>
-                <p class="telugu">మా నంబర్ కు మెసేజ్ చేయండి మరియు మీ ఆధ్యాత్మిక ప్రయాణాన్ని ప్రారంభించండి</p>
+                <div class="step-number" style="background: var(--bg-canvas); color: var(--text-main);">1</div>
+                <h3 class="telugu">ప్రారంభించండి</h3>
+                <p class="telugu" style="color: var(--text-soft);">వాట్సాప్ లో మెసేజ్ చేయండి</p>
             </div>
 
             <div class="step">
-                <div class="step-number">2</div>
+                <div class="step-number" style="background: var(--bg-canvas); color: var(--text-main);">2</div>
                 <h3 class="telugu">వివరాలు ఇవ్వండి</h3>
-                <p class="telugu">మీ రాశి, ఇష్ట దైవం మరియు మీకు నచ్చిన శుభ దినాన్ని కేవలం రెండు నిమిషాల్లో ఎంచుకోండి</p>
+                <p class="telugu" style="color: var(--text-soft);">మీ రాశి మరియు దైవాన్ని ఎంచుకోండి</p>
             </div>
 
             <div class="step">
-                <div class="step-number">3</div>
-                <h3 class="telugu">దైవ అనుగ్రహం పొందండి</h3>
-                <p class="telugu">ప్రతి రోజూ ఉదయం నిత్య రాశిఫలాలు మరియు మీరు కోరుకున్న రోజున సంకల్పం పూర్తి చేసుకోండి
-                </p>
+                <div class="step-number" style="background: var(--bg-canvas); color: var(--text-main);">3</div>
+                <h3 class="telugu">బలాన్ని పొందండి</h3>
+                <p class="telugu" style="color: var(--text-soft);">రోజూ ఉదయం దైవ కృపను స్వీకరించండి</p>
             </div>
         </div>
     </section>
@@ -919,88 +1053,55 @@
         <span>లోకాః సమస్తాః సుఖినో భవంతు</span>
     </div>
 
-    <!-- Pricing Section -->
+    <!-- Offerings: Gratitude in Action -->
     <section class="pricing">
         <div class="section-title">
-            <h2 class="telugu">సేవా విభాగాలు</h2>
-            <p class="telugu">మీ సంకల్పానికి తగిన స్థాయిని ఎంచుకోండి. మానవ సేవయే మాధవ సేవ.</p>
-            <p class="telugu" style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">* దక్షిణ అమెరికా డాలర్లలో ($)
-            </p>
+            <h2 class="telugu">కృతజ్ఞతా సమర్పణ</h2>
+            <p class="telugu">మీ సంకల్పం - ప్రపంచానికి సహాయం. మానవ సేవయే మాధవ సేవ.</p>
         </div>
 
         <div class="pricing-grid">
             <div class="pricing-card">
-                <h3 class="telugu">ధార్మిక సంకల్పం</h3>
-                <!-- <div class="telugu-name telugu">Dharmika</div> -->
-                <div class="price">$21 <span class="telugu">/ సేవ</span></div>
-                <ul>
-                    <li class="telugu"><strong>10 కుటుంబాలకు అన్నదానం</strong></li>
-                    <li class="telugu">సామూహిక అన్నదాన సేవ</li>
-                    <li class="telugu">డిజిటల్ ప్రసాదం (రసీదు)</li>
-                </ul>
+                <h2 class="telugu">ధార్మిక</h2>
+                <div class="price">$21</div>
+                <p class="telugu">10 కుటుంబాలకు అన్నదానం</p>
+                <a href="https://wa.me/919035264326?text=Om+Namo+Narayanaya" class="hero-cta">సమర్పించండి</a>
             </div>
 
             <div class="pricing-card popular">
-                <h3 class="telugu">పుణ్య వృద్ధి</h3>
-                <!-- <div class="telugu-name telugu">Punya Vriddhi</div> -->
-                <div class="price">$51 <span class="telugu">/ సేవ</span></div>
-                <ul>
-                    <li class="telugu"><strong>25 కుటుంబాలకు అన్నదానం</strong></li>
-                    <li class="telugu">ప్రత్యేక అన్నదానం</li>
-                    <li class="telugu">వీడియో రూపంలో ఆశీర్వచనం</li>
-                </ul>
+                <h2 class="telugu">పుణ్య వృద్ధి</h2>
+                <div class="price">$51</div>
+                <p class="telugu">25 కుటుంబాలకు అన్నదానం + ఆశీర్వచనం</p>
+                <a href="https://wa.me/919035264326?text=Om+Namo+Narayanaya" class="hero-cta">సమర్పించండి</a>
             </div>
 
             <div class="pricing-card">
-                <h3 class="telugu">విశేష సంకల్పం</h3>
-                <!-- <div class="telugu-name telugu">Visesha Sankalp</div> -->
-                <div class="price">$81 <span class="telugu">/ సేవ</span></div>
-                <ul>
-                    <li class="telugu"><strong>40 కుటుంబాలకు అన్నదానం</strong></li>
-                    <li class="telugu">ప్రత్యేక అన్నదానం + గోత్రం</li>
-                    <li class="telugu">వీడియో ఆశీర్వచనం</li>
-                </ul>
-            </div>
-
-            <div class="pricing-card">
-                <h3 class="telugu">మహా సంకల్పం</h3>
-                <!-- <div class="telugu-name telugu">Maha Sankalp</div> -->
-                <div class="price">$108 <span class="telugu">/ సేవ</span></div>
-                <ul>
-                    <li class="telugu"><strong>50 కుటుంబాలకు అన్నదానం</strong></li>
-                    <li class="telugu">కుటుంబం మొత్తానికి గోత్రనామాలతో పూజ</li>
-                    <li class="telugu">ప్రత్యేక ప్రసాదం & వీడియో</li>
-                </ul>
+                <h2 class="telugu">మహా సంకల్పం</h2>
+                <div class="price">$108</div>
+                <p class="telugu">50 కుటుంబాలకు అన్నదానం + పూజ</p>
+                <a href="https://wa.me/919035264326?text=Om+Namo+Narayanaya" class="hero-cta">సమర్పించండి</a>
             </div>
         </div>
     </section>
 
-    <!-- Trust Section -->
+    <!-- Trust: Radical Transparency -->
     <section class="trust-section">
-        <div class="divine-divider" style="margin: 0 auto 2rem;">
-            <span>సత్య ప్రమాణం</span>
-        </div>
-        <div class="trust-badge-icon">⚖️</div>
-        <h2 class="trust-title">ధర్మ రక్షణే మా కర్తవ్యం</h2>
-        <p class="trust-text">
-            శుభమస్తు ద్వారా మీరు చేసే ప్రతి రూపాయి (100%) నేరుగా అన్నదానానికి మరియు గోసేవకు వినియోగించబడుతుంది.
-            ఇది మా <strong style="color: var(--accent);">సత్య ప్రమాణం</strong>. మా లావాదేవీలన్నీ పారదర్శకం.
+        <h2 class="trust-title telugu">సుదర్శన ప్రమాణం</h2>
+        <p class="trust-text telugu">
+            శుభమస్తు ద్వారా మీరు చేసే ప్రతి రూపాయి 100% నేరుగా సేవకు వినియోగించబడుతుంది.
+            ఇది మా <strong>సత్య ప్రమాణం</strong>.
         </p>
     </section>
 
     <!-- Footer -->
-    <footer>
-        <div class="footer-logo"><span class="telugu">శుభమస్తు</span></div>
-        <p class="footer-tagline telugu">తెలుగు కుటుంబాలకు ధార్మిక మార్గదర్శి 🙏</p>
-
+    <footer style="background: var(--bg-canvas); color: var(--text-soft); padding: 4rem 2rem;">
+        <div class="footer-logo" style="color: var(--text-main); font-weight: 700;">శుభమస్తు</div>
         <div class="footer-links">
-            <a href="#" class="telugu">మా గురించి</a>
-            <a href="#" class="telugu">గోప్యతా విధానం</a>
-            <a href="#" class="telugu">నిబంధనలు</a>
-            <a href="mailto:hello@subhamasthu.com" class="telugu">సంప్రదించండి</a>
+            <a href="#" style="color: var(--text-soft);">మా గురించి</a>
+            <a href="#" style="color: var(--text-soft);">గోప్యతా విధానం</a>
+            <a href="#" style="color: var(--text-soft);">నిబంధనలు</a>
         </div>
-
-        <p class="copyright telugu">© 2026 శుభమస్తు. ప్రవాస తెలుగు కుటుంబాల కోసం ప్రేమతో ❤️ రూపొందించబడింది.</p>
+        <p class="copyright">© 2026 శుభమస్తు. ప్రవాస తెలుగు కుటుంబాల కోసం ప్రేమతో రూపొందించబడింది.</p>
     </footer>
 
     <script>
@@ -1015,62 +1116,43 @@
             });
         });
 
-        // Refined Navbar background on scroll
+        // Refined Navbar - Apple Minimalist
         window.addEventListener('scroll', () => {
             const nav = document.querySelector('nav');
             if (window.scrollY > 80) {
-                nav.style.background = 'rgba(255, 250, 240, 0.98)';
-                nav.style.boxShadow = '0 10px 30px rgba(93, 16, 16, 0.1)';
-                nav.style.borderBottom = '1px solid var(--accent)';
+                nav.style.background = 'rgba(245, 245, 247, 0.95)'; // Ceramic White
+                nav.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.04)';
             } else {
-                nav.style.background = 'var(--header-bg)';
-                nav.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
-                nav.style.borderBottom = '2px solid var(--accent)';
+                nav.style.background = 'var(--glass-bg)';
+                nav.style.boxShadow = 'none';
             }
         });
 
-        // Staggered Reveal Animations - Class Apart
+        // Reveal Animations - Fluid Physical-like Motion
         const observerOptions = {
-            threshold: 0.15,
-            rootMargin: '0px 0px -100px 0px'
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
         };
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry, index) => {
                 if (entry.isIntersecting) {
-                    // Slight delay for staggered effect
                     setTimeout(() => {
                         entry.target.style.opacity = '1';
                         entry.target.style.transform = 'translateY(0) scale(1)';
                         entry.target.style.filter = 'blur(0)';
-                    }, index * 100);
+                    }, index * 80);
+                    observer.unobserve(entry.target);
                 }
             });
         }, observerOptions);
 
-        document.querySelectorAll('.feature-card, .pricing-card, .step, .section-title').forEach(el => {
+        document.querySelectorAll('.feature-card, .pricing-card, .step, .section-title, .hero-content').forEach(el => {
             el.style.opacity = '0';
-            el.style.transform = 'translateY(50px) scale(0.98)';
-            el.style.filter = 'blur(10px)';
-            el.style.transition = 'all 1.2s cubic-bezier(0.19, 1, 0.22, 1)';
+            el.style.transform = 'translateY(40px) scale(0.98)';
+            el.style.filter = 'blur(15px)';
+            el.style.transition = 'all 1s cubic-bezier(0.23, 1, 0.32, 1)';
             observer.observe(el);
-        });
-
-        // Hero Parallax Effect
-        window.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5) * 20;
-            const y = (e.clientY / window.innerHeight - 0.5) * 20;
-
-            document.querySelectorAll('.floating-om').forEach((om, i) => {
-                const factor = (i + 1) * 0.5;
-                om.style.transform = `translate(${x * factor}px, ${y * factor}px) rotate(${x * 0.2}deg)`;
-            });
-
-            const aura = document.querySelector('.aura');
-            if (aura) {
-                aura.style.left = `${e.clientX - 300}px`;
-                aura.style.top = `${e.clientY - 300}px`;
-            }
         });
     </script>
 </body>
