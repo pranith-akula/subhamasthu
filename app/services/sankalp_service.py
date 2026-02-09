@@ -422,7 +422,17 @@ class SankalpService:
     async def send_free_path_completion(self, user: User, category: SankalpCategory) -> bool:
         """Send completion message for users who chose Pariharam only (no payment)."""
         deity = getattr(user, 'preferred_deity', 'other') or 'other'
-        deity_telugu = DEITY_TELUGU.get(deity, "భగవంతుడు")
+        
+        # Safe conversion to Telugu deity name
+        try:
+            if hasattr(deity, 'telugu_name'):
+                deity_telugu = deity.telugu_name
+            else:
+                # Try to lookup enum from string
+                deity_telugu = Deity(str(deity)).telugu_name
+        except:
+            deity_telugu = "భగవంతుడు"
+        
         name = user.name or "భక్తులు"
         
         message = f"""🙏 {name} గారు,
