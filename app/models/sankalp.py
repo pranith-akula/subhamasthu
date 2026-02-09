@@ -104,6 +104,21 @@ class Sankalp(Base):
         nullable=True,
     )
     
+    # === Post-Conversion Engagement Chain ===
+    
+    # Current follow-up day (0=complete, 3=day3 pending, 7=day7 pending)
+    follow_up_day: Mapped[int] = mapped_column(
+        default=0,
+        nullable=False,
+    )
+    
+    # Next scheduled follow-up
+    next_follow_up_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        index=True,
+    )
+    
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

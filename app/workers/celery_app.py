@@ -17,6 +17,7 @@ celery_app = Celery(
         "app.workers.weekly_sankalp",
         "app.workers.hourly_nurture",
         "app.workers.weekly_impact",
+        "app.workers.follow_up",
     ],
 )
 
@@ -55,4 +56,10 @@ celery_app.conf.beat_schedule = {
         "task": "app.workers.weekly_impact.send_weekly_impact_summary",
         "schedule": crontab(hour=10, minute=0, day_of_week=0),  # Sunday
     },
+    # Post-conversion follow-ups every hour
+    "hourly-follow-ups": {
+        "task": "app.workers.follow_up.process_follow_ups",
+        "schedule": crontab(minute=30, hour="*"),  # Every hour at :30
+    },
 }
+
