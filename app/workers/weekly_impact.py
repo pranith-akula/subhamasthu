@@ -74,21 +74,45 @@ async def _send_weekly_summary():
                 personal = await impact_service.get_user_impact(user.id)
                 personal_meals = personal["lifetime_meals"]
                 
+                # === IDENTITY ESCALATION based on devotional cycle ===
+                cycle = getattr(user, 'devotional_cycle_number', 1) or 1
+                
+                if cycle >= 3:
+                    identity_suffix = "\n\nYou are among our committed devotees. 🙏"
+                elif cycle >= 2:
+                    identity_suffix = "\n\nYou are part of our core circle."
+                else:
+                    identity_suffix = ""
+                
                 # Send template with scoreboard + personal count
-                # Template params: [devotees, meals, cities, personal_meals]
+                # Template params: [devotees, meals, cities, personal_meals, identity_suffix]
+                # Note: If template doesn't support 5th param, suffix is ignored
+                params = [
+                    str(devotees),
+                    str(meals),
+                    str(cities),
+                    str(personal_meals),
+                ]
+                
                 await whatsapp.send_template_message(
                     phone=user.phone,
                     template_id="weekly_impact_summary",
-                    params=[
-                        str(devotees),
-                        str(meals),
-                        str(cities),
-                        str(personal_meals),
-                    ]
+                    params=params
                 )
+                
+                # If identity suffix exists and template doesn't support it,
+                # send a follow-up message
+                if identity_suffix and personal_meals > 0:
+                    cumulative_msg = f"🙏 Your journey continues. Since your first Sankalp, you have supported {personal_meals} families.{identity_suffix}"
+                    await whatsapp.send_text_message(
+                        phone=user.phone,
+                        message=cumulative_msg
+                    )
+                
                 sent += 1
                 
             except Exception as e:
                 logger.error(f"Failed to send summary to {user.phone}: {e}")
         
         return {"sent": sent, "total_users": len(users)}
+

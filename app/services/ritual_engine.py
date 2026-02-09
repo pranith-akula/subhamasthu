@@ -44,6 +44,26 @@ class EventType(str, Enum):
     IMPACT_VIEW = "IMPACT_VIEW"
 
 
+class SankalpIntensity(str, Enum):
+    """
+    Progressive sankalp intensity based on cycle and behavior.
+    
+    Cycle 1: GENTLE (Week 1), STRONG (Week 4)
+    Cycle 2: MEDIUM (Week 1), MAHA (Week 4)
+    Cycle 3+: LEADERSHIP (Week 1), COLLECTIVE (Week 4)
+    Week 2: LIGHT (all cycles)
+    Week 3: SILENT (all cycles)
+    """
+    GENTLE = "GENTLE"           # Cycle 1, Week 1 - Soft invitation
+    STRONG = "STRONG"           # Cycle 1, Week 4 - Clear value proposition
+    MEDIUM = "MEDIUM"           # Cycle 2, Week 1 - Deeper connection
+    MAHA = "MAHA"               # Cycle 2, Week 4 - Elevated collective
+    LEADERSHIP = "LEADERSHIP"   # Cycle 3+, Week 1 - Core circle framing
+    COLLECTIVE = "COLLECTIVE"   # Cycle 3+, Week 4 - Anchoring community
+    LIGHT = "LIGHT"             # Week 2 (all cycles) - Light blessing
+    SILENT = "SILENT"           # Week 3 (all cycles) - Wisdom, no ask
+
+
 class RitualOrchestrator:
     """
     Unified orchestrator for ritual lifecycle.
@@ -133,21 +153,103 @@ class RitualOrchestrator:
         return base_time + timedelta(minutes=jitter_minutes)
     
     @staticmethod
+    def is_in_cooldown(user: User) -> bool:
+        """Check if user is in 168-hour (7-day) cooldown from last paid Sankalp."""
+        if not user.last_sankalp_at:
+            return False
+        
+        hours_since = (datetime.now(ZoneInfo("UTC")) - user.last_sankalp_at).total_seconds() / 3600
+        return hours_since < 168  # 7 days
+    
+    @staticmethod
     def increment_cycle_day(user: User) -> int:
         """
         Increment ritual cycle day (1-28, wraps around).
         Also updates ritual_phase based on new day.
+        
+        CRITICAL: Increments devotional_cycle_number on wrap-around (28→1)
+        but CAPS at 4 to prevent infinite growth.
         
         Returns: New cycle day
         """
         new_day = user.ritual_cycle_day + 1
         if new_day > 28:
             new_day = 1
+            # INCREMENT DEVOTIONAL CYCLE (capped at 4)
+            current_cycle = user.devotional_cycle_number or 1
+            if current_cycle < 4:
+                user.devotional_cycle_number = current_cycle + 1
         
         user.ritual_cycle_day = new_day
         user.ritual_phase = RitualOrchestrator.get_ritual_phase(new_day).value
         
         return new_day
+    
+    def get_sankalp_intensity(self, user: User) -> SankalpIntensity:
+        """
+        Get sankalp message intensity based on:
+        1. Devotional cycle (1-4)
+        2. Ritual week (1-4)
+        3. Behavior (has paid before?)
+        4. Cooldown status
+        
+        This is the core progressive messaging logic.
+        """
+        week = self.get_ritual_week(user.ritual_cycle_day)
+        cycle = user.devotional_cycle_number or 1
+        has_paid = (user.total_sankalps_count or 0) > 0
+        
+        # Week 2 & 3 are always the same - no ask
+        if week == 2:
+            return SankalpIntensity.LIGHT
+        elif week == 3:
+            return SankalpIntensity.SILENT
+        
+        # If in cooldown, downgrade to LIGHT (never send strong ask if blocked)
+        if self.is_in_cooldown(user):
+            return SankalpIntensity.LIGHT
+        
+        # Week 1 & 4 depend on cycle and behavior
+        base_intensity = self._get_base_intensity(cycle, week)
+        
+        # BEHAVIOR MODIFIER: Downgrade intensity if user never converted
+        if not has_paid:
+            base_intensity = self._downgrade_intensity(base_intensity)
+        
+        return base_intensity
+    
+    def _get_base_intensity(self, cycle: int, week: int) -> SankalpIntensity:
+        """Get base intensity from cycle and week matrix."""
+        if week == 1:
+            if cycle == 1:
+                return SankalpIntensity.GENTLE
+            elif cycle == 2:
+                return SankalpIntensity.MEDIUM
+            else:  # cycle >= 3
+                return SankalpIntensity.LEADERSHIP
+        else:  # week == 4
+            if cycle == 1:
+                return SankalpIntensity.STRONG
+            elif cycle == 2:
+                return SankalpIntensity.MAHA
+            else:  # cycle >= 3
+                return SankalpIntensity.COLLECTIVE
+    
+    def _downgrade_intensity(self, intensity: SankalpIntensity) -> SankalpIntensity:
+        """
+        Downgrade intensity by one level if user has never paid.
+        
+        Never call someone "core devotee" if they've never converted.
+        """
+        downgrade_map = {
+            SankalpIntensity.LEADERSHIP: SankalpIntensity.MEDIUM,
+            SankalpIntensity.COLLECTIVE: SankalpIntensity.MAHA,
+            SankalpIntensity.MEDIUM: SankalpIntensity.GENTLE,
+            SankalpIntensity.MAHA: SankalpIntensity.STRONG,
+            SankalpIntensity.STRONG: SankalpIntensity.GENTLE,
+            SankalpIntensity.GENTLE: SankalpIntensity.GENTLE,  # No further downgrade
+        }
+        return downgrade_map.get(intensity, intensity)
     
     @staticmethod
     def reset_monthly_counters(user: User) -> None:

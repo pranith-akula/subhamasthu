@@ -217,6 +217,16 @@ class User(Base):
         nullable=False,
     )
 
+    # === Evolving Devotional System (Phase 4) ===
+    
+    # Persistent devotional cycle (1=Initiation, 2=Deepening, 3=Belonging, 4=Leadership)
+    # Capped at 4 - does not grow forever
+    devotional_cycle_number: Mapped[int] = mapped_column(
+        Integer,
+        default=1,
+        nullable=False,
+    )
+
     # Relationships
     message_logs: Mapped[list["MessageLog"]] = relationship(back_populates="user")
     
