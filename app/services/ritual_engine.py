@@ -283,7 +283,7 @@ class RitualOrchestrator:
             event_type=event_type.value,
             ritual_phase=ritual_phase.value if ritual_phase else None,
             conversion_flag=conversion,
-            metadata=metadata,
+            event_data=metadata,
         )
         self.db.add(event)
         return event

@@ -56,8 +56,8 @@ class RitualEvent(Base):
         nullable=False,
     )
     
-    # Additional metadata (JSON)
-    metadata: Mapped[Optional[Dict[str, Any]]] = mapped_column(
+    # Additional event data (JSON) - named event_data to avoid SQLAlchemy reserved 'metadata'
+    event_data: Mapped[Optional[Dict[str, Any]]] = mapped_column(
         JSON,
         nullable=True,
     )
