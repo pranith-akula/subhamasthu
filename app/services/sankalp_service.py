@@ -913,11 +913,13 @@ class SankalpService:
     def _get_families_fed(self, tier: str) -> int:
         """Get number of families fed based on tier."""
         mapping = {
-            SankalpTier.S15.value: 10,
-            SankalpTier.S30.value: 25,
-            SankalpTier.S50.value: 50,
+            SankalpTier.S15.value: 10,   # $21
+            SankalpTier.S30.value: 25,   # $51
+            SankalpTier.S81.value: 40,   # $81
+            SankalpTier.S50.value: 50,   # $108
         }
         return mapping.get(tier, 10)
+
     
     # === Ritual Cadence Methods (Phase 3) ===
     
