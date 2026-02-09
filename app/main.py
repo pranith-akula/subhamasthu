@@ -134,6 +134,10 @@ app.include_router(
 from app.api.admin.dashboard import router as dashboard_router
 app.include_router(dashboard_router)
 
+# Impact API (Public)
+from app.api.impact import router as impact_router
+app.include_router(impact_router)
+
 # Serve Static Files (Main Website)
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse

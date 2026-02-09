@@ -16,6 +16,7 @@ celery_app = Celery(
         "app.workers.daily_rashiphalalu",
         "app.workers.weekly_sankalp",
         "app.workers.hourly_nurture",
+        "app.workers.weekly_impact",
     ],
 )
 
@@ -48,5 +49,10 @@ celery_app.conf.beat_schedule = {
     "weekly-sankalp-check": {
         "task": "app.workers.weekly_sankalp.send_weekly_sankalp_prompts",
         "schedule": crontab(hour=7, minute=30),
+    },
+    # Weekly impact summary on Sunday 10:00 AM IST
+    "weekly-impact-summary": {
+        "task": "app.workers.weekly_impact.send_weekly_impact_summary",
+        "schedule": crontab(hour=10, minute=0, day_of_week=0),  # Sunday
     },
 }
