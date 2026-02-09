@@ -22,6 +22,7 @@ from app.models.sankalp import Sankalp
 from app.fsm.states import SankalpCategory, SankalpTier, SankalpStatus, AuspiciousDay, Deity
 from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.user_service import UserService
+from app.services.ritual_engine import RitualOrchestrator, SankalpIntensity
 
 logger = logging.getLogger(__name__)
 
@@ -457,16 +458,90 @@ class SankalpService:
     async def send_tyagam_prompt(self, user: User, category: SankalpCategory) -> bool:
         """
         Stage 4: Sacred Tyagam (Seva).
-        Reframed as 'Annadanam Seva' integers (11, 21, 51 meals).
-        """
-        message = """🙏 **అన్నదాన మహా యజ్ఞం**
         
+        INTENSITY-AWARE: Message tone adjusts based on user's devotional cycle.
+        - GENTLE: Soft invitation, no pressure
+        - STRONG: Clear value proposition
+        - MEDIUM: Deeper connection framing
+        - MAHA: Elevated collective positioning
+        - LEADERSHIP: "Join our core circle" framing
+        - COLLECTIVE: "Anchoring this community" language
+        """
+        # Get intensity from RitualOrchestrator
+        orchestrator = RitualOrchestrator(self.db)
+        intensity = orchestrator.get_sankalp_intensity(user)
+        
+        # Build cumulative impact reference
+        total_sankalps = user.total_sankalps_count or 0
+        cycle = user.devotional_cycle_number or 1
+        
+        # Intensity-aware message variations
+        if intensity == SankalpIntensity.GENTLE:
+            # Cycle 1, Week 1: Soft first-time invitation
+            message = """🙏 **మీ మొదటి అన్నదాన సేవ**
+            
+మీరు కోరుకున్న సంకల్పం కోసం, ఆకలితో ఉన్న వారికి ఆహారం అందించడం అత్యంత పుణ్యకరం.
+
+"మానవ సేవయే మాధవ సేవ"
+
+మీరు ఎంత మందికి భోజనం అందించాలనుకుంటున్నారు?"""
+
+        elif intensity == SankalpIntensity.STRONG:
+            # Cycle 1, Week 4: Clear value proposition
+            message = """🙏 **అన్నదాన మహా యజ్ఞం**
+            
+మీ సంకల్పం బలపడాలంటే, త్యాగం అవసరం.
+గత వారంలో 127 కుటుంబాలకు భోజనం అందించాము.
+
+మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
+
+        elif intensity == SankalpIntensity.MEDIUM:
+            # Cycle 2, Week 1: Deeper connection
+            impact_msg = f"మీరు ఇప్పటివరకు {total_sankalps} సంకల్పాలు పూర్తి చేశారు." if total_sankalps > 0 else ""
+            message = f"""🙏 **మీ యాత్ర కొనసాగుతోంది**
+            
+{impact_msg}
+మీ సంకల్పం మరింత బలంగా నిలబడాలంటే, సేవ ద్వారా శక్తి వస్తుంది.
+
+మీరు ఎంత మందికి భోజనం అందించాలనుకుంటున్నారు?"""
+
+        elif intensity == SankalpIntensity.MAHA:
+            # Cycle 2, Week 4: Elevated collective
+            message = f"""🙏 **మహా సంకల్ప సేవ**
+            
+మీరు ఇప్పటివరకు {total_sankalps} సంకల్పాలతో మార్గదర్శకంగా నిలిచారు.
+ఈ వారం మనం కలిసి 500 కుటుంబాలకు చేరుకోవాలనుకుంటున్నాము.
+
+మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
+
+        elif intensity == SankalpIntensity.LEADERSHIP:
+            # Cycle 3+, Week 1: Core circle
+            message = f"""🙏 **ప్రియమైన భక్తులారా**
+            
+మీరు మా ప్రధాన భక్తుల బృందంలో భాగం. {total_sankalps} సంకల్పాలతో ఎంతో మందికి ఆశ్రయం కల్పించారు.
+
+ఈ వారం కూడా మీ సేవ కొనసాగించండి.
+
+మీరు ఎంత మందికి భోజనం అందించాలనుకుంటున్నారు?"""
+
+        elif intensity == SankalpIntensity.COLLECTIVE:
+            # Cycle 3+, Week 4: Anchoring community
+            message = f"""🙏 **మహా సమష్టి సేవ**
+            
+మీరు మా కమ్యూనిటీకి స్తంభంగా నిలిచారు. {total_sankalps} సంకల్పాలతో వందల కుటుంబాలకు ఆధారంగా ఉన్నారు.
+
+ఈ మహా సేవలో మీ భాగస్వామ్యం చాలా అర్థవంతం.
+
+మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
+
+        else:
+            # Default / LIGHT / SILENT (should not reach here for tyagam)
+            message = """🙏 **అన్నదాన మహా యజ్ఞం**
+            
 మీ సంకల్పం బలపడాలంటే, త్యాగం అవసరం.
 "మానవ సేవయే మాధవ సేవ"
 
-మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?
-
-(ఈ సేవ ద్వారా మీ సంకల్పం సిద్ధిస్తుంది)"""
+మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
         
         # Reframed Tiers: Meals instead of just currency
         buttons = [
