@@ -17,24 +17,28 @@
 
     <style>
         :root {
-            --primary: #FF5722;
-            /* Deep Saffron */
-            --primary-dark: #BF360C;
+            --primary: #D84315;
+            /* Saffron Red */
+            --primary-dark: #8B0000;
+            /* Deity Red */
             --secondary: #FFD700;
             /* Gold */
-            --accent: #FFC107;
+            --accent: #FFAB00;
             /* Amber */
-            --dark: #1A0505;
-            /* Deep Temple Maroon */
-            --dark-light: #2D0A0A;
-            --text: #4E342E;
-            /* Brownish Text */
-            --text-light: #795548;
+            --dark: #3E2723;
+            /* Sacred Brown */
+            --dark-light: #5D4037;
+            --text: #263238;
+            /* Clear Dark Text */
+            --text-light: #4E342E;
             --white: #FFFFFF;
-            --bg-cream: #FFFDE7;
+            --bg-sacred: #FFF8E1;
+            /* Luminous Cream */
+            --bg-pure: #FFFFFF;
             --gradient-warm: linear-gradient(135deg, #FF5722 0%, #FF8F00 50%, #FFD700 100%);
-            --gradient-divine: radial-gradient(circle at center, #4A0000 0%, #1A0000 100%);
-            --glow: 0 0 15px rgba(255, 215, 0, 0.6);
+            --gradient-divine: linear-gradient(180deg, #FFF8E1 0%, #FFFDE7 100%);
+            --glow: 0 0 15px rgba(216, 67, 21, 0.4);
+            --header-bg: rgba(255, 248, 225, 0.95);
         }
 
         * {
@@ -45,7 +49,7 @@
 
         body {
             font-family: 'Noto Sans Telugu', 'Outfit', sans-serif;
-            background: var(--bg-cream);
+            background: var(--bg-sacred);
             color: var(--text);
             overflow-x: hidden;
             line-height: 1.6;
@@ -145,16 +149,14 @@
             right: 0;
             z-index: 1000;
             padding: 0.5rem 1.5rem;
-            /* Reduced padding */
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(180deg, rgba(26, 5, 5, 0.98) 0%, rgba(55, 10, 10, 0.95) 100%);
+            background: var(--header-bg);
             backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-bottom: 2px solid var(--secondary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             height: 70px;
-            /* Explicit height control */
         }
 
         .logo {
@@ -177,10 +179,9 @@
         }
 
         .logo-text {
-            color: var(--white);
-            font-size: 1.4rem;
-            /* Smaller text */
-            font-weight: 700;
+            color: var(--primary-dark);
+            font-size: 1.5rem;
+            font-weight: 800;
             font-family: 'Noto Serif Telugu', serif;
             letter-spacing: 0.5px;
         }
@@ -265,7 +266,7 @@
         .hero h1 {
             font-size: clamp(2.5rem, 6vw, 4.5rem);
             font-weight: 800;
-            color: var(--white);
+            color: var(--primary-dark);
             line-height: 1.2;
             margin-bottom: 1rem;
         }
@@ -280,10 +281,11 @@
 
         .hero p {
             font-size: 1.25rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--dark);
             max-width: 600px;
             margin: 0 auto 2rem;
             line-height: 1.8;
+            font-weight: 500;
         }
 
         .hero-cta {
@@ -331,7 +333,8 @@
 
         .stat-label {
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-light);
+            font-weight: 600;
         }
 
         /* Features Section */
@@ -844,19 +847,20 @@
             <div class="step">
                 <div class="step-number">1</div>
                 <h3 class="telugu">వాట్సాప్ లో పలకరించండి</h3>
-                <p class="telugu">మా నంబర్ కు మెసేజ్ చేయండి మరియు త్వరిత ఆన్-బోర్డింగ్ పూర్తి చేయండి</p>
+                <p class="telugu">మా నంబర్ కు మెసేజ్ చేయండి మరియు మీ ఆధ్యాత్మిక ప్రయాణాన్ని ప్రారంభించండి</p>
             </div>
 
             <div class="step">
                 <div class="step-number">2</div>
-                <h3 class="telugu">రాశి ఎంచుకోండి</h3>
-                <p class="telugu">మీ రాశి, ఇష్ట దైవం మరియు మీకు నచ్చిన శుభ దినాన్ని ఎంచుకోండి</p>
+                <h3 class="telugu">వివరాలు ఇవ్వండి</h3>
+                <p class="telugu">మీ రాశి, ఇష్ట దైవం మరియు మీకు నచ్చిన శుభ దినాన్ని కేవలం రెండు నిమిషాల్లో ఎంచుకోండి</p>
             </div>
 
             <div class="step">
                 <div class="step-number">3</div>
                 <h3 class="telugu">దైవ అనుగ్రహం పొందండి</h3>
-                <p class="telugu">ప్రతి రోజూ ఉదయం రాశిఫలాలు మరియు మీ శుభ దినాన సంకల్పం చేసుకోండి</p>
+                <p class="telugu">ప్రతి రోజూ ఉదయం నిత్య రాశిఫలాలు మరియు మీరు కోరుకున్న రోజున సంకల్పం పూర్తి చేసుకోండి
+                </p>
             </div>
         </div>
     </section>
