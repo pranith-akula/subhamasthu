@@ -62,11 +62,11 @@ class SevaExecution(Base):
         default=0,
     )
     
-    # Status tracking
+    # Status tracking - use PostgreSQL ENUM type
     status: Mapped[str] = mapped_column(
-        String(20),
+        ENUM('pending', 'executed', 'verified', name='seva_execution_status', create_type=False),
         nullable=False,
-        default=SevaExecutionStatus.PENDING.value,
+        default='pending',
     )
     
     # Execution timestamp
