@@ -861,6 +861,14 @@ class FSMMachine:
     
     async def _handle_payment_pending(self, text: str, button_payload: Optional[str]) -> None:
         """Handle messages while payment is pending."""
+        if button_payload:
+            if button_payload in ["FREQ_MONTHLY", "FREQ_ONETIME"]:
+                await self._handle_frequency_selection(text, button_payload)
+                return
+            if button_payload.startswith("TIER_"):
+                await self._handle_tier_selection(text, button_payload)
+                return
+
         await self.whatsapp.send_text_message(
             phone=self.user.phone,
             message="🙏 సేవా సమర్పణ జరుగుతోంది. దయచేసి వేచి ఉండండి. త్వరలో నిర్ధారణ వస్తుంది. 🙏",
