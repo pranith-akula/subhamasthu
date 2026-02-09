@@ -553,18 +553,24 @@ class SankalpService:
 
 మీరు ఎంత మందికి అన్నదానం చేయాలనుకుంటున్నారు?"""
         
-        # Reframed Tiers: Meals instead of just currency
-        buttons = [
-            {"id": SankalpTier.S15.value, "title": "10 మందికి ($21)"},
-            {"id": SankalpTier.S30.value, "title": "25 మందికి ($51)"},
-            {"id": SankalpTier.S81.value, "title": "40 మందికి ($81)"},
-            {"id": SankalpTier.S50.value, "title": "50 మందికి ($108)"},
+        # Use List Message (supports 10+ items) instead of buttons (max 3)
+        sections = [
+            {
+                "title": "సేవా ఎంపికలు",
+                "rows": [
+                    {"id": SankalpTier.S15.value, "title": "10 మందికి ($21)", "description": "ధార్మిక సేవ"},
+                    {"id": SankalpTier.S30.value, "title": "25 మందికి ($51)", "description": "పుణ్య వృద్ధి సేవ"},
+                    {"id": SankalpTier.S81.value, "title": "40 మందికి ($81)", "description": "విశేష సంకల్ప సేవ"},
+                    {"id": SankalpTier.S50.value, "title": "50 మందికి ($108)", "description": "మహా సంకల్ప సేవ"},
+                ]
+            }
         ]
         
-        msg_id = await self.whatsapp.send_button_message_with_menu(
+        msg_id = await self.whatsapp.send_list_message(
             phone=user.phone,
             body_text=message,
-            buttons=buttons,
+            button_text="సేవ ఎంచుకోండి",
+            sections=sections,
             footer="ధర్మం రక్షతి రక్షితః",
         )
         
@@ -575,6 +581,7 @@ class SankalpService:
             return True
         
         return False
+
     
     async def send_frequency_prompt(self, user: User, tier: SankalpTier) -> bool:
         """
