@@ -285,6 +285,44 @@ class SankalpService:
         
         return True
     
+    async def send_direct_annadanam_tiers(self, user: User) -> bool:
+        """
+        Direct Annadanam - Skip Sankalp ritual, go straight to tier selection.
+        
+        This provides a quick path for users who just want to donate
+        without going through the full Sankalp ritual flow.
+        """
+        message = """🍚 **అన్నదాన మహా యజ్ఞం**
+
+"అన్నదానం పరమో దానం"
+భోజనం అందించడం సర్వశ్రేష్ఠమైన దానం.
+
+ఎంత మందికి భోజనం అందించాలనుకుంటున్నారు?"""
+        
+        # Use List Message (supports 4+ items)
+        sections = [
+            {
+                "title": "సేవా ఎంపికలు",
+                "rows": [
+                    {"id": SankalpTier.S15.value, "title": "10 మందికి ($21)", "description": "ధార్మిక సేవ"},
+                    {"id": SankalpTier.S30.value, "title": "25 మందికి ($51)", "description": "పుణ్య వృద్ధి"},
+                    {"id": SankalpTier.S81.value, "title": "40 మందికి ($81)", "description": "విశేష సంకల్పం"},
+                    {"id": SankalpTier.S50.value, "title": "50 మందికి ($108)", "description": "మహా సంకల్పం"},
+                ]
+            }
+        ]
+        
+        msg_id = await self.whatsapp.send_list_message(
+            phone=user.phone,
+            body_text=message,
+            button_text="సేవ ఎంచుకోండి",
+            sections=sections,
+            footer="ధర్మం రక్షతి రక్షితః",
+        )
+        
+        return msg_id is not None
+
+
     async def frame_sankalp(self, user: User, category: SankalpCategory) -> str:
         """
         Step 2: సంకల్పం (Sankalp) - Generate formal sankalp statement.

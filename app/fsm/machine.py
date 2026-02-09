@@ -559,20 +559,39 @@ class FSMMachine:
         triggers = ["om namo narayanaya", "ఓం నమో నారాయణాయ", "subhamasthu", "శుభమస్తు", "hi", "hello", "నమస్కారం"]
         
         if any(t in clean_text for t in triggers):
-            # Send Main Menu
+            # Send Main Menu with Direct Annadanam option
             await self.whatsapp.send_button_message(
                 phone=self.user.phone,
-                body_text="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తుకు స్వాగతం. మీరు ఎలా ముందుకు వెళ్లాలనుకుంటున్నారు?",
+                body_text="🙏 ఓం నమో నారాయణాయ!\n\nశుభమస్తుకు స్వాగతం. మీరు ఎలా సేవ చేయాలనుకుంటున్నారు?",
                 buttons=[
-                    {"id": "CMD_MY_SEVA", "title": "నా సేవలు"},
-                    {"id": "CMD_SANKALP", "title": "కొత్త సంకల్పం"},
-                    {"id": "CMD_INVITE", "title": "స్నేహితులను ఆహ్వానించండి"},
+                    {"id": "CMD_ANNADANAM", "title": "🍚 అన్నదానం"},
+                    {"id": "CMD_SANKALP", "title": "🙏 సంకల్పం"},
+                    {"id": "CMD_MY_SEVA", "title": "📜 నా సేవలు"},
                 ],
                 footer="శుభమస్తు సేవలు"
             )
             return
 
         # Handle Menu Clicks
+        if button_payload == "CMD_ANNADANAM":
+            # Direct Annadanam - skip Sankalp ritual
+            # Set default category so tier flow works (FAMILY = general blessing)
+            from app.models.conversation import Conversation
+            from sqlalchemy import select
+            result = await self.db.execute(
+                select(Conversation).where(Conversation.user_id == self.user.id)
+            )
+            conversation = result.scalar_one_or_none()
+            if conversation:
+                conversation.set_context("selected_category", SankalpCategory.FAMILY.value)
+                conversation.set_context("is_direct_annadanam", True)
+            
+            sankalp_service = SankalpService(self.db)
+            await sankalp_service.send_direct_annadanam_tiers(self.user)
+            await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_TIER)
+            return
+
+
         if button_payload == "CMD_MY_SEVA":
             await self._handle_history_request()
             return
@@ -594,6 +613,7 @@ class FSMMachine:
             phone=self.user.phone,
             message="🙏 నమస్కారం! మీకు ప్రతిరోజూ రాశిఫలాలు వస్తాయి. సేవల కోసం 'ఓం నమో నారాయణాయ' అని పంపండి.",
         )
+
     
     async def _handle_weekly_prompt(self, text: str, button_payload: Optional[str]) -> None:
         """Handle response to weekly prompt - same as category selection."""
