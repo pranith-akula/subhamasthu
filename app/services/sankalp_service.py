@@ -785,7 +785,7 @@ class SankalpService:
                     # Found it! Cache and return
                     plan_id = plan["id"]
                     self._plan_cache[cache_key] = plan_id
-                    logger.info(f"Found existing plan {plan_id} for {tier_name}")
+                    logger.info(f"Found existing plan {plan_id} for {tier}")
                     return plan_id
             
             # 3. Create New Plan
@@ -802,7 +802,7 @@ class SankalpService:
             
             plan_id = plan["id"]
             self._plan_cache[cache_key] = plan_id
-            logger.info(f"Created new plan {plan_id} for {tier_name}")
+            logger.info(f"Created new plan {plan_id} for {tier}")
             return plan_id
             
         except Exception as e:

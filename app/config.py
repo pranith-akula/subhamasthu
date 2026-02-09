@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     app_env: Literal["development", "staging", "production"] = "development"
     debug: bool = False
     secret_key: str = "dev-secret-change-in-production"
+    app_url: str = "https://subhamasthu.vercel.app"  # Default fallback
     
     # API Server
     host: str = "0.0.0.0"
