@@ -222,14 +222,18 @@ class UserService:
         """Get users whose auspicious day is today and not in cooldown."""
         from datetime import timedelta
         
-        cooldown_cutoff = datetime.utcnow() - timedelta(days=7)
+        # ISO Week Logic: Reset eligibility on Monday
+        # If last_sankalp_at is in previous week (before this week's Monday 00:00), they are eligible.
+        today = datetime.utcnow()
+        start_of_week = today - timedelta(days=today.weekday())
+        start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
         
         result = await self.db.execute(
             select(User)
             .where(User.auspicious_day == day_of_week)
             .where(
                 (User.last_sankalp_at == None) |  # noqa: E711
-                (User.last_sankalp_at < cooldown_cutoff)
+                (User.last_sankalp_at < start_of_week)
             )
             .where(User.state.in_([
                 ConversationState.DAILY_PASSIVE.value,

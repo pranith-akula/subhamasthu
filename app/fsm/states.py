@@ -90,6 +90,7 @@ class SankalpTier(str, Enum):
     
     S15 = "TIER_S15"    # $21 - Dharmika
     S30 = "TIER_S30"    # $51 - Punya Vriddhi
+    S81 = "TIER_S81"    # $81 - Visesha Sankalp
     S50 = "TIER_S50"    # $108 - Maha Sankalp
     
     @property
@@ -98,6 +99,7 @@ class SankalpTier(str, Enum):
         amounts = {
             self.S15: 2100,
             self.S30: 5100,
+            self.S81: 8100,
             self.S50: 10800,
         }
         return amounts.get(self, 2100)
@@ -108,6 +110,7 @@ class SankalpTier(str, Enum):
         names = {
             self.S15: "Dharmika ($21)",
             self.S30: "Punya Vriddhi ($51)",
+            self.S81: "Visesha Sankalp ($81)",
             self.S50: "Maha Sankalp ($108)",
         }
         return names.get(self, self.value)

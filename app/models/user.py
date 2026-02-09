@@ -207,9 +207,12 @@ class User(Base):
         if not self.last_sankalp_at:
             return False
         
-        from datetime import timedelta
-        cooldown_end = self.last_sankalp_at + timedelta(days=7)
-        return datetime.utcnow() < cooldown_end
+        # ISO Week Logic (Monday Reset)
+        today = datetime.utcnow()
+        start_of_week = today - timedelta(days=today.weekday())
+        start_of_week = start_of_week.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        return self.last_sankalp_at >= start_of_week
     
     @property
     def is_eligible_for_sankalp(self) -> bool:
