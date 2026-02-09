@@ -16,13 +16,30 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Create ENUM type for seva execution status
-    seva_status = postgresql.ENUM(
-        'pending', 'executed', 'verified',
-        name='seva_execution_status',
-        create_type=True
-    )
-    seva_status.create(op.get_bind(), checkfirst=True)
+    # Create ENUM type for seva execution status (if not exists)
+    # Check if enum exists first
+    conn = op.get_bind()
+    result = conn.execute(sa.text(
+        "SELECT 1 FROM pg_type WHERE typname = 'seva_execution_status'"
+    ))
+    enum_exists = result.fetchone() is not None
+    
+    if not enum_exists:
+        seva_status = postgresql.ENUM(
+            'pending', 'executed', 'verified',
+            name='seva_execution_status',
+            create_type=True
+        )
+        seva_status.create(op.get_bind(), checkfirst=True)
+    
+    # Check if table exists
+    result = conn.execute(sa.text(
+        "SELECT 1 FROM information_schema.tables WHERE table_name = 'seva_executions'"
+    ))
+    table_exists = result.fetchone() is not None
+    
+    if table_exists:
+        return  # Already migrated
     
     op.create_table(
         'seva_executions',
