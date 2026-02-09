@@ -17,28 +17,42 @@
 
     <style>
         :root {
-            /* Dharmic Color Palette - From Ancient Scriptures */
-            --sindoor: #C41E3A;
-            /* सिन्दूर - Sacred Red */
-            --haldi: #E3A018;
-            /* हल्दी - Auspicious Yellow */
-            --peacock: #005F73;
-            /* मयूर - Divine Blue */
-            --kashtha: #3D2314;
-            /* काष्ठ - Deep Brown */
-            --ganga: #FFFCF5;
-            /* गंगा - Pure White */
-            --chandan: #F5EBD9;
+            /* ॥ धार्मिक वर्ण पटल ॥ - Temple & Scripture Colors */
+
+            /* Primary Sacred Colors */
+            --kesari: #E65C00;
+            /* भगवा - Monk Saffron, Sunrise */
+            --geruwa: #B8390E;
+            /* गेरू - Temple Wall Ochre */
+            --sindoor: #E23D28;
+            /* सिंदूर - Sacred Vermillion */
+            --haldi: #D4A017;
+            /* हल्दी - Turmeric Gold */
+
+            /* Divine Accents */
+            --neelam: #1B4D3E;
+            /* नीलम - Deep Temple Green */
+            --padma: #8B2252;
+            /* पद्म - Lotus Pink */
+            --swarna: #C9A227;
+            /* स्वर्ण - Temple Gold */
+
+            /* Sacred Neutrals */
+            --chandan: #FDF6E9;
             /* चन्दन - Sandalwood Cream */
-            --kumkum: #8B1538;
-            /* कुंकुम - Vermilion */
+            --vibhuti: #F8F4EF;
+            /* विभूति - Holy Ash White */
+            --kashaya: #3D2314;
+            /* काषाय - Deep Earth Brown */
 
             /* Functional */
             --text-dark: #2D1810;
-            --text-medium: #5C4033;
-            --text-light: #8B7355;
-            --gold-shimmer: linear-gradient(135deg, #E3A018 0%, #FFD700 50%, #E3A018 100%);
+            --text-medium: #5C3D2E;
+            --text-light: #8B6B4F;
+            --gold-shimmer: linear-gradient(135deg, #D4A017 0%, #F5D061 50%, #D4A017 100%);
+            --kesari-glow: 0 6px 25px rgba(230, 92, 0, 0.35);
         }
+
 
         * {
             margin: 0;
@@ -48,7 +62,7 @@
 
         body {
             font-family: 'Noto Sans Telugu', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--ganga);
+            background: var(--vibhuti);
             color: var(--text-dark);
             line-height: 1.9;
             font-size: 18px;
@@ -119,9 +133,9 @@
             right: 0;
             bottom: 0;
             background-image:
-                radial-gradient(circle at 20% 80%, rgba(227, 160, 24, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(196, 30, 58, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(0, 95, 115, 0.02) 0%, transparent 70%);
+                radial-gradient(circle at 20% 80%, rgba(212, 160, 23, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(230, 92, 0, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(27, 77, 62, 0.03) 0%, transparent 70%);
             pointer-events: none;
             z-index: -1;
         }
@@ -133,9 +147,9 @@
             left: 0;
             right: 0;
             z-index: 1000;
-            background: rgba(255, 252, 245, 0.95);
+            background: rgba(253, 246, 233, 0.95);
             backdrop-filter: blur(12px);
-            border-bottom: 2px solid var(--haldi);
+            border-bottom: 2px solid var(--swarna);
             padding: 0 2rem;
             height: 72px;
             display: flex;
@@ -174,11 +188,11 @@
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.6rem;
             font-weight: 700;
-            color: var(--kumkum);
+            color: var(--geruwa);
         }
 
         .nav-cta {
-            background: var(--sindoor);
+            background: var(--kesari);
             color: white;
             padding: 0.85rem 1.75rem;
             border-radius: 50px;
@@ -186,19 +200,19 @@
             font-weight: 600;
             font-size: 1rem;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(196, 30, 58, 0.3);
+            box-shadow: var(--kesari-glow);
         }
 
         .nav-cta:hover {
-            background: var(--kumkum);
+            background: var(--geruwa);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 21, 56, 0.4);
+            box-shadow: 0 8px 30px rgba(184, 57, 14, 0.45);
         }
 
         /* Hero Section */
         .hero {
             min-height: 100vh;
-            background: linear-gradient(180deg, var(--chandan) 0%, var(--ganga) 60%);
+            background: linear-gradient(180deg, var(--chandan) 0%, var(--vibhuti) 60%);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -214,7 +228,7 @@
             left: 0;
             right: 0;
             height: 150px;
-            background: linear-gradient(to top, var(--ganga), transparent);
+            background: linear-gradient(to top, var(--vibhuti), transparent);
         }
 
         .hero-content {
@@ -226,7 +240,7 @@
         .shloka {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.1rem;
-            color: var(--peacock);
+            color: var(--neelam);
             margin-bottom: 1.5rem;
             letter-spacing: 0.05em;
             opacity: 0;
@@ -236,7 +250,7 @@
         .hero h1 {
             font-family: 'Noto Serif Telugu', serif;
             font-size: clamp(2.2rem, 6vw, 3.5rem);
-            color: var(--kumkum);
+            color: var(--geruwa);
             margin-bottom: 1.5rem;
             line-height: 1.35;
             font-weight: 700;
@@ -272,7 +286,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.75rem;
-            background: var(--sindoor);
+            background: var(--kesari);
             color: white;
             padding: 1.25rem 3rem;
             border-radius: 50px;
@@ -280,15 +294,15 @@
             font-size: 1.25rem;
             font-weight: 600;
             transition: all 0.4s;
-            box-shadow: 0 6px 25px rgba(196, 30, 58, 0.35);
+            box-shadow: var(--kesari-glow);
             opacity: 0;
             animation: fadeInUp 1s 0.9s forwards;
         }
 
         .hero-cta:hover {
-            background: var(--kumkum);
+            background: var(--geruwa);
             transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 10px 35px rgba(139, 21, 56, 0.45);
+            box-shadow: 0 10px 35px rgba(184, 57, 14, 0.45);
         }
 
         .hero-trust {
@@ -313,7 +327,7 @@
         .section-shloka {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1rem;
-            color: var(--peacock);
+            color: var(--neelam);
             margin-bottom: 1rem;
             letter-spacing: 0.03em;
         }
@@ -321,7 +335,7 @@
         .section-header h2 {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 2.5rem;
-            color: var(--kumkum);
+            color: var(--geruwa);
             margin-bottom: 1rem;
             font-weight: 700;
         }
@@ -335,7 +349,7 @@
 
         /* Features/Sevas Section */
         .sevas {
-            background: var(--ganga);
+            background: var(--vibhuti);
         }
 
         .sevas-grid {
@@ -351,7 +365,7 @@
             border-radius: 20px;
             padding: 2.5rem;
             box-shadow: 0 8px 30px rgba(61, 35, 20, 0.08);
-            border: 1px solid rgba(227, 160, 24, 0.15);
+            border: 1px solid rgba(212, 160, 23, 0.15);
             transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
             position: relative;
             overflow: hidden;
@@ -387,7 +401,7 @@
         .seva-card h3 {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.6rem;
-            color: var(--kumkum);
+            color: var(--geruwa);
             margin-bottom: 0.75rem;
             font-weight: 700;
         }
@@ -423,7 +437,7 @@
         .step-number {
             width: 60px;
             height: 60px;
-            background: var(--sindoor);
+            background: var(--kesari);
             color: white;
             border-radius: 50%;
             display: flex;
@@ -438,7 +452,7 @@
         .process-step h3 {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.3rem;
-            color: var(--kashtha);
+            color: var(--kashaya);
             margin-bottom: 0.75rem;
         }
 
@@ -449,7 +463,7 @@
 
         /* Annadanam Pricing */
         .annadanam {
-            background: linear-gradient(180deg, var(--ganga) 0%, var(--chandan) 100%);
+            background: linear-gradient(180deg, var(--vibhuti) 0%, var(--chandan) 100%);
         }
 
         .pricing-grid {
@@ -472,9 +486,9 @@
         }
 
         .pricing-card.highlighted {
-            border-color: var(--haldi);
+            border-color: var(--swarna);
             transform: scale(1.03);
-            box-shadow: 0 12px 40px rgba(227, 160, 24, 0.2);
+            box-shadow: 0 12px 40px rgba(201, 162, 39, 0.25);
         }
 
         .pricing-card.highlighted::before {
@@ -483,8 +497,8 @@
             top: -12px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--haldi);
-            color: var(--kashtha);
+            background: var(--swarna);
+            color: var(--kashaya);
             padding: 0.25rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -503,14 +517,14 @@
         .pricing-card h3 {
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.4rem;
-            color: var(--kumkum);
+            color: var(--geruwa);
             margin-bottom: 0.5rem;
         }
 
         .pricing-card .price {
             font-size: 2.5rem;
             font-weight: 700;
-            color: var(--kashtha);
+            color: var(--kashaya);
             margin: 1rem 0;
         }
 
@@ -522,7 +536,7 @@
 
         .pricing-cta {
             display: inline-block;
-            background: var(--sindoor);
+            background: var(--kesari);
             color: white;
             padding: 0.9rem 2rem;
             border-radius: 50px;
@@ -532,27 +546,27 @@
         }
 
         .pricing-cta:hover {
-            background: var(--kumkum);
+            background: var(--geruwa);
             transform: scale(1.05);
         }
 
         /* Trust/Promise Section */
         .trust {
-            background: var(--kashtha);
-            color: var(--ganga);
+            background: var(--kashaya);
+            color: var(--chandan);
             text-align: center;
         }
 
         .trust .section-shloka {
-            color: var(--haldi);
+            color: var(--swarna);
         }
 
         .trust .section-header h2 {
-            color: var(--ganga);
+            color: var(--chandan);
         }
 
         .trust .section-header p {
-            color: rgba(255, 252, 245, 0.85);
+            color: rgba(253, 246, 233, 0.85);
         }
 
         .trust-features {
@@ -579,26 +593,26 @@
             font-family: 'Noto Serif Telugu', serif;
             font-size: 1.2rem;
             margin-bottom: 0.5rem;
-            color: var(--haldi);
+            color: var(--swarna);
         }
 
         .trust-item p {
             font-size: 0.95rem;
-            color: rgba(255, 252, 245, 0.8);
+            color: rgba(253, 246, 233, 0.8);
         }
 
         /* Footer */
         footer {
-            background: var(--kashtha);
-            color: var(--ganga);
+            background: var(--kashaya);
+            color: var(--chandan);
             text-align: center;
             padding: 3rem 2rem;
-            border-top: 2px solid var(--haldi);
+            border-top: 2px solid var(--swarna);
         }
 
         .footer-om {
             font-size: 1.2rem;
-            color: var(--haldi);
+            color: var(--swarna);
             margin-bottom: 1rem;
             font-family: 'Noto Serif Telugu', serif;
         }
