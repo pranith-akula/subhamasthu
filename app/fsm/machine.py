@@ -83,6 +83,46 @@ class FSMMachine:
              await sankalp_service.send_category_buttons(self.user)
              await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_CATEGORY)
              return
+        
+        # === GLOBAL CANCEL COMMAND ===
+        # Allows user to abort any flow and return to main menu
+        CANCEL_KEYWORDS = [
+            "cancel", "రద్దు", "menu", "మెను", "main menu", "go back", 
+            "వెనక్కి", "back", "exit", "quit", "stop", "0", "ఆపు"
+        ]
+        
+        # States that can be cancelled
+        CANCELLABLE_STATES = [
+            ConversationState.WAITING_FOR_CATEGORY,
+            ConversationState.WAITING_FOR_CHINTA_REFLECTION,
+            ConversationState.WAITING_FOR_SANKALP_AGREEMENT,
+            ConversationState.WAITING_FOR_TYAGAM_DECISION,
+            ConversationState.WAITING_FOR_TIER,
+            ConversationState.WAITING_FOR_FREQUENCY,
+            ConversationState.PAYMENT_LINK_SENT,
+            ConversationState.WEEKLY_PROMPT_SENT,
+            ConversationState.WAITING_FOR_RITUAL_OPENING,
+        ]
+        
+        if clean_text in CANCEL_KEYWORDS or button_payload == "CMD_CANCEL":
+            if current_state in CANCELLABLE_STATES:
+                logger.info(f"FSM: User {self.user.phone} cancelled flow from {current_state.value}")
+                
+                # Reset to main menu
+                await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
+                
+                # Send confirmation + main menu
+                await self.whatsapp.send_button_message(
+                    phone=self.user.phone,
+                    body_text="🙏 రద్దు చేయబడింది.\n\nమీరు ఎలా ముందుకు వెళ్లాలనుకుంటున్నారు?",
+                    buttons=[
+                        {"id": "CMD_MY_SEVA", "title": "నా సేవలు"},
+                        {"id": "CMD_SANKALP", "title": "కొత్త సంకల్పం"},
+                        {"id": "CMD_INVITE", "title": "స్నేహితులను ఆహ్వానించండి"},
+                    ],
+                    footer="శుభమస్తు సేవలు"
+                )
+                return
         # ----------------------------------------------
         
         logger.info(f"FSM: User {self.user.phone} in state {current_state.value}, input: {text[:50] if text else button_payload}")
