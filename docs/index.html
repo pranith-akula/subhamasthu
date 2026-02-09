@@ -17,49 +17,79 @@
 
     <style>
         :root {
-            /* Apple-Inspired Divine Palette */
-            --primary: #1D1D1F;
-            /* Deity Ink (Apple standard) */
-            --primary-light: #424245;
-            --accent: #D4AF37;
-            /* Burnished Gold */
-            --bg-canvas: #F5F5F7;
-            /* Ceramic White */
-            --bg-pure: #FFFFFF;
-            --text-main: #1D1D1F;
-            --text-soft: #86868B;
-            /* Apple soft grey */
-            --divine-warm: #FFF9C4;
-            /* Soft Sandalwood Accent */
+            /* Soumya & Sthira Palette (Graceful & Stable) */
+            --trust-teal: #004D40;
+            /* Divine stable teal */
+            --mangala-gold: #D4AF37;
+            /* Auspicious gold */
+            --sandalwood-base: #FFF9F0;
+            /* Traditional warmth */
+            --kumkum-maroon: #880E4F;
+            /* Emotional anchor */
 
-            /* Glassmorphism */
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(0, 0, 0, 0.05);
+            --primary: var(--trust-teal);
+            --accent: var(--mangala-gold);
+            --bg-canvas: var(--sandalwood-base);
+            --bg-pure: #FFFFFF;
+            --text-main: #263238;
+            /* Deep charcoal blue */
+            --text-soft: #546E7A;
+
+            /* Glassmorphism Refined */
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(0, 77, 64, 0.1);
 
             /* Spacing & Radii */
-            --section-pad: 8rem;
-            --card-radius: 28px;
+            --section-pad: 9rem;
+            --card-radius: 32px;
 
-            /* Shadows */
-            --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.04);
-            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.08);
+            /* Shadows for Trust */
+            --shadow-soft: 0 12px 40px rgba(0, 77, 64, 0.05);
+            --shadow-float: 0 24px 60px rgba(0, 77, 64, 0.1);
 
-            /* Compatibility with existing */
-            --header-bg: rgba(255, 250, 240, 0.95);
+            /* Legacy compatibility */
+            --header-bg: var(--glass-bg);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        /* Ancient Script Sprinkles */
+        .ancient-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            font-family: 'Noto Serif Telugu', serif;
+            user-select: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 100px;
+            padding: 50px;
+            overflow: hidden;
+        }
+
+        .shloka {
+            font-size: 1.5rem;
+            line-height: 2;
+            white-space: nowrap;
+            transform: rotate(-15deg);
+        }
+
+        /* Muggu Divider Patterns */
+        .muggu-border {
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 12.5 0, 25 10 T 50 10 T 75 10 T 100 10' fill='none' stroke='%23D4AF37' stroke-opacity='0.2' stroke-width='1'/%3E%3C/svg%3E");
+            height: 20px;
+            width: 100%;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Icons", "Helvetica Neue", "Outfit", "Noto Sans Telugu", sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Outfit", "Noto Sans Telugu", sans-serif;
             background: var(--bg-canvas);
             color: var(--text-main);
             overflow-x: hidden;
-            line-height: 1.5;
+            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -921,6 +951,17 @@
 </head>
 
 <body>
+    <!-- Ancient Background Sprinkles -->
+    <div class="ancient-layer">
+        <div class="shloka">లోకాః సమస్తాః సుఖినో భవంతు</div>
+        <div class="shloka">ఓం శాంతిః శాంతిః శాంతిః</div>
+        <div class="shloka">సత్యం వద ధర్మం చర</div>
+        <div class="shloka">మాతృ దేవో భవ</div>
+        <div class="shloka">శుభమస్తు కళ్యాణమస్తు</div>
+        <div class="shloka">లోకాః సమస్తాః సుఖినో భవంతు</div>
+        <div class="shloka">ఓం శాంతిః శాంతిః శాంతిః</div>
+    </div>
+
     <!-- Navigation -->
     <nav>
         <a href="#" class="logo">
