@@ -403,6 +403,11 @@ async def get_dashboard_stats(
         cycle_res = await db.execute(cycle_query)
         cycles = {f"Cycle {row[0]}": row[1] for row in cycle_res.all()}
 
+        # 6. Detailed State Breakdown (The "Hardcore" Pipeline)
+        state_query = select(User.state, func.count(User.id)).group_by(User.state)
+        state_res = await db.execute(state_query)
+        states_map = {row[0]: row[1] for row in state_res.all() if row[0]}
+
         business_metrics = {
             "funnel": {
                 "leads": total_leads,
@@ -421,7 +426,8 @@ async def get_dashboard_stats(
             },
             "distribution": {
                 "tracks": tracks,
-                "cycles": cycles
+                "cycles": cycles,
+                "states": states_map # New: Hardcore state breakdown
             }
         }
     except Exception as e:

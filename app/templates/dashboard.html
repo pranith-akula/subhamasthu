@@ -141,7 +141,7 @@
                 <!-- Paying -->
                 <div class="relative px-8">
                     <div class="flex justify-between text-xs font-bold text-emerald-600 mb-1 px-1">
-                        <span>PAYING (SEVA)</span>
+                        <span>PAYING (VERIFIED)</span>
                         <span x-text="stats.business.funnel?.paying"></span>
                     </div>
                     <div
@@ -156,44 +156,37 @@
                     </div>
                 </div>
             </div>
-            <p class="text-[10px] text-slate-400 mt-6 italic text-center text-balance">Revamp your onboarding flow to
-                increase the 'Revenue Yield' target.</p>
+            <p class="text-[10px] text-slate-400 mt-6 italic text-center text-balance">Only paid and verified sankalps
+                are counted in the yield.</p>
         </div>
 
-        <!-- Devotional Distribution -->
-        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <!-- Hardcore State Distribution -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <h3 class="font-bold text-slate-900 mb-6 flex justify-between items-center">
                 <span class="flex items-center gap-2">
-                    <i data-lucide="layers" class="w-5 h-5 text-slate-400"></i>
-                    Devotional Journey Distribution
+                    <i data-lucide="bar-chart-2" class="w-5 h-5 text-slate-400"></i>
+                    Hardcore Pipeline Breakdown
                 </span>
-                <span class="text-xs font-normal text-slate-400 italic">User location in the "Sacred Calendar"</span>
+                <span class="text-xs font-normal text-slate-400 italic">User counts across all conversation
+                    states</span>
             </h3>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <template x-for="(count, cycle) in stats.business.distribution?.cycles" :key="cycle">
-                    <div
-                        class="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all group">
-                        <div class="text-[10px] font-bold text-slate-400 mb-1 group-hover:text-indigo-400 transition-colors"
-                            x-text="cycle.toUpperCase()"></div>
-                        <div class="text-xl font-black text-slate-900" x-text="count"></div>
-                        <div class="w-full bg-slate-200 h-1 rounded-full mt-3 overflow-hidden">
-                            <div class="bg-indigo-500 h-full"
-                                :style="'width: ' + (count / stats.demographics.total_users * 100) + '%'"></div>
-                        </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <template x-for="(count, state) in stats.business.distribution?.states" :key="state">
+                    <div class="p-3 rounded-lg border border-slate-100 bg-slate-50/30 hover:bg-white transition-all">
+                        <div class="text-[9px] font-bold text-slate-400 mb-0.5 truncate" x-text="state"></div>
+                        <div class="text-lg font-black text-slate-900" x-text="count"></div>
                     </div>
                 </template>
             </div>
 
             <div class="mt-8 pt-6 border-t border-slate-100">
                 <div class="flex flex-wrap gap-4">
-                    <template x-for="(count, track) in stats.business.distribution?.tracks" :key="track">
+                    <template x-for="(count, cycle) in stats.business.distribution?.cycles" :key="cycle">
                         <div
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
-                            <span class="w-2 h-2 rounded-full"
-                                :class="track === 'DEVOTION' ? 'bg-amber-400' : (track === 'SECURITY' ? 'bg-blue-400' : 'bg-emerald-400')"></span>
-                            <span class="text-[10px] font-bold text-slate-600" x-text="track"></span>
-                            <span class="text-[10px] font-black text-slate-900" x-text="count"></span>
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100">
+                            <span class="text-[10px] font-bold text-indigo-600" x-text="cycle"></span>
+                            <span class="text-[10px] font-black text-indigo-900" x-text="count"></span>
                         </div>
                     </template>
                 </div>
