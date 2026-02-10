@@ -188,6 +188,11 @@ class UserService:
             user.streak_days = 1
             
         user.last_engagement_at = now
+        user.updated_at = now # Ensure timestamp update
+        
+        self.db.add(user)
+        await self.db.commit()
+        
         logger.debug(f"Recorded engagement for {user.phone}. Streak: {user.streak_days}")
     
     async def is_duplicate_message(

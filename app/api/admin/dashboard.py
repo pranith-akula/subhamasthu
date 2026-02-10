@@ -445,7 +445,11 @@ async def get_dashboard_stats(
             "active_users": active_users,
             "seva_users": seva_users
         },
-        "business": business_metrics, # New
+        "business": business_metrics,
+        "debug": {
+            "business_success": bool(business_metrics),
+            "now": str(datetime.now(timezone.utc))
+        },
         "tiers": tiers,
         "upcoming_celebrations": upcoming,
         "recent_sankalps": recent_swaps
