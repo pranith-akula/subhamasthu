@@ -414,34 +414,44 @@ async def get_dashboard_stats(
             "WAITING_FOR_CATEGORY", "PAYMENT_LINK_SENT", "PAYMENT_CONFIRMED", "COOLDOWN"
         ]
         
-        # Build ordered map, putting orphans at the end
-        states_map = {}
+        # Build ordered list
+        ordered_states = []
         for s in pipeline_order:
             if s in raw_states:
-                states_map[s] = raw_states.pop(s)
-        # Add remaining
-        states_map.update(raw_states)
+                count = raw_states.pop(s)
+                ordered_states.append({
+                    "state": s,
+                    "label": s.replace("_", " ").title(),
+                    "count": int(count)
+                })
+        # Add remaining orphans
+        for s, count in raw_states.items():
+            ordered_states.append({
+                "state": str(s),
+                "label": str(s).replace("_", " ").title(),
+                "count": int(count)
+            })
 
         business_metrics = {
             "funnel": {
-                "leads": total_leads,
-                "onboarded": active_users,
-                "paying": seva_users,
+                "leads": int(total_leads),
+                "onboarded": int(active_users),
+                "paying": int(seva_users),
                 "conversion": round((seva_users / active_users * 100), 1) if active_users > 0 else 0
             },
             "retention": {
-                "active_24h": active_24h,
-                "retained_7d": retained_7d,
-                "churn_risk": churn_risk
+                "active_24h": int(active_24h),
+                "retained_7d": int(retained_7d),
+                "churn_risk": int(churn_risk)
             },
             "economics": {
-                "arpu": round(arpu, 2),
-                "ltv": round(ltv, 2)
+                "arpu": round(float(arpu), 2),
+                "ltv": round(float(ltv), 2)
             },
             "distribution": {
                 "tracks": tracks,
                 "cycles": cycles,
-                "states": states_map # New: Hardcore state breakdown
+                "states": ordered_states # NEW: List of objects
             }
         }
     except Exception as e:

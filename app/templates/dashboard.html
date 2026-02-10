@@ -12,11 +12,12 @@
         <div class="flex gap-4 items-center">
             <div class="text-right">
                 <div
-                    class="bg-white px-3 py-1 rounded-lg border border-slate-200 shadow-sm flex items-center gap-2 mb-1">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">System Online</span>
+                    class="bg-indigo-600 px-4 py-1.5 rounded-full shadow-lg shadow-indigo-200 flex items-center gap-2 mb-1">
+                    <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                    <span class="text-[10px] font-bold text-white uppercase tracking-widest">LIVE SYNC</span>
                 </div>
-                <span class="text-[10px] text-slate-400 font-medium" x-text="'Last Sync: ' + lastSync"></span>
+                <span class="text-[10px] text-slate-500 font-black bg-slate-100 px-2 py-0.5 rounded"
+                    x-text="lastSync"></span>
             </div>
             <button @click="fetchData()"
                 class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all flex items-center gap-2 group">
@@ -176,12 +177,12 @@
             </h3>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                <template x-for="(count, state) in stats.business.distribution?.states" :key="state">
+                <template x-for="item in (stats.business.distribution?.states || [])" :key="item.state">
                     <div class="p-4 rounded-xl border transition-all"
-                        :class="count > 0 ? 'bg-indigo-50/20 border-indigo-100' : 'bg-slate-50/30 border-slate-100 opacity-60'">
+                        :class="item.count > 0 ? 'bg-indigo-50/20 border-indigo-100' : 'bg-slate-50/10 border-slate-100 opacity-40'">
                         <div class="text-[9px] font-bold text-slate-400 mb-1 truncate uppercase tracking-widest"
-                            x-text="state.replace(/_/g, ' ')"></div>
-                        <div class="text-2xl font-black text-slate-900" x-text="count"></div>
+                            x-text="item.label || item.state || 'Unknown'"></div>
+                        <div class="text-2xl font-black text-slate-900" x-text="item.count || 0"></div>
                     </div>
                 </template>
             </div>
@@ -325,12 +326,12 @@
                 impact: { families_fed: 0 },
                 ops: { pending_sevas: 0 },
                 media: { total: 0 },
-                demographics: { total_users: 1, dob_count: 0, anniv_count: 0, active_users: 0, seva_users: 0 },
+                demographics: { total_users: 0, dob_count: 0, anniv_count: 0, active_users: 0, seva_users: 0 },
                 business: {
                     funnel: { leads: 0, onboarded: 0, paying: 0, conversion: 0 },
                     retention: { active_24h: 0, retained_7d: 0, churn_risk: 0 },
                     economics: { arpu: 0, ltv: 0 },
-                    distribution: { tracks: {}, cycles: {}, states: {} }
+                    distribution: { tracks: {}, cycles: {}, states: [] } // NEW: empty list
                 },
                 tiers: [],
                 upcoming_celebrations: [],
@@ -343,10 +344,10 @@
             },
             async fetchData() {
                 this.loading = true;
-                try {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const authtoken = urlParams.get('authtoken');
+                const urlParams = new URLSearchParams(window.location.search);
+                const authtoken = urlParams.get('authtoken');
 
+                try {
                     let apiUrl = '/admin/api/stats';
                     let headers = {};
                     if (authtoken) {
@@ -362,6 +363,7 @@
                     }
                 } catch (e) {
                     console.error("Dashboard error:", e);
+                    this.lastSync = "Error: " + e.message;
                 } finally {
                     this.loading = false;
                 }
