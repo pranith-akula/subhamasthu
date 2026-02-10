@@ -3,7 +3,8 @@ FSM Machine - Conversation state machine with strict transitions.
 """
 
 import logging
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
+from zoneinfo import ZoneInfo
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +19,6 @@ from app.fsm.states import (
     AuspiciousDay,
     Nakshatra,
 )
-from app.services.user_service import UserService
 from app.services.user_service import UserService
 from app.services.meta_whatsapp_service import MetaWhatsappService
 from app.services.sankalp_service import SankalpService
@@ -521,17 +521,6 @@ class FSMMachine:
         await self._send_rashi_prompt()
         await self.user_service.update_user_state(self.user, ConversationState.WAITING_FOR_RASHI)
 
-    async def _finish_onboarding_flow(self) -> None:
-        """Helper to mark onboarding complete and send welcome."""
-        # Mark onboarding complete with timestamp
-        from datetime import datetime, timezone
-        self.user.onboarded_at = datetime.now(timezone.utc)
-        
-        await self._send_onboarding_complete()
-        await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
-        
-        # Day 0: Send immediate personalized Rashiphalalu
-        await self._send_day_zero_rashiphalalu()
 
     async def _handle_anniversary_input(self, text: str, button_payload: Optional[str]) -> None:
         """Handle Anniversary input (Optional) -> Finish Onboarding."""
@@ -1104,17 +1093,43 @@ class FSMMachine:
         )
     
     async def _finish_onboarding_flow(self) -> None:
-        """Complete onboarding, save state, send Day 0 content."""
-        # 1. Update State
+        """Complete onboarding, save state, initialize schedule, and send Day 0 content."""
+        # 1. Mark onboarding complete with timestamp
+        self.user.onboarded_at = datetime.now(timezone.utc)
+        
+        # 2. Initialize Trust Engine Schedule (7 AM & 9 PM Local)
+        try:
+            tz = ZoneInfo(self.user.tz or "America/Chicago")
+        except Exception:
+            tz = ZoneInfo("America/Chicago")
+            
+        now_local = datetime.now(tz)
+        
+        # Next Rashi: First 7 AM in the future
+        next_rashi = now_local.replace(hour=7, minute=0, second=0, microsecond=0)
+        if next_rashi <= now_local:
+            next_rashi += timedelta(days=1)
+        self.user.next_rashi_at = next_rashi.astimezone(timezone.utc)
+        
+        # Next Nurture: First 9 PM in the future
+        next_nurture = now_local.replace(hour=21, minute=0, second=0, microsecond=0)
+        if next_nurture <= now_local:
+            next_nurture += timedelta(days=1)
+        self.user.next_nurture_at = next_nurture.astimezone(timezone.utc)
+        
+        # Ensure nurture_day starts at 1
+        if not self.user.nurture_day or self.user.nurture_day == 0:
+            self.user.nurture_day = 1
+            
+        logger.info(f"Initialized schedule for {self.user.phone}: Rashi={self.user.next_rashi_at}, Nurture={self.user.next_nurture_at}")
+
+        # 3. Update State to DAILY_PASSIVE
         await self.user_service.update_user_state(self.user, ConversationState.DAILY_PASSIVE)
         
-        # 2. Send Confirmation (No Summary)
-        await self.whatsapp.send_text_message(
-            phone=self.user.phone,
-            message="🌸 మీ వివరాలు నమోదు చేయబడ్డాయి. ధన్యవాదాలు! 🙏"
-        )
+        # 4. Send Confirmation Message
+        await self._send_onboarding_complete()
         
-        # 3. Send Day 0 Rashiphalalu
+        # 5. Send Day 0 (Immediate) Rashiphalalu
         await self._send_day_zero_rashiphalalu()
 
     async def _send_day_zero_rashiphalalu(self) -> None:
