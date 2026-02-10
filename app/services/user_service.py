@@ -4,8 +4,8 @@ User Service - User CRUD and state management.
 
 import uuid
 import logging
-from typing import Optional
-from datetime import datetime, date, timezone
+from typing import Optional, List
+from datetime import datetime, date, timezone, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -153,7 +153,42 @@ class UserService:
         """Set last sankalp timestamp (starts cooldown)."""
         user.last_sankalp_at = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)
+        
+        # Also counts as engagement
+        await self.record_engagement(user)
         return user
+    
+    async def record_engagement(self, user: User) -> None:
+        """
+        Record user engagement, update last_engagement_at and manage streak.
+        Logic:
+        - If last_engagement was yesterday: Increment streak.
+        - If last_engagement was today: Do nothing to streak.
+        - Otherwise: Reset streak to 1.
+        """
+        now = datetime.now(timezone.utc)
+        
+        if user.last_engagement_at:
+            last_date = user.last_engagement_at.date()
+            today_date = now.date()
+            
+            if last_date == today_date:
+                # Already engaged today, just update timestamp
+                user.last_engagement_at = now
+                return
+            
+            if last_date == today_date - timedelta(days=1):
+                # Consecutive day!
+                user.streak_days += 1
+            else:
+                # Streak broken
+                user.streak_days = 1
+        else:
+            # First engagement ever
+            user.streak_days = 1
+            
+        user.last_engagement_at = now
+        logger.debug(f"Recorded engagement for {user.phone}. Streak: {user.streak_days}")
     
     async def is_duplicate_message(
         self,

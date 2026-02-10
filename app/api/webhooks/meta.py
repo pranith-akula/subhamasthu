@@ -149,6 +149,9 @@ async def handle_inbound_message(value: Dict[str, Any], db: AsyncSession) -> Non
         whatsapp=whatsapp_service
     )
     
+    # Record Engagement
+    await user_service.record_engagement(user)
+    
     # Process Input
     await fsm.process_input(
         text=text,

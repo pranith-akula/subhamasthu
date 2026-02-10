@@ -138,6 +138,27 @@ async def handle_payment_link_paid(payload: dict, payment_service: PaymentServic
         currency=currency,
     )
     
+    # Record Engagement for the user
+    try:
+        from sqlalchemy import select
+        from app.models.sankalp import Sankalp
+        from app.models.user import User
+        from app.services.user_service import UserService
+        
+        # We need a new session or use the existing one if available in payment_service
+        # For simplicity, we can fetch user by sankalp_id if not already in session
+        db = payment_service.db
+        sankalp_res = await db.execute(select(Sankalp).where(Sankalp.id == uuid.UUID(sankalp_id)))
+        sankalp = sankalp_res.scalar_one_or_none()
+        if sankalp:
+            user_res = await db.execute(select(User).where(User.id == sankalp.user_id))
+            user = user_res.scalar_one_or_none()
+            if user:
+                user_service = UserService(db)
+                await user_service.record_engagement(user)
+    except Exception as e:
+        logger.warning(f"Failed to record engagement for payment: {e}")
+
     logger.info(f"Payment processed for sankalp {sankalp_id}: {amount} {currency}")
 
 

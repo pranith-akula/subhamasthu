@@ -22,254 +22,293 @@
         </div>
     </div>
 
-    <!-- METRICS GRID -->
+    <!-- METRICS GRID (Top Pulse) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
-        <!-- Total Revenue -->
+        <!-- LTV (Lifetime Value) -->
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div class="p-2 bg-emerald-50 rounded-lg text-emerald-600">
-                    <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
                 </div>
-                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+12%</span>
+                <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">LTV</span>
             </div>
-            <h3 class="text-slate-500 text-sm font-medium">Total Revenue</h3>
+            <h3 class="text-slate-500 text-sm font-medium italic">Avg Lifetime Value</h3>
             <div class="mt-1 flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-slate-900" x-text="stats.revenue.total">--</span>
-                <span class="text-sm text-slate-400">USD</span>
+                <span class="text-2xl font-bold text-slate-900"
+                    x-text="'$' + (stats.business.economics?.ltv || 0)">--</span>
+                <span class="text-sm text-slate-400">per donor</span>
             </div>
         </div>
 
-        <!-- Families Fed -->
+        <!-- ARPU -->
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
-                <div class="p-2 bg-amber-50 rounded-lg text-amber-600">
-                    <i data-lucide="heart" class="w-6 h-6"></i>
+                <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                    <i data-lucide="dollar-sign" class="w-6 h-6"></i>
                 </div>
+                <span class="text-xs font-medium text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full">ARPU</span>
             </div>
-            <h3 class="text-slate-500 text-sm font-medium">Families Fed</h3>
+            <h3 class="text-slate-500 text-sm font-medium italic">Avg Revenue Per User</h3>
             <div class="mt-1 flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-slate-900" x-text="stats.impact.families_fed">--</span>
-                <span class="text-sm text-slate-400">Meals</span>
+                <span class="text-2xl font-bold text-slate-900"
+                    x-text="'$' + (stats.business.economics?.arpu || 0)">--</span>
+                <span class="text-sm text-slate-400">per onboarded</span>
             </div>
         </div>
 
-        <!-- Pending Seva -->
+        <!-- Churn Risk -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <div class="p-2 bg-red-50 rounded-lg text-red-600">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+            </div>
+            <h3 class="text-slate-500 text-sm font-medium italic">Churn Risk (>14d Inactive)</h3>
+            <div class="mt-1 flex items-baseline gap-2">
+                <span class="text-2xl font-bold text-slate-900"
+                    x-text="stats.business.retention?.churn_risk || 0">--</span>
+                <span class="text-sm text-slate-400">Devotees</span>
+            </div>
+            <div x-show="stats.business.retention?.churn_risk > 0" x-cloak
+                class="absolute bottom-0 left-0 right-0 bg-red-100 text-red-600 text-[10px] px-4 py-0.5 font-bold text-center uppercase tracking-wider">
+                Action Required
+            </div>
+        </div>
+
+        <!-- 24h Activity -->
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
             <div class="flex justify-between items-start mb-4">
                 <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                    <i data-lucide="calendar-clock" class="w-6 h-6"></i>
+                    <i data-lucide="zap" class="w-6 h-6"></i>
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></div>
+                    <span class="text-[10px] font-bold text-emerald-600">LIVE</span>
                 </div>
             </div>
-            <h3 class="text-slate-500 text-sm font-medium">Pending Sevas</h3>
+            <h3 class="text-slate-500 text-sm font-medium italic">24h Active Users</h3>
             <div class="mt-1 flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-slate-900" x-text="stats.ops.pending_sevas">--</span>
-                <span class="text-sm text-slate-400">Tomorrow</span>
-            </div>
-        </div>
-
-        <!-- Pooled Media -->
-        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
-            <div class="flex justify-between items-start mb-4">
-                <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                    <i data-lucide="image" class="w-6 h-6"></i>
-                </div>
-            </div>
-            <h3 class="text-slate-500 text-sm font-medium">Media Pool</h3>
-            <div class="mt-1 flex items-baseline gap-2">
-                <span class="text-2xl font-bold text-slate-900" x-text="stats.media.total">--</span>
-                <span class="text-sm text-slate-400">Files</span>
-            </div>
-            <!-- Warning indicator if low -->
-            <div x-show="stats.media.total < 5" x-cloak
-                class="absolute bottom-0 left-0 right-0 bg-red-100 text-red-600 text-xs px-4 py-1 font-medium text-center">
-                Low Inventory Warning
+                <span class="text-2xl font-bold text-slate-900"
+                    x-text="stats.business.retention?.active_24h || 0">--</span>
+                <span class="text-sm text-slate-400">Interactions</span>
             </div>
         </div>
     </div>
 
-    <!-- MAIN CONTENT GRID -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- BUSINESS FUNNEL & DISTRIBUTION -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
 
-        <!-- LEFT COLUMN -->
-        <div class="lg:col-span-2 space-y-8">
-
-            <!-- Upcoming Celebrations (New) -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
-                x-show="stats.upcoming_celebrations && stats.upcoming_celebrations.length > 0">
-                <div
-                    class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-amber-50 to-white">
-                    <h3 class="font-bold text-amber-900 flex items-center gap-2">
-                        <i data-lucide="gift" class="w-5 h-5 text-amber-600"></i>
-                        Upcoming Celebrations
-                    </h3>
-                    <span class="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-1 rounded-full">Next 7
-                        Days</span>
+        <!-- Activation Funnel -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-1">
+            <h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                <i data-lucide="filter" class="w-5 h-5 text-slate-400"></i>
+                Activation Funnel
+            </h3>
+            <div class="space-y-4">
+                <!-- Leads -->
+                <div class="relative">
+                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-1 px-1">
+                        <span>LEADS</span>
+                        <span x-text="stats.business.funnel?.leads"></span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-10 rounded-lg overflow-hidden border border-slate-200 relative">
+                        <div class="bg-slate-300 h-full w-full opacity-30"></div>
+                        <div
+                            class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-slate-600">
+                            100% REACH</div>
+                    </div>
                 </div>
-                <div class="divide-y divide-slate-100">
-                    <template x-for="event in stats.upcoming_celebrations" :key="event.phone + event.type">
-                        <div class="px-6 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                                    :class="event.type === 'Birthday' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'">
-                                    <span x-text="event.type === 'Birthday' ? '🎂' : '💍'"></span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-slate-900" x-text="event.name"></p>
-                                    <p class="text-xs text-slate-500" x-text="event.type + ' • ' + event.date"></p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-bold px-2 py-1 rounded-full"
-                                    :class="event.days_left === 0 ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'"
-                                    x-text="event.days_left === 0 ? 'TODAY' : event.days_left + ' days'"></span>
-                            </div>
+
+                <!-- Onboarded -->
+                <div class="relative px-4">
+                    <div class="flex justify-between text-xs font-bold text-indigo-600 mb-1 px-1">
+                        <span>ONBOARDED</span>
+                        <span x-text="stats.business.funnel?.onboarded"></span>
+                    </div>
+                    <div class="w-full bg-indigo-50 h-10 rounded-lg overflow-hidden border border-indigo-100 relative">
+                        <div class="bg-indigo-400 h-full opacity-40"
+                            :style="'width: ' + ((stats.business.funnel?.onboarded / stats.business.funnel?.leads * 100) || 0) + '%'">
+                        </div>
+                        <div
+                            class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-indigo-700">
+                            <span
+                                x-text="Math.round((stats.business.funnel?.onboarded / stats.business.funnel?.leads * 100) || 0) + '% CONVERSION'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paying -->
+                <div class="relative px-8">
+                    <div class="flex justify-between text-xs font-bold text-emerald-600 mb-1 px-1">
+                        <span>PAYING (SEVA)</span>
+                        <span x-text="stats.business.funnel?.paying"></span>
+                    </div>
+                    <div
+                        class="w-full bg-emerald-50 h-10 rounded-lg overflow-hidden border border-emerald-100 relative">
+                        <div class="bg-emerald-500 h-full opacity-40"
+                            :style="'width: ' + ((stats.business.funnel?.paying / stats.business.funnel?.onboarded * 100) || 0) + '%'">
+                        </div>
+                        <div
+                            class="absolute inset-0 flex items-center justify-center text-[10px] font-black text-emerald-700">
+                            <span x-text="stats.business.funnel?.conversion + '% REVENUE YIELD'"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-[10px] text-slate-400 mt-6 italic text-center text-balance">Revamp your onboarding flow to
+                increase the 'Revenue Yield' target.</p>
+        </div>
+
+        <!-- Devotional Distribution -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="font-bold text-slate-900 mb-6 flex justify-between items-center">
+                <span class="flex items-center gap-2">
+                    <i data-lucide="layers" class="w-5 h-5 text-slate-400"></i>
+                    Devotional Journey Distribution
+                </span>
+                <span class="text-xs font-normal text-slate-400 italic">User location in the "Sacred Calendar"</span>
+            </h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <template x-for="(count, cycle) in stats.business.distribution?.cycles" :key="cycle">
+                    <div
+                        class="p-4 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white transition-all group">
+                        <div class="text-[10px] font-bold text-slate-400 mb-1 group-hover:text-indigo-400 transition-colors"
+                            x-text="cycle.toUpperCase()"></div>
+                        <div class="text-xl font-black text-slate-900" x-text="count"></div>
+                        <div class="w-full bg-slate-200 h-1 rounded-full mt-3 overflow-hidden">
+                            <div class="bg-indigo-500 h-full"
+                                :style="'width: ' + (count / stats.demographics.total_users * 100) + '%'"></div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100">
+                <div class="flex flex-wrap gap-4">
+                    <template x-for="(count, track) in stats.business.distribution?.tracks" :key="track">
+                        <div
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+                            <span class="w-2 h-2 rounded-full"
+                                :class="track === 'DEVOTION' ? 'bg-amber-400' : (track === 'SECURITY' ? 'bg-blue-400' : 'bg-emerald-400')"></span>
+                            <span class="text-[10px] font-bold text-slate-600" x-text="track"></span>
+                            <span class="text-[10px] font-black text-slate-900" x-text="count"></span>
                         </div>
                     </template>
                 </div>
             </div>
+        </div>
+    </div>
 
+    <!-- LOWER GRIDS -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <!-- LEFT COLUMN: Operations -->
+        <div class="lg:col-span-2 space-y-8">
             <!-- Recent Sankalps -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-bold text-slate-900">Recent Sankalps</h3>
-                    <a href="/admin-panel/users" class="text-sm text-indigo-600 hover:text-indigo-800 font-medium">View
-                        All</a>
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/30">
+                    <h3 class="font-bold text-slate-900">Recent Cashflow</h3>
+                    <a href="/admin-panel/users"
+                        class="text-xs text-indigo-600 hover:text-indigo-800 font-bold uppercase tracking-widest">Full
+                        Audit</a>
                 </div>
                 <div class="divide-y divide-slate-100">
                     <template x-for="item in stats.recent_sankalps" :key="item.id">
-                        <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
                             <div class="flex items-center gap-4">
                                 <div
-                                    class="bg-indigo-50 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm">
+                                    class="bg-slate-900 text-white w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-110 transition-transform">
                                     <span x-text="item.category_initial"></span>
                                 </div>
                                 <div>
                                     <p class="text-sm font-bold text-slate-900" x-text="item.user_name || 'Anonymous'">
                                     </p>
-                                    <p class="text-xs text-slate-500" x-text="item.category"></p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter"
+                                        x-text="item.category"></p>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-bold text-slate-900" x-text="'$' + item.amount"></p>
-                                <p class="text-xs text-emerald-600 font-medium" x-text="item.status"></p>
+                                <p class="text-sm font-black text-slate-900" x-text="'$' + item.amount"></p>
+                                <div class="flex items-center gap-1 justify-end">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                    <p class="text-[10px] text-emerald-600 font-bold uppercase" x-text="item.status">
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </template>
-                    <div x-show="stats.recent_sankalps.length === 0" class="px-6 py-12 text-center text-slate-400">
-                        No recent data available.
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN -->
+        <!-- RIGHT COLUMN: Health & Impact -->
         <div class="space-y-8">
-
-            <!-- Demographics (New) -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-                <h3 class="font-bold text-slate-900 mb-4">User Growth</h3>
+            <!-- Impact Goals -->
+            <div
+                class="bg-slate-900 text-white rounded-xl border border-slate-800 shadow-xl p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <i data-lucide="award" class="w-20 h-20"></i>
+                </div>
+                <h3 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-6">Founder's Impact Goal</h3>
                 <div class="space-y-6">
-                    <!-- User Funnel Stats -->
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="text-center p-3 bg-slate-50 rounded-lg">
-                            <div class="text-xs text-slate-500 mb-1">Total Active</div>
-                            <div class="text-xl font-bold text-slate-900" x-text="stats.demographics.active_users">--
-                            </div>
-                            <div class="text-[10px] text-slate-400">Onboarded</div>
-                        </div>
-                        <div class="text-center p-3 bg-slate-50 rounded-lg">
-                            <div class="text-xs text-slate-500 mb-1">Seva Users</div>
-                            <div class="text-xl font-bold text-emerald-600" x-text="stats.demographics.seva_users">--
-                            </div>
-                            <div class="text-[10px] text-slate-400">Converted</div>
-                        </div>
-                    </div>
-
                     <div>
                         <div class="flex justify-between text-sm mb-2">
-                            <span class="text-slate-600 flex items-center gap-2"><i data-lucide="cake"
-                                    class="w-4 h-4"></i> Birthdays</span>
-                            <span class="font-bold text-slate-900"
-                                x-text="stats.demographics.dob_count + '/' + stats.demographics.total_users"></span>
+                            <span class="text-slate-400 font-medium">Families Fed</span>
+                            <span class="font-black text-white" x-text="stats.impact.families_fed + ' / 10,000'"></span>
                         </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2">
-                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-1000"
-                                :style="'width: ' + (stats.demographics.total_users > 0 ? (stats.demographics.dob_count / stats.demographics.total_users * 100) : 0) + '%'">
+                        <div class="w-full bg-slate-800 rounded-full h-3 p-0.5 border border-slate-700">
+                            <div class="bg-gradient-to-r from-amber-500 to-orange-400 h-full rounded-full transition-all duration-1000"
+                                :style="'width: ' + Math.min(stats.impact.families_fed / 10000 * 100, 100) + '%'">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+                        <div>
+                            <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Revenue</div>
+                            <div class="text-lg font-black" x-text="'$' + (stats.revenue.total || 0)"></div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Devotees</div>
+                            <div class="text-lg font-black" x-text="stats.demographics.total_users"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sankalp Tiers (New) -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6"
-                x-show="stats.tiers && stats.tiers.length > 0">
-                <h3 class="font-bold text-slate-900 mb-4">Sankalp Tiers</h3>
-                <div class="space-y-3">
-                    <template x-for="tier in stats.tiers" :key="tier.amount">
-                        <div
-                            class="flex justify-between items-center p-3 hover:bg-slate-50 rounded-lg transition-colors border border-slate-100">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">
-                                    <span x-text="'$' + tier.amount"></span>
-                                </div>
-                                <span class="text-sm font-medium text-slate-700">Tier Package</span>
-                            </div>
-                            <span class="font-bold text-slate-900" x-text="tier.count + ' Users'"></span>
-                        </div>
-                    </template>
-                </div>
-            </div>
-
-            <!-- Operational Health -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm h-fit">
-                <div class="px-6 py-4 border-b border-slate-100">
-                    <h3 class="font-bold text-slate-900">Operational Health</h3>
-                </div>
-                <div class="p-6 space-y-6">
-                    <!-- Media Health -->
-                    <div>
-                        <div class="flex justify-between mb-2">
-                            <span class="text-sm text-slate-600 font-medium">Media Coverage</span>
-                            <span class="text-sm font-bold"
-                                :class="stats.media.total > 10 ? 'text-emerald-600' : 'text-amber-500'"
-                                x-text="stats.media.total > 10 ? 'Healthy' : 'Needs Attention'"></span>
-                        </div>
-                        <div class="w-full bg-slate-100 rounded-full h-2">
-                            <div class="bg-emerald-500 h-2 rounded-full"
-                                :style="'width: ' + Math.min(stats.media.total * 5, 100) + '%'"></div>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-2">Target: 20+ photos in pool</p>
-                    </div>
-
-                    <!-- Database Status -->
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span class="text-sm text-slate-600">Database</span>
-                        </div>
+            <!-- Health Snapshot -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                <h3 class="font-bold text-slate-900 mb-6 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-500"></i>
+                    Platform Health
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors">7 AM
+                            Rashi Sync</span>
                         <span
-                            class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">CONNECTED</span>
+                            class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">ACTIVE</span>
                     </div>
-
-                    <!-- Cloudinary Status -->
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span class="text-sm text-slate-600">Cloudinary</span>
-                        </div>
-                        <span class="text-xs font-mono text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded">READY</span>
+                    <div class="flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors">9 PM
+                            Trust Engine</span>
+                        <span
+                            class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">ACTIVE</span>
                     </div>
-
-                    <!-- Worker Status -->
-                    <div class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span class="text-sm text-slate-600">11 AM Worker</span>
-                        </div>
-                        <span class="text-xs font-mono text-blue-600 bg-blue-100 px-2 py-0.5 rounded">SCHEDULED</span>
+                    <div class="flex items-center justify-between group">
+                        <span class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors">Meta
+                            WhatsApp API</span>
+                        <span
+                            class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">ONLINE</span>
+                    </div>
+                    <div class="flex items-center justify-between group">
+                        <span
+                            class="text-xs font-bold text-slate-500 group-hover:text-slate-900 transition-colors">Razorpay
+                            Gateway</span>
+                        <span
+                            class="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">STABLE</span>
                     </div>
                 </div>
             </div>
@@ -287,17 +326,24 @@
                 ops: { pending_sevas: 0 },
                 media: { total: 0 },
                 demographics: { total_users: 1, dob_count: 0, anniv_count: 0, active_users: 0, seva_users: 0 },
+                business: {
+                    funnel: { leads: 0, onboarded: 0, paying: 0, conversion: 0 },
+                    retention: { active_24h: 0, retained_7d: 0, churn_risk: 0 },
+                    economics: { arpu: 0, ltv: 0 },
+                    distribution: { tracks: {}, cycles: {} }
+                },
                 tiers: [],
                 upcoming_celebrations: [],
                 recent_sankalps: []
             },
             async init() {
                 this.fetchData();
+                // Refresh every 5 minutes
+                setInterval(() => this.fetchData(), 300000);
             },
             async fetchData() {
                 this.loading = true;
                 try {
-                    // Check for authtoken in URL (Login Fallback)
                     const urlParams = new URLSearchParams(window.location.search);
                     const authtoken = urlParams.get('authtoken');
 
@@ -305,16 +351,15 @@
                     let headers = {};
                     if (authtoken) {
                         apiUrl += `?authtoken=${authtoken}`;
-                        headers['X-Admin-Key'] = authtoken; // Try Header too
+                        headers['X-Admin-Key'] = authtoken;
                     }
 
                     const res = await fetch(apiUrl, { headers: headers });
                     if (res.ok) {
                         this.stats = await res.json();
-                    } else if (res.status === 401 || res.status === 403) {
-                        console.error("Auth failed despite token:", authtoken);
-                        // DONT Redirect immediately, let's show an error to debug
-                        alert("Authentication Failed. Please check the Admin Key in Railway settings.");
+                        // Initialize Lucide icons after data render if needed, 
+                        // though they are usually handled by base.html
+                        if (window.lucide) window.lucide.createIcons();
                     }
                 } catch (e) {
                     console.error("Dashboard error:", e);
@@ -325,4 +370,5 @@
         }
     }
 </script>
+{% endblock %}
 {% endblock %}

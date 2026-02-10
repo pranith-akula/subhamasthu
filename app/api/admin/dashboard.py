@@ -154,11 +154,36 @@ async def get_dashboard_stats(
     db: AsyncSession = Depends(get_db),
     admin_key: str = Depends(get_admin_user)
 ):
-    """
-    Get aggregated statistics for the dashboard.
-    Protected by X-Admin-Key.
-    """
+    # --- CONSTANTS & DEFAULTS ---
+    onboarding_states = [
+        ConversationState.NEW,
+        ConversationState.WAITING_FOR_NAME,
+        ConversationState.WAITING_FOR_RASHI,
+        ConversationState.WAITING_FOR_NAKSHATRA,
+        ConversationState.WAITING_FOR_BIRTH_TIME,
+        ConversationState.WAITING_FOR_DEITY,
+        ConversationState.WAITING_FOR_AUSPICIOUS_DAY
+    ]
+    paid_statuses = [
+        SankalpStatus.PAID,
+        SankalpStatus.RECEIPT_SENT,
+        SankalpStatus.CLOSED
+    ]
     
+    total_revenue = 0
+    total_families_fed = 0
+    pending_count = 0
+    media_total = 0
+    total_users = 0
+    dob_count = 0
+    anniv_count = 0
+    active_users = 0
+    seva_users = 0
+    tiers = []
+    upcoming = []
+    recent_swaps = []
+    business_metrics = {}
+
     # 1. Revenue Calculation (Sum of all paid sankalps)
     revenue_query = select(func.sum(Sankalp.amount)).where(
         Sankalp.status.in_([
@@ -310,15 +335,6 @@ async def get_dashboard_stats(
         
         # 8. Active Users (Completed Onboarding)
         # We assume anyone NOT in the initial onboarding states is "Active/Onboarded"
-        onboarding_states = [
-            ConversationState.NEW,
-            ConversationState.WAITING_FOR_NAME,
-            ConversationState.WAITING_FOR_RASHI,
-            ConversationState.WAITING_FOR_NAKSHATRA,
-            ConversationState.WAITING_FOR_BIRTH_TIME,
-            ConversationState.WAITING_FOR_DEITY,
-            ConversationState.WAITING_FOR_AUSPICIOUS_DAY
-        ]
         
         active_users_query = select(func.count(User.id)).where(
             User.state.not_in([s.value for s in onboarding_states])
@@ -326,11 +342,6 @@ async def get_dashboard_stats(
         active_users = (await db.execute(active_users_query)).scalar() or 0
         
         # 9. Seva Users (Unique users who paid)
-        paid_statuses = [
-            SankalpStatus.PAID,
-            SankalpStatus.RECEIPT_SENT,
-            SankalpStatus.CLOSED
-        ]
         
         seva_users_query = select(func.count(func.distinct(Sankalp.user_id))).where(
             Sankalp.status.in_(paid_statuses)
@@ -354,6 +365,68 @@ async def get_dashboard_stats(
         seva_users = 0
         tiers = []
 
+    # --- FOUNDER'S BUSINESS METRICS (Phase 12) ---
+    business_metrics = {}
+    try:
+        from datetime import datetime, timedelta, timezone
+        now = datetime.now(timezone.utc)
+        
+        # 1. Activation Funnel
+        total_leads = total_users
+        # onboarded_users is already active_users (which checks state)
+        # paying_users is already seva_users
+        
+        # 2. Retention Health
+        active_24h_query = select(func.count(User.id)).where(User.last_engagement_at >= now - timedelta(hours=24))
+        active_24h = (await db.execute(active_24h_query)).scalar() or 0
+        
+        retained_7d_query = select(func.count(User.id)).where(User.last_engagement_at >= now - timedelta(days=7))
+        retained_7d = (await db.execute(retained_7d_query)).scalar() or 0
+        
+        churn_risk_query = select(func.count(User.id)).where(
+            User.state.not_in([s.value for s in onboarding_states]), # Onboarded
+            User.last_engagement_at < now - timedelta(days=14)       # Inactive > 14 days
+        )
+        churn_risk = (await db.execute(churn_risk_query)).scalar() or 0
+        
+        # 3. Unit Economics
+        arpu = float(total_revenue) / float(active_users) if active_users > 0 else 0
+        ltv = float(total_revenue) / float(seva_users) if seva_users > 0 else 0
+        
+        # 4. Track Popularity
+        track_query = select(User.nurture_track, func.count(User.id)).group_by(User.nurture_track)
+        track_res = await db.execute(track_query)
+        tracks = {row[0]: row[1] for row in track_res.all() if row[0]}
+        
+        # 5. Cycle Distribution
+        cycle_query = select(User.devotional_cycle_number, func.count(User.id)).group_by(User.devotional_cycle_number)
+        cycle_res = await db.execute(cycle_query)
+        cycles = {f"Cycle {row[0]}": row[1] for row in cycle_res.all()}
+
+        business_metrics = {
+            "funnel": {
+                "leads": total_leads,
+                "onboarded": active_users,
+                "paying": seva_users,
+                "conversion": round((seva_users / active_users * 100), 1) if active_users > 0 else 0
+            },
+            "retention": {
+                "active_24h": active_24h,
+                "retained_7d": retained_7d,
+                "churn_risk": churn_risk
+            },
+            "economics": {
+                "arpu": round(arpu, 2),
+                "ltv": round(ltv, 2)
+            },
+            "distribution": {
+                "tracks": tracks,
+                "cycles": cycles
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error calculating business metrics: {e}", exc_info=True)
+
     return {
         "revenue": {"total": float(total_revenue)},
         "impact": {"families_fed": total_families_fed},
@@ -363,10 +436,11 @@ async def get_dashboard_stats(
             "total_users": total_users,
             "dob_count": dob_count,
             "anniv_count": anniv_count,
-            "active_users": active_users, # New
-            "seva_users": seva_users       # New
+            "active_users": active_users,
+            "seva_users": seva_users
         },
-        "tiers": tiers, # New
+        "business": business_metrics, # New
+        "tiers": tiers,
         "upcoming_celebrations": upcoming,
         "recent_sankalps": recent_swaps
     }
