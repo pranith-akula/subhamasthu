@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 from sqlalchemy import select, or_, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.workers.celery_app import celery_app
 from app.database import get_db_context
 from app.models.user import User
 from app.services.nurture_service import NurtureService
@@ -13,7 +14,19 @@ from app.services.rashiphalalu_service import RashiphalaluService
 
 logger = logging.getLogger(__name__)
 
-async def process_hourly_nurture():
+@celery_app.task(bind=True, max_retries=3)
+def process_hourly_nurture(self):
+    """
+    Celery task to run the hourly nurture check.
+    """
+    try:
+        asyncio.run(_process_hourly_nurture())
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Hourly Nurture Job Failed: {e}", exc_info=True)
+        raise self.retry(exc=e, countdown=60)
+
+async def _process_hourly_nurture():
     """
     Hourly Metronome Job.
     Checks for users who need Morning Rashi or Evening Nurture.
