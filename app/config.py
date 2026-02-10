@@ -6,6 +6,7 @@ Loads from environment variables / .env file.
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -62,6 +63,19 @@ class Settings(BaseSettings):
     
     # Admin
     admin_api_key: str = ""
+    
+    @field_validator("redis_url", mode="after")
+    @classmethod
+    def validate_redis_url(cls, v: str) -> str:
+        """
+        Ensure rediss:// URLs have ssl_cert_reqs=none if not specified.
+        Required for Celery + Railway Redis.
+        """
+        if v and v.startswith("rediss://"):
+            if "ssl_cert_reqs" not in v:
+                separator = "&" if "?" in v else "?"
+                v = f"{v}{separator}ssl_cert_reqs=none"
+        return v
     
     @property
     def is_development(self) -> bool:
