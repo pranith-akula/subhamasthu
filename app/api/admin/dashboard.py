@@ -228,23 +228,25 @@ async def get_dashboard_stats(
     media_total_res = await db.execute(media_total_query)
     media_total = media_total_res.scalar() or 0
 
-    # 5. Recent Sankalps (simplified query without join)
-    
+    # 5. Recent Cashflow (STRICTLY PAID ONLY)
     recent_swaps = []
     recent_res = await db.execute(
-        select(Sankalp).order_by(desc(Sankalp.created_at)).limit(5)
+        select(Sankalp, User.name)
+        .join(User, Sankalp.user_id == User.id)
+        .where(Sankalp.status.in_(paid_statuses))
+        .order_by(desc(Sankalp.updated_at))
+        .limit(10)
     )
-    for s in recent_res.scalars().all():
-        # Get category first letter for generic avatar
+    for s, user_name in recent_res.all():
         initial = s.category.replace("CAT_", "")[0] if s.category else "?"
-        
         recent_swaps.append({
             "id": str(s.id),
             "amount": float(s.amount),
             "category": s.category.replace("CAT_", "").title(),
             "status": s.status,
-            "user_name": "Donor", # Placeholder for speed
-            "category_initial": initial
+            "user_name": user_name or "Devotee",
+            "category_initial": initial,
+            "confirmed_at": s.updated_at.isoformat() if s.updated_at else None
         })
 
     # 6. Demographics & 7. Upcoming Celebrations
@@ -400,10 +402,25 @@ async def get_dashboard_stats(
         cycle_res = await db.execute(cycle_query)
         cycles = {f"Cycle {row[0]}": row[1] for row in cycle_res.all()}
 
-        # 6. Detailed State Breakdown (The "Hardcore" Pipeline)
+        # 6. Detailed State Breakdown (The "Hardcore" Pipeline - Logical Order)
         state_query = select(User.state, func.count(User.id)).group_by(User.state)
         state_res = await db.execute(state_query)
-        states_map = {row[0]: row[1] for row in state_res.all() if row[0]}
+        raw_states = {row[0]: row[1] for row in state_res.all() if row[0]}
+        
+        # Define logical flow for sorting
+        pipeline_order = [
+            "NEW", "WAITING_FOR_NAME", "WAITING_FOR_RASHI", "WAITING_FOR_DEITY", 
+            "WAITING_FOR_TRACK_SELECTION", "ONBOARDED", "DAILY_PASSIVE", 
+            "WAITING_FOR_CATEGORY", "PAYMENT_LINK_SENT", "PAYMENT_CONFIRMED", "COOLDOWN"
+        ]
+        
+        # Build ordered map, putting orphans at the end
+        states_map = {}
+        for s in pipeline_order:
+            if s in raw_states:
+                states_map[s] = raw_states.pop(s)
+        # Add remaining
+        states_map.update(raw_states)
 
         business_metrics = {
             "funnel": {
