@@ -27,59 +27,65 @@ class NurtureService:
     # Structure: {day: {track: {type, content}}}
     # Use placeholders for now.
     # 28-Day Theme Map for Dynamic Generation
+    # 28-Day Theme Library (Sacred Calendar)
+    # Structure: {cycle_number: {week_number: { emotional_goal, anchor }}}
+    THEME_LIBRARY = {
+        1: { # Cycle 1: Temple Journey (Grounding)
+            1: {"goal": "Connection & Grounding", "anchor": "Tirumala (Venkateswara Swamy) - Deep Trust & Faith"},
+            2: {"goal": "Story & Wisdom", "anchor": "Annavaram (Satyanarayana Swamy) - Patience & Truth"},
+            3: {"goal": "Practice & Grace", "anchor": "Simhachalam (Narasimha Swamy) - Courage & Protection"},
+            4: {"goal": "Commitment", "anchor": "Srisailam (Mallikarjuna Swamy) - Stability & Cosmic Connection"},
+        },
+        2: { # Cycle 2: Bhagavatam Tales (Inspiration)
+            1: {"goal": "Identity & Devotion", "anchor": "Prahlada Charitra - The omnipresence of Divine in every atom"},
+            2: {"goal": "Grace in Crisis", "anchor": "Gajendra Moksham - Total surrender and timely rescue"},
+            3: {"goal": "Focus & Resolve", "anchor": "Dhruva Charitra - Unwavering focus on spiritual goals"},
+            4: {"goal": "Divine Play/Community", "anchor": "Krishna Leela - Finding joy and safety in the Divine community"},
+        },
+        3: { # Cycle 3: Saint-Poets (Emotion)
+            1: {"goal": "Soulful Connection", "anchor": "Annamayya - Seeing the Divine in every aspect of life (Adigo Alladigo)"},
+            2: {"goal": "Resilience in Bondage", "anchor": "Bhakta Ramadasu - Faith even in the darkest prison (Bhadradri Ramudu)"},
+            3: {"goal": "Pure Devotion", "anchor": "Tyagaraja - The power of Rama-Namam and musical prayer"},
+            4: {"goal": "Humility & Service", "anchor": "Bammera Potana - The joy of selfless creation and spiritual depth"},
+        },
+        4: { # Cycle 4: Dharma Sathakams (Wisdom)
+            1: {"goal": "Ethics & Roots", "anchor": "Sumathi Sathakam - Living with dignity and traditional values"},
+            2: {"goal": "Worldly Wisdom", "anchor": "Vemana Sathakam - Deep truths in simple observations"},
+            3: {"goal": "Character & Strength", "anchor": "Bhartruhari Subhashitalu - Strengthening the inner self"},
+            4: {"goal": "Cycles of Life", "anchor": "Kalachakra & Dharma - Understanding the flow of time and duty"},
+        }
+    }
+
+    # Technical Theme Map for LLM guidance
     THEME_MAP = {
-        # Week 1: Identity & Belonging
-        1: "Welcome & Identity: Affirm they made a good choice. Focus on Peace/Protection/Growth.",
-        2: "Proof of Impact: Describe the specific impact of their support (Annadanam/Temples). Visually descriptive.",
-        3: "Wisdom: A short, deep quote or insight from scriptures relevant to their track.",
-        4: "Application: A small, easy spiritual practice (Chant/Lamp/Task) for today.",
-        5: "Impact: A story of a beneficiary or temple that was helped. Emotional connection.",
-        6: "Preparation: Preparing the mind for the upcoming Sankalp/Ritual.",
-        7: "INVITE: Invitation to the weekly Sankalp (Gratitude/Protection/Removal of Obstacles).",
-
-        # Week 2: Transparency & Connection
-        8: "Gratitude: Thank them for being part of the family. Deep appreciation.",
-        9: "Faith/Resilience: A message about holding on during tough times.",
-        10: "Silence/Presence: Encouraging a moment of mindfulness or family connection.",
-        11: "Valid Mythology: A short story element from Ramayana/Mahabharata illustrating the track theme.",
-        12: "Direct Impact: 'Because of you...' specific example of service.",
-        13: "Inner Thought: A question for self-reflection.",
-        14: "Rest: Permission to rest and let the Divine take over.",
-
-        # Week 3: Deepening
-        15: "Surrender: The concept of Sharanagati (surrender) to God/Universe.",
-        16: "Ritual: A simple home ritual suggestion (Threshold/Water/Flower).",
-        17: "COLLECTIVE PRAYER: Inform them that during temple seva, we included all Subhamasthu families in prayer. (Community feeling).",
-        18: "Feeling the Shift: Asking if they feel the difference/peace.",
-        19: "Story of Grace: A story where grace intervened impossible odds.",
-        20: "Service: How their existence helps others.",
-        21: "Rest: Spiritual recharge.",
-
-        # Week 4: Commitment
-        22: "Consistency: The power of small daily habits.",
-        23: "Mantra: A specific mantra for their track (Shanti/Mangala/Gam).",
-        24: "Awakening: Waking up the inner spirit/potential.",
-        25: "Rising Energy: Preparing for the month-end transition.",
-        26: "Final Thought: Summarizing the journey of the month.",
-        27: "Preparation: Ready for the final seal of the month.",
-        28: "INVITE: Monthly Sankalp Invitation (Gratitude/Protection/Prosperity).",
+        1: "Welcome & Identity: Affirm they made a good choice.",
+        2: "Proof of Impact: Describe the specific impact of Annadanam.",
+        3: "Wisdom: A short, deep quote relevant to their track.",
+        4: "Application: A small, easy spiritual practice for today.",
+        5: "Impact: A story of a beneficiary or temple helped.",
+        6: "Preparation: Preparing the mind for the upcoming Sankalp.",
+        7: "INVITE: Weekly Sankalp Invitation.",
+        17: "COLLECTIVE PRAYER: Community feeling.",
+        28: "INVITE: Monthly Maha Sankalp Invitation.",
     }
     
     SYSTEM_PROMPT = """You are a warm, wise, and spiritual guide for 'Subhamasthu', a Vedic community.
     Your goal is to nurture the user based on their specific 'Track' and the daily 'Theme'.
     
+    IMPORTANT: You MUST write the entire message in PURE TELUGU (Telugu script). 
+    Use a 'Matriarchal-Respectful' (Gaurava) tone suitable for NRI Telugu families.
+    Avoid English words entirely. Use spiritual and traditional vocabulary.
+    
     Tracks:
-    - DEVOTION: Focus on Bhakti, peace, connection to God.
-    - SECURITY: Focus on family protection, health, safety, ancestors.
-    - GROWTH: Focus on career, overcoming obstacles, success, focus.
+    - DEVOTION (భక్తి మర్గం): Focus on Bhakti, peace, connection to God.
+    - SECURITY (కుటుంబ క్షేమం): Focus on family protection, health, safety, ancestors.
+    - GROWTH (అభ్యుదయం): Focus on career, overcoming obstacles, success, focus.
     
     Guidelines:
     - Keep it short (2-3 sentences max). WhatsApp friendly.
-    - Tone: Warm, diverse, non-judgmental, inclusive, authentic.
-    - NO generic "Namaste" or flowery language. Be grounded.
-    - For 'INVITE' days, include a clear call to action for the Sankalp buttons.
-    - For 'SURPRISE' days, sound genuinely excited about the gift given to them.
-    - English language, but approachable.
+    - Day-specific themes will be provided. Incorporate the month's 'Sacred Anchor' naturally.
+    - For 'INVITE' days, include a spiritual reason why they should participate.
+    - NO generic 'Namaste'. Use traditional greetings like 'ఓం నమో నారాయణాయ' or 'శుభమస్తు'.
     """
 
     def __init__(self, db: AsyncSession):
@@ -90,12 +96,18 @@ class NurtureService:
              from openai import AsyncOpenAI
              self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
 
-    async def _get_content(self, day: int, track: str, user_name: str = "Devotee") -> Optional[Dict]:
-        """Generate content dynamically via LLM."""
-        theme = self.THEME_MAP.get(day)
-        if not theme:
-            return None
-            
+    async def _get_content(self, day: int, track: str, cycle: int = 1, user_name: str = "భక్తులు") -> Optional[Dict]:
+        """Generate content dynamically via LLM, aware of cycle and week."""
+        base_theme = self.THEME_MAP.get(day) or "Daily spiritual guidance and reflection."
+        
+        # Determine week for Anchor selection
+        week = ((day - 1) // 7) + 1
+        cycle_data = self.THEME_LIBRARY.get(cycle, self.THEME_LIBRARY[1])
+        week_data = cycle_data.get(week, cycle_data[1])
+        
+        emotional_goal = week_data["goal"]
+        anchor = week_data["anchor"]
+        
         # Hardcoded types for structure
         msg_type = "text"
         if day in [7, 28]:
@@ -103,44 +115,47 @@ class NurtureService:
             
         if not self.openai_client:
             logger.warning("OpenAI client not initialized, using fallback.")
-            return {"type": "text", "body": f"Namaste {user_name}. Day {day} blessings to you."}
+            return {"type": "text", "body": f"ఓం నమో నారాయణాయ {user_name}. నేడు మీ ఆధ్యాత్మిక పయనంలో {day}వ రోజు."}
 
         try:
             prompt = f"""
             User Name: {user_name}
             Track: {track}
-            Day: {day}
-            Theme/Instruction: {theme}
+            Day (Month Day): {day}
+            Month (Cycle): {cycle}
+            Week of Cycle: {week}
+            Emotional Goal of the week: {emotional_goal}
+            Monthly Sacred Anchor: {anchor}
+            Daily Theme Instruction: {base_theme}
             
-            Write the message body.
+            Write the message body in Pure Telugu script. Focus on the emotional goal and the sacred anchor.
             """
             
             response = await self.openai_client.chat.completions.create(
-                model="gpt-4o", # Or gpt-3.5-turbo
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": self.SYSTEM_PROMPT},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=150,
+                max_tokens=250,
                 temperature=0.7
             )
             
             body = response.choices[0].message.content.strip()
-            # Clean up quotes if any
             body = body.replace('"', '').replace("'", "")
             
             if msg_type == "sankalp_invite":
                  return {
                      "type": "sankalp_invite", 
                      "body": body,
-                     "buttons": ["$21 (Dharmika)", "$51 (Punya Vriddhi)", "$108 (Maha Sankalp)"]
+                     "buttons": ["Dharmika (₹1750)", "Punya Vriddhi (₹4200)", "Maha Sankalp (₹8900)"]
                  }
                  
             return {"type": "text", "body": body}
 
         except Exception as e:
             logger.error(f"LLM Generation failed: {e}")
-            return {"type": "text", "body": f"Namaste {user_name}. May this day bring you peace and focus. (Day {day})"}
+            return {"type": "text", "body": f"శుభమస్తు {user_name}! నేటి మీ దైవిక ప్రయాణం శాంతియుతంగా సాగాలని కోరుకుంటున్నాము."}
 
     async def process_nurture_for_user(self, user: User) -> bool:
         """
@@ -161,7 +176,8 @@ class NurtureService:
             logger.info(f"Processing nurture for user {user.phone}, Day {user.nurture_day}, Track {user.nurture_track}")
             
             # 1. Get Content
-            content = await self._get_content(user.nurture_day, user.nurture_track, user.name or "Devotee")
+            cycle = getattr(user, 'devotional_cycle_number', 1) or 1
+            content = await self._get_content(user.nurture_day, user.nurture_track, cycle, user.name or "భక్తులు")
             
             # 2. Check Logic (Sankalp Invite vs Rest)
             if user.nurture_day in [7, 28]: # Week 1 & 4 Sundays
@@ -193,20 +209,6 @@ class NurtureService:
             logger.error(f"Failed to process nurture for {user.phone}: {e}", exc_info=True)
             return False
 
-    def _get_content(self, day: int, track: str) -> Optional[Dict]:
-        """Retrieve content from library."""
-        day_content = self.CONTENT_LIBRARY.get(day)
-        if not day_content:
-            return None
-            
-        # If track specific exists
-        if track in day_content:
-            return day_content[track]
-        # If generic (e.g. "type": "sankalp_invite" at top level)
-        if "type" in day_content:
-            return day_content
-            
-        return day_content.get("DEVOTION") # Fallback
 
     def _should_send_invite(self, user: User) -> bool:
         """Check safeguards."""
@@ -245,11 +247,11 @@ class NurtureService:
 
     async def _send_rest_message(self, user: User):
         """Send rest/blessing message."""
-        await self.whatsapp.send_text_message(user.phone, "This Sunday, rest in the knowledge that you are supported.")
+        await self.whatsapp.send_text_message(user.phone, "ఓం శాంతి. ఈ ఆదివారం పరమాత్ముని చింతనలో ప్రశాంతంగా గడపండి.")
 
     async def _send_surprise_blessing(self, user: User):
         """Send surprise."""
-        await self.whatsapp.send_text_message(user.phone, "Surprise! A special Archana was performed in your name today. No action needed. Just receive.")
+        await self.whatsapp.send_text_message(user.phone, "శుభవార్త! నేడు మీ పేరు మీద ఆలయంలో ప్రత్యేక అర్చన జరిపించబడింది. ధర్మం మిమ్మల్ని ఎల్లప్పుడూ రక్షిస్తుంది. 🙏")
 
     async def _advance_user_state(self, user: User):
         """Update DB timestamps and counters."""
@@ -258,6 +260,13 @@ class NurtureService:
         if user.nurture_day > 28:
             user.nurture_day = 1
             user.sankalps_in_cycle = 0 # Reset cycle counter
+            
+            # Increment Devotional Cycle (Max 4)
+            current_cycle = getattr(user, 'devotional_cycle_number', 1) or 1
+            if current_cycle < 4:
+                user.devotional_cycle_number = current_cycle + 1
+                logger.info(f"User {user.phone} advanced to Devotional Cycle {user.devotional_cycle_number}")
+            
             import random
             user.surprise_day = random.randint(14, 20) # New surprise day
             
