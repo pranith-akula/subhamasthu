@@ -695,10 +695,261 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ============================================
+           ॥ DIVINE MOTION GRAPHICS ॥
+           Sacred animations for spiritual experience
+           ============================================ */
+
+        /* Sacred Particle System */
+        .sacred-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            font-size: 0.9rem;
+            opacity: 0;
+            animation: sacredFloat 18s infinite ease-in-out;
+            filter: drop-shadow(0 0 6px rgba(212, 160, 23, 0.4));
+        }
+
+        .particle:nth-child(1) {
+            left: 8%;
+            animation-delay: 0s;
+        }
+
+        .particle:nth-child(2) {
+            left: 22%;
+            animation-delay: 3s;
+        }
+
+        .particle:nth-child(3) {
+            left: 40%;
+            animation-delay: 6s;
+        }
+
+        .particle:nth-child(4) {
+            left: 55%;
+            animation-delay: 9s;
+        }
+
+        .particle:nth-child(5) {
+            left: 70%;
+            animation-delay: 2s;
+        }
+
+        .particle:nth-child(6) {
+            left: 88%;
+            animation-delay: 5s;
+        }
+
+        .particle:nth-child(7) {
+            left: 35%;
+            animation-delay: 11s;
+        }
+
+        .particle:nth-child(8) {
+            left: 65%;
+            animation-delay: 7s;
+        }
+
+        @keyframes sacredFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+
+            15% {
+                opacity: 0.25;
+            }
+
+            50% {
+                opacity: 0.15;
+                transform: translateY(40vh) rotate(180deg) scale(1);
+            }
+
+            85% {
+                opacity: 0.1;
+            }
+
+            100% {
+                transform: translateY(-10vh) rotate(360deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Mandala Behind Hero */
+        .hero-mandala {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            border: 1px solid rgba(212, 160, 23, 0.08);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: mandalaRotate 120s infinite linear;
+            pointer-events: none;
+        }
+
+        .hero-mandala::before {
+            content: '';
+            position: absolute;
+            inset: 40px;
+            border: 1px solid rgba(212, 160, 23, 0.06);
+            border-radius: 50%;
+            animation: mandalaRotate 80s infinite linear reverse;
+        }
+
+        .hero-mandala::after {
+            content: '';
+            position: absolute;
+            inset: 80px;
+            border: 1px dashed rgba(230, 92, 0, 0.05);
+            border-radius: 50%;
+            animation: mandalaRotate 60s infinite linear;
+        }
+
+        @keyframes mandalaRotate {
+            from {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
+        /* Divine Glow on Hero Title */
+        .hero h1 {
+            text-shadow: 0 0 40px rgba(230, 92, 0, 0.08);
+            animation: fadeInUp 1s 0.5s forwards, divineGlow 6s 2s infinite ease-in-out;
+        }
+
+        @keyframes divineGlow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 40px rgba(230, 92, 0, 0.06);
+            }
+
+            50% {
+                text-shadow: 0 0 60px rgba(212, 160, 23, 0.15), 0 0 100px rgba(230, 92, 0, 0.05);
+            }
+        }
+
+        /* Sacred Fire CTA Pulse */
+        .hero-cta {
+            animation: fadeInUp 1s 0.9s forwards, sacredFire 4s 2s infinite ease-in-out;
+        }
+
+        @keyframes sacredFire {
+
+            0%,
+            100% {
+                box-shadow: 0 6px 25px rgba(230, 92, 0, 0.35);
+            }
+
+            50% {
+                box-shadow: 0 8px 40px rgba(230, 92, 0, 0.55), 0 0 60px rgba(212, 160, 23, 0.2);
+            }
+        }
+
+        /* Gold Shimmer on Cards */
+        .seva-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 160, 23, 0.05), transparent);
+            transition: none;
+        }
+
+        .seva-card:hover::after {
+            animation: goldSweep 0.8s forwards;
+        }
+
+        @keyframes goldSweep {
+            from {
+                left: -100%;
+            }
+
+            to {
+                left: 200%;
+            }
+        }
+
+        /* Scroll Reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Sacred Verse Breath Animation */
+        .section-shloka {
+            animation: verseBreathe 8s infinite ease-in-out;
+        }
+
+        @keyframes verseBreathe {
+
+            0%,
+            100% {
+                opacity: 0.85;
+                letter-spacing: 0.03em;
+            }
+
+            50% {
+                opacity: 1;
+                letter-spacing: 0.06em;
+            }
+        }
+
+        /* Lotus Divider */
+        .lotus-divider {
+            text-align: center;
+            padding: 1rem 0;
+            font-size: 1.5rem;
+            opacity: 0.2;
+            letter-spacing: 1rem;
+        }
+
+        /* Pricing card sacred hover */
+        .pricing-card:hover {
+            border-color: rgba(212, 160, 23, 0.3);
+            box-shadow: 0 10px 35px rgba(61, 35, 20, 0.12), 0 0 20px rgba(212, 160, 23, 0.08);
+        }
     </style>
 </head>
 
 <body>
+    <!-- Sacred Floating Particles -->
+    <div class="sacred-particles">
+        <div class="particle">🙏</div>
+        <div class="particle">✨</div>
+        <div class="particle">🪷</div>
+        <div class="particle">✨</div>
+        <div class="particle">🕉️</div>
+        <div class="particle">✨</div>
+        <div class="particle">🪔</div>
+        <div class="particle">✨</div>
+    </div>
+
     <!-- Floating Diyas -->
     <div class="diya">🪔</div>
     <div class="diya">🪔</div>
@@ -715,21 +966,22 @@
             <span class="logo-text">శుభమస్తు</span>
         </a>
         <a href="https://wa.me/919035264326?text=Om+Namo+Narayanaya" class="nav-cta" target="_blank">
-            వాట్సాప్ లో చేరండి
+            సేవా ప్రవేశం
         </a>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
+        <div class="hero-mandala"></div>
         <div class="hero-content">
             <p class="shloka">॥ తమసో మా జ్యోతిర్గమయ ॥</p>
 
-            <h1>ఎక్కడ భక్తి ఉంటుందో, అక్కడ దేవుడు ఉంటాడు</h1>
+            <h1>ఎక్కడ భక్తి ఉంటుందో<br>అక్కడ పవిత్రత ఉంటుంది</h1>
 
             <p class="hero-subtitle">
-                సముద్రాలు దాటినా, ధర్మం వెంటే ఉంటుంది.
-                గుడి గోడలు లేకున్నా, హృదయంలో గర్భగుడి ఉంటుంది.
-                దూరం దేహానికి — ఆత్మకు కాదు.
+                సముద్రాలు దాటినా, ధర్మం వెంటే నడుస్తుంది.
+                గుడి గోడలు లేకున్నా, హృదయంలో గర్భగుడి వెలుగుతుంది.
+                దూరం దేహానికి మాత్రమే — ఆత్మకు దూరం లేదు.
             </p>
 
             <a href="https://wa.me/919035264326?text=Om+Namo+Narayanaya" class="hero-cta" target="_blank">
@@ -740,13 +992,14 @@
         </div>
     </section>
 
+    <div class="lotus-divider">☙ ❊ ❧</div>
 
     <!-- Sevas Section -->
-    <section class="sevas">
+    <section class="sevas reveal">
         <div class="section-header">
-            <p class="section-shloka">॥ కర్మణ్యేవాధికారస్తే ॥</p>
+            <p class="section-shloka">॥ కర్మణ్యేవాధికారస్తే మా ఫలేషు కదాచన ॥</p>
             <h2>మూడు మార్గాలు</h2>
-            <p>జ్ఞానం, భక్తి, కర్మ — మూడూ ఒకే గమ్యానికి</p>
+            <p>జ్ఞానం, భక్తి, కర్మ — మూడూ ఒకే జ్యోతి వైపు</p>
         </div>
 
         <div class="sevas-grid">
@@ -756,8 +1009,9 @@
                 <p>
                     నక్షత్రాలు మాట్లాడతాయి — వినేవారికి.
                     గ్రహాలు సూచిస్తాయి — చూసేవారికి.
-                    ప్రతి ఉదయం, మీ రాశి ధర్మం —
-                    మీ వాట్సాప్ లో.
+                    ప్రతి ఉదయం, మీ రాశి ధర్మం,
+                    ఒక పవిత్ర సందేశంగా —
+                    వాట్సాప్ లో స్పందిస్తుంది.
                 </p>
             </div>
 
@@ -765,10 +1019,11 @@
                 <span class="seva-icon">🙏</span>
                 <h3>భక్తి మార్గం</h3>
                 <p>
-                    సంకల్పం అంటే మనసులో పెట్టుకోవడం.
-                    గోత్రం అంటే మూలాల గుర్తు.
+                    సంకల్పం అంటే ఆత్మ లోతుల్లో
+                    ఒక కోరిక ప్రతిష్ఠాపన.
+                    గోత్రం అంటే మూలాల శక్తి.
                     నక్షత్రం అంటే ఆత్మ చిహ్నం.
-                    మూడూ కలిస్తే — దేవుడి దగ్గర మీ మాట.
+                    మూడూ కలిస్తే — దైవ సన్నిధానం.
                 </p>
             </div>
 
@@ -777,23 +1032,23 @@
                 <h3>కర్మ మార్గం</h3>
                 <p>
                     ఇచ్చే చేయి ఎప్పుడూ ఖాళీ కాదు.
-                    అన్నం పెట్టే చేతికి పుణ్యం అంటుకుంటుంది.
-                    ఆకలి తీర్చడం — దేవుడికి పూజ చేయడం.
-                    ఫోటో సాక్ష్యం — మీకు వస్తుంది.
+                    అన్నం పెట్టే చేతికి
+                    పుణ్యం అంటుకుంటుంది.
+                    ఆకలి తీర్చడం — దేవుడికి పూజ.
+                    ప్రతి సేవకు ప్రత్యక్ష సాక్ష్యం.
                 </p>
             </div>
         </div>
     </section>
 
-
-
+    <div class="lotus-divider">☙ ❊ ❧</div>
 
     <!-- Process Section -->
-    <section class="process">
+    <section class="process reveal">
         <div class="section-header">
-            <p class="section-shloka">॥ ఆత్మా రథస్య సారథిర్భవ ॥</p>
+            <p class="section-shloka">॥ యోగః కర్మసు కౌశలమ్ ॥</p>
             <h2>ప్రయాణం</h2>
-            <p>ప్రతి ఊషస్సు పుష్పం వికసిస్తుంది</p>
+            <p>ప్రతి ఊషస్సు ఒక పుష్పం వికసిస్తుంది</p>
         </div>
 
         <div class="process-steps">
@@ -806,7 +1061,7 @@
             <div class="process-step">
                 <div class="step-number">౨</div>
                 <h3>పరిచయం</h3>
-                <p>నామ, రాశి, నక్షత్రం</p>
+                <p>నామ · రాశి · నక్షత్రం</p>
             </div>
 
             <div class="process-step">
@@ -817,13 +1072,14 @@
         </div>
     </section>
 
+    <div class="lotus-divider">☙ ❊ ❧</div>
 
     <!-- Annadanam Pricing -->
-    <section class="annadanam">
+    <section class="annadanam reveal">
         <div class="section-header">
-            <p class="section-shloka">॥ అన్నమక్షయం పరబ్రహ్మ స్వరూపమ్ ॥</p>
-            <h2>అన్నం — పరబ్రహ్మ స్వరూపం</h2>
-            <p>ఇచ్చే చేయి ఎప్పుడూ ఖాళీ కాదు</p>
+            <p class="section-shloka">॥ అన్నం బ్రహ్మేతి వ్యజానాత్ ॥</p>
+            <h2>అన్నం — బ్రహ్మ స్వరూపం</h2>
+            <p>ఇచ్చేవారి చేతిలో పుణ్యం, అందుకునే వారి కడుపులో అమృతం</p>
         </div>
 
         <div class="pricing-grid">
@@ -865,12 +1121,13 @@
         </div>
     </section>
 
+    <div class="lotus-divider">☙ ❊ ❧</div>
 
     <!-- Trust Section -->
-    <section class="trust">
+    <section class="trust reveal">
         <div class="section-header">
-            <p class="section-shloka">॥ సత్యమేవ జయతే ॥</p>
-            <h2>ధర్మం</h2>
+            <p class="section-shloka">॥ సత్యమేవ జయతే నానృతం ॥</p>
+            <h2>ధర్మ వాగ్దానం</h2>
             <p>ధర్మాన్ని రక్షిస్తే, ధర్మం రక్షిస్తుంది</p>
         </div>
 
@@ -878,19 +1135,19 @@
             <div class="trust-item">
                 <div class="icon">🪔</div>
                 <h4>శుద్ధత</h4>
-                <p>ఇచ్చినది పూర్తిగా చేరుతుంది. మధ్యలో ఏమీ ఉండదు.</p>
+                <p>ఇచ్చినది సంపూర్ణంగా చేరుతుంది. మధ్యలో ఏమీ ఉండదు.</p>
             </div>
 
             <div class="trust-item">
                 <div class="icon">📸</div>
-                <h4>సాక్ష్యం</h4>
-                <p>ప్రతి సేవకు చిత్రం వస్తుంది.</p>
+                <h4>ప్రత్యక్ష సాక్ష్యం</h4>
+                <p>ప్రతి సేవకు చిత్రం — కర్మ ఫలం మీ కళ్ళ ముందు.</p>
             </div>
 
             <div class="trust-item">
                 <div class="icon">🙏</div>
-                <h4>ఉచితం</h4>
-                <p>నిత్య రాశి — ఏమీ అడగము. అన్నదానం — ఇష్టం.</p>
+                <h4>నిత్య సేవ — ఉచితం</h4>
+                <p>రాశి మార్గదర్శనం ఎల్లప్పుడూ ఉచితం. అన్నదానం — హృదయ నిర్ణయం.</p>
             </div>
         </div>
     </section>
@@ -904,10 +1161,24 @@
         </div>
 
         <p class="footer-copy">
-            ప్రవాస తెలుగు సమాజానికి
+            ప్రవాస తెలుగు సమాజానికి — ప్రేమతో, భక్తితో
         </p>
     </footer>
 
+    <!-- Scroll Reveal Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const reveals = document.querySelectorAll('.reveal');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+            reveals.forEach(el => observer.observe(el));
+        });
+    </script>
 
 </body>
 

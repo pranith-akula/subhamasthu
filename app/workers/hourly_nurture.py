@@ -52,9 +52,8 @@ async def process_hourly_nurture():
                     # Check Rashi
                     if user.next_rashi_at and user.next_rashi_at <= now_utc:
                         # Send Rashi
-                        # await rashi_service.send_daily_rashi(user) # Need to implement/expose this
-                        # For now, just Log
-                        logger.info(f"Sending Rashi to {user.phone}")
+                        await rashi_service.send_daily_rashi_to_user(user)
+                        logger.info(f"Sent Rashi to {user.phone}")
                         
                         # Update Schedule (Add 24h)
                         user.next_rashi_at += timedelta(days=1)
