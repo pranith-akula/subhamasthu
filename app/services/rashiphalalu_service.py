@@ -432,18 +432,22 @@ JSON ఫార్మాట్‌లో సమాధానం ఇవ్వండ�
         return list(result.scalars().all())
 
     async def send_daily_rashi_to_user(self, user: User, target_date: Optional[date] = None) -> bool:
-        """Send daily rashiphalalu to a specific user."""
+        """Send daily rashiphalalu to a specific user using templates."""
         if not target_date:
             from datetime import datetime, timezone
             target_date = datetime.now(timezone.utc).date()
             
-        msg = await self.get_daily_rashiphalalu_message_for_user(
-            user, 
-            target_date, 
-            template_name="daily_rashiphalalu_v1"
-        )
+        message = await self.generate_personalized_message(user, target_date)
         
-        if msg:
-            await self.whatsapp.send_text_message(user.phone, msg)
-            return True
+        if message:
+            # Using template for 24h compliance + automated delivery
+            msg_id = await self.whatsapp.send_template_message(
+                phone=user.phone,
+                template_name="daily_rashiphalalu_v1",
+                components=[{
+                    "type": "body",
+                    "parameters": [{"type": "text", "text": message}]
+                }]
+            )
+            return bool(msg_id)
         return False
