@@ -13,6 +13,7 @@ from app.database import get_db
 from app.database import get_db
 from app.api.deps import get_admin_user, get_admin_html_user
 from app.config import settings
+from app.models.user import User
 from app.models.sankalp import Sankalp
 from app.models.seva_media import SevaMedia, MediaType
 from app.fsm.states import SankalpStatus, ConversationState
@@ -109,9 +110,6 @@ async def get_users_list(
     _: str = Depends(get_admin_user)
 ):
     """Get list of users with stats."""
-    from app.models.user import User
-    from sqlalchemy import case, func
-    
     # Optimized query: Fetch Users + Aggregated Sankalp Stats in ONE query
     # avoiding N+1 problem.
     query = (
@@ -258,7 +256,6 @@ async def get_dashboard_stats(
     total_users = 0
     
     try:
-        from app.models.user import User
         # Total Users
         total_users_query = select(func.count(User.id))
         total_users = (await db.execute(total_users_query)).scalar() or 0
